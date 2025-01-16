@@ -5,8 +5,12 @@
     rail-width="80"
     :rail="appStore.isDrawerOpen"
     color="transparent"
+    :permanent="mdAndDown ? true : false"
   >
-    <!-- rail / permanent -->
+    <!-- rail / permanent 
+     DOCME:
+     https://stackoverflow.com/questions/64174860/hide-vuetify-navigation-drawer
+     -->
     <v-list
       nav
       lines="two"
@@ -18,6 +22,7 @@
         class="nav-item"
         rounded="xl"
         active-class="nav-item-active"
+        @click="aution(item.value)"
       >
         <!-- :to="item.path" -->
         <template #prepend>
@@ -38,6 +43,49 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useAppStore } from '@/stores/app'
+import { useDisplay } from 'vuetify'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+const { mdAndDown } = useDisplay()
+
+// 監控螢幕斷點變化
+/*
+import { watchEffect } from 'vue'
+const { 
+  mobile,
+  xs,
+  sm,
+  md,
+  lg,
+  xl,
+  xxl,
+  name,
+  height,
+  width,
+  mdAndDown,
+  mdAndUp,
+  displayClasses 
+} = useDisplay()
+watchEffect(() => {
+  console.log({
+    斷點名稱: name.value,
+    螢幕寬度: width.value,
+    螢幕高度: height.value,
+    是否手機: mobile.value,
+    斷點詳情: {
+      超小型: xs.value,
+      小型: sm.value,
+      中型: md.value,
+      大型: lg.value,
+      特大: xl.value,
+      超大: xxl.value
+    },
+    中型螢幕及以下: mdAndDown.value,
+    中型螢幕及以上: mdAndUp.value,
+    顯示類別: displayClasses.value
+  })
+})
+*/
 
 const appStore = useAppStore()
 
@@ -87,8 +135,21 @@ const navItems = ref([
 ])
 
 const filteredNavItems = computed(() => {
-  return navItems.value.filter(item => item.show)
+  return navItems.value.filter((item) => item.show)
 })
+
+const aution = (auctionId) => {
+  console.log(auctionId)
+  switch (auctionId) {
+    case 'logout':
+      appStore.logout()
+      router.push('/')
+      break;
+  
+    default:
+      break;
+  }
+}
 </script>
 
 <style scoped lang="scss">
