@@ -4,7 +4,7 @@
     width="200"
     rail-width="80"
     :rail="appStore.isDrawerOpen"
-    color="transparent"
+    color="#FFFFFF"
     :permanent="mdAndDown ? true : false"
   >
     <!-- rail / permanent 
@@ -143,6 +143,15 @@ const filteredNavItems = computed(() => {
 const aution = (auctionId) => {
   console.log(auctionId)
   switch (auctionId) {
+    case 'exam':
+      router.push('/exam/playcard')
+      break;
+    case 'permission':
+      router.push('/permission')
+      break;
+    case 'user':
+      router.push('/user')
+      break;
     case 'logout':
       appStore.logout()
       router.push('/')

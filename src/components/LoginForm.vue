@@ -15,8 +15,8 @@
             rel="noopener noreferrer"
             target="_blank"
           >
-            或者進行註冊?</a
-          >
+            或者進行註冊?
+          </a>
         </div>
 
         <v-text-field
@@ -29,15 +29,14 @@
 
         <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
           密碼
-
           <a
             class="text-caption text-decoration-none text-blue"
             href="#"
             rel="noopener noreferrer"
             target="_blank"
           >
-            忘記密碼?</a
-          >
+            忘記密碼?
+          </a>
         </div>
 
         <v-text-field
@@ -51,17 +50,16 @@
           @click:append-inner="visible = !visible"
         />
 
-        <!-- <v-card
+        <v-card
           class="mb-12"
           color="surface-variant"
           variant="tonal"
         >
           <v-card-text class="text-medium-emphasis text-caption">
-            Warning: After 3 consecutive failed login attempts, you account will be temporarily locked
-            for three hours. If you must login now, you can also click "Forgot login password?" below
-            to reset the login password.
+            測試帳號: admin<br>
+            測試密碼: 123456
           </v-card-text>
-        </v-card> -->
+        </v-card>
 
         <v-btn
           class="mb-8"

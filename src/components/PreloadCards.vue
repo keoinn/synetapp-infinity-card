@@ -30,11 +30,13 @@
 import { ref, onMounted, computed, watch} from 'vue'
 import { careImages, leImages, ljImages, ceImages, cjImages, goalImages } from '@/plugins/utils/psy_cards.js'
 import { handleAlert } from '@/plugins/utils/alert.js'
-
-const images = [...careImages, ...leImages, ...ljImages, ...ceImages, ...cjImages, ...goalImages]
+import { combineAndShuffle, getCardImageName } from '@/plugins/utils/psy_cards.js'
+const images = combineAndShuffle([...careImages, ...leImages, ...ljImages, ...ceImages, ...cjImages, ...goalImages])
 const newImages = ref([])
 const loaded = ref(0)
 const isLoading = ref(false)
+
+
 
 const preloadImages = (imageUrls) => {
   return Promise.all(
@@ -68,13 +70,7 @@ watch(()=>processValue.value, (value) => {
 })
 
 const handleClick = (image) => {
-  // 先移除 URL 參數（?t=1737191864776）
-  const cleanUrl = image.split('?')[0]
-  const fullFileName = cleanUrl.split('/').pop() // 完整檔案名（含副檔名）
-  const fileName = fullFileName.replace('.webp', '') // 不含副檔名
-  const cardName = fileName.split('-')[0]
-  const fileType = fullFileName.split('.').pop() // 副檔名
-  console.log(fullFileName, fileName, cardName, fileType)
+  const cardName = getCardImageName(image)
   handleAlert({
       auction: 'warning',
       text: '您選擇了' + cardName,

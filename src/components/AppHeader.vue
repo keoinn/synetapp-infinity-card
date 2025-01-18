@@ -2,7 +2,7 @@
   <v-app-bar
     app
     flat
-    color="transparent"
+    color="#FFFFFF"
   >
     <div
       v-if="true"
