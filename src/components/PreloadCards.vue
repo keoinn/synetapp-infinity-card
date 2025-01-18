@@ -72,11 +72,12 @@ const handleClick = (image) => {
   const cleanUrl = image.split('?')[0]
   const fullFileName = cleanUrl.split('/').pop() // 完整檔案名（含副檔名）
   const fileName = fullFileName.replace('.webp', '') // 不含副檔名
+  const cardName = fileName.split('-')[0]
   const fileType = fullFileName.split('.').pop() // 副檔名
-  console.log(fileName)
+  console.log(fullFileName, fileName, cardName, fileType)
   handleAlert({
       auction: 'warning',
-      text: '您選擇了' + fileName,
+      text: '您選擇了' + cardName,
     })
 }
 
