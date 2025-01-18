@@ -21,7 +21,7 @@
     v-show="isLoading"
     :key="index"
     :src="image"
-    :style="{ width: '30px' }"
+    :style="{ width: '100px' }"
     @load="handleLoad"
   >
 </template>
@@ -475,7 +475,6 @@ const handleLoad = () => {
   setTimeout(() => {
     loaded.value++
   }, 100)
-  console.log(loaded.value)
 }
 
 const processValue = computed(() => {

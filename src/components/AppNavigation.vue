@@ -22,6 +22,8 @@
         class="nav-item"
         rounded="xl"
         active-class="nav-item-active"
+        :active="handleActive(item.value)"
+        :disabled="handleActive(item.value)"
         @click="aution(item.value)"
       >
         <!-- :to="item.path" -->
@@ -112,10 +114,10 @@ const navItems = ref([
     show: true
   },
   {
-    value: 'buy',
+    value: 'cards',
     icon: 'mdi-shopping-outline',
     text: '購買卡牌',
-    path: '/logout',
+    path: '/cards',
     show: true
   },
   {
@@ -145,10 +147,17 @@ const aution = (auctionId) => {
       appStore.logout()
       router.push('/')
       break;
-  
+    case 'cards':
+      router.push('/cards')
+      break;
     default:
+      router.push('/')
       break;
   }
+}
+
+const handleActive = (item) => {
+  return router.currentRoute.value.path.replace('/', '') === item
 }
 </script>
 
@@ -158,6 +167,11 @@ const aution = (auctionId) => {
   :deep(.v-list-item__prepend) {
     width: 50px;
   }
+
+  
+}
+.v-list-item--disabled{
+    opacity: 0.95 !important;
 }
 
 .nav-item-text {
