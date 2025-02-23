@@ -9,15 +9,41 @@
     </div>
 
     <div class="flip-card__back">
-      <v-img :src="backImage" />
+      <v-img :src="coverImages[getCardCoverImage(getCardImageName(image))]" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
-import backImage from '@/assets/B006.webp'
-import { getCardImageName } from '@/plugins/utils/psy_cards.js'
+import { getCardImageName, getCardCoverImage } from '@/plugins/utils/psy_cards.js'
+import general_a from '@/assets/images/covers/general_a.webp'
+import general_c from '@/assets/images/covers/general_c.webp'
+import general_e from '@/assets/images/covers/general_e.webp'
+import general_i from '@/assets/images/covers/general_i.webp'
+import general_r from '@/assets/images/covers/general_r.webp'
+import general_s from '@/assets/images/covers/general_s.webp'
+import goal_a from '@/assets/images/covers/goal_a.webp'
+import goal_c from '@/assets/images/covers/goal_c.webp'
+import goal_e from '@/assets/images/covers/goal_e.webp'
+import goal_i from '@/assets/images/covers/goal_i.webp'
+import goal_r from '@/assets/images/covers/goal_r.webp'
+import goal_s from '@/assets/images/covers/goal_s.webp'
+
+const coverImages = {
+  'general_a': general_a,
+  'general_c': general_c,
+  'general_e': general_e,
+  'general_i': general_i,
+  'general_r': general_r,
+  'general_s': general_s,
+  'goal_a': goal_a,
+  'goal_c': goal_c,
+  'goal_e': goal_e,
+  'goal_i': goal_i,
+  'goal_r': goal_r,
+  'goal_s': goal_s,
+}
 
 const props = defineProps({
   image: {

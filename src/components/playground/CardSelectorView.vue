@@ -74,7 +74,7 @@
 
 <script setup>
 import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
-import { careImages } from '@/plugins/utils/psy_cards.js'
+import { careImages, combineAndShuffle } from '@/plugins/utils/psy_cards.js'
 import { useCountdown } from '@/plugins/utils/countdown.js'
 import { handleAlert } from '@/plugins/utils/alert.js'
 
@@ -86,25 +86,28 @@ const COUNTDOWN_SECONDS = 300 // 5分鐘
 const currentCardPool = ref([])
 const CurrentPage = ref(0)
 const PageSize = ref(Math.ceil(careImages.length / CARDS_PER_PAGE))
-const cardImages = careImages // TODO: 動態計算
+const cardImages = combineAndShuffle(careImages) // TODO: 動態計算
+
+// 倒數計時相關
+const { remainingSeconds, formattedTime, startTimer, cleanup } = useCountdown(COUNTDOWN_SECONDS)
 
 // 事件處理
 const handleCardFlip = ({ cardName, isFold, imagePath }) => {
   console.log('卡片已翻轉：', cardName)
   console.log('翻轉狀態：', isFold)
   console.log('圖片路徑：', imagePath)
+  console.log('觸發時間：', remainingSeconds.value)
 }
 
-// 倒數計時相關
-const { remainingSeconds, formattedTime, startTimer, cleanup } = useCountdown(COUNTDOWN_SECONDS)
-
 // 監聽倒數結束
-watch(remainingSeconds, (newValue) => {
+const stopWatch = watch(remainingSeconds, (newValue) => {
   if (newValue === 0) {
+    // TODO: 倒數結束後，需要做的事情
     handleAlert({
       auction: 'warning',
       text: '時間到！請確認是否要繼續？'
     })
+    stopWatch(); // 移除監聽器
   }
 })
 
