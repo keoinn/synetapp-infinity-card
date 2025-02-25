@@ -1,110 +1,186 @@
 <template>
-  <div class="card-playground">
-    <v-row class="pa-0 ma-0">
-      <v-col cols="12">
-        <v-progress-linear
-          :model-value="(remainingSeconds / countdownSeconds) * 100"
-          height="20"
-          color="#FA5015"
-          rounded="xl"
-        />
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-spacer />
-      <v-col
-        cols="1"
-        class="pa-0 ma-0"
-      >
-        <span class="text-h6">{{ formattedTime }}</span>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col
-        v-for="(image, index) in currentCardPool"
-        :key="image"
-        cols="3"
-        md="3"
-        lg="3"
-        xl="3"
-      >
-        <CardView
-          :image="image"
-          :is-fold="cards_status[cardsPerPage * CurrentPage + index]"
-          @card-flipped="handleCardFlip"
-        />
-      </v-col>
+  <div
+    class="card-playground"
+    style=""
+  >
+    <div v-show="isStart">
+      <v-row class="pa-0 ma-0">
+        <v-col cols="12">
+          <v-progress-linear
+            :model-value="(remainingSeconds / countdownSeconds) * 100"
+            height="20"
+            color="#FA5015"
+            rounded="xl"
+          />
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-spacer />
+        <v-col
+          cols="1"
+          class="pa-0 ma-0"
+        >
+          <span class="text-h6">{{ formattedTime }}</span>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col
+          v-for="(image, index) in currentCardPool"
+          :key="image"
+          cols="3"
+          md="3"
+          lg="3"
+          xl="3"
+        >
+          <CardView
+            :image="image"
+            :is-fold="cards_status[cardsPerPage * CurrentPage + index]"
+            @card-flipped="handleCardFlip"
+          />
+        </v-col>
 
-      <v-col
-        v-for="n in 8 - currentCardPool.length"
-        :key="n"
-        cols="3"
-        md="3"
-        lg="3"
-        xl="3"
+        <v-col
+          v-for="n in 8 - currentCardPool.length"
+          :key="n"
+          cols="3"
+          md="3"
+          lg="3"
+          xl="3"
+        >
+          <v-img
+            :src="emptyCard"
+            style="width: 237px; height: 328px"
+          />
+        </v-col>
+      </v-row>
+      <v-row class="pa-0 ma-0">
+        <v-col cols="3">
+          <v-btn
+            rounded="xl"
+            color="#FA5015"
+            text="我憧憬的職業"
+            size="large"
+            block
+          />
+        </v-col>
+        <v-col cols="2">
+          <v-btn
+            rounded="xl"
+            color="#FA5015"
+            text="暫存"
+            size="large"
+            block
+            @click="handleSave"
+          />
+        </v-col>
+        <v-col
+          v-if="isLastPage"
+          cols="2"
+        >
+          <v-btn
+            rounded="xl"
+            color="#FA5015"
+            text="完成卡片選擇"
+            size="large"
+            block
+            @click="handleFinish"
+          />
+        </v-col>
+        <v-spacer />
+        <v-col cols="1">
+          <v-btn
+            icon="mdi-chevron-left"
+            color="#FA5015"
+            @click="CurrentPage--"
+          />
+        </v-col>
+        <v-col cols="1">
+          <v-btn
+            icon="mdi-chevron-right"
+            color="#FA5015"
+            @click="CurrentPage++"
+          />
+        </v-col>
+      </v-row>
+    </div>
+    <div
+      v-show="!isStart"
+      class="guide-view"
+    >
+      <v-row
+        class="pa-0 ma-0"
+        style=""
       >
-        <v-img
-          :src="emptyCard"
-          style="width: 237px; height: 328px"
-        />
-      </v-col>
-    </v-row>
-    <v-row class="pa-0 ma-0">
-      <v-col cols="3">
-        <v-btn
-          rounded="xl"
-          color="#FA5015"
-          text="我憧憬的職業"
-          size="large"
-          block
-        />
-      </v-col>
-      <v-col cols="2">
-        <v-btn
-          rounded="xl"
-          color="#FA5015"
-          text="暫存"
-          size="large"
-          block
-          @click="handleSave"
-        />
-      </v-col>
-      <v-col
-        v-if="isLastPage"
-        cols="2"
-      >
-        <v-btn
-          rounded="xl"
-          color="#FA5015"
-          text="完成卡片選擇"
-          size="large"
-          block
-          @click="handleFinish"
-        />
-      </v-col>
-      <v-spacer />
-      <v-col cols="1">
-        <v-btn
-          icon="mdi-chevron-left"
-          color="#FA5015"
-          @click="CurrentPage--"
-        />
-      </v-col>
-      <v-col cols="1">
-        <v-btn
-          icon="mdi-chevron-right"
-          color="#FA5015"
-          @click="CurrentPage++"
-        />
-      </v-col>
-    </v-row>
+        <v-col cols="5">
+          <v-row class="pa-0 ma-0">
+            <v-col class="d-flex justify-center align-center">
+              <img
+                :src="caseGoal"
+                class="card-case"
+              >
+            </v-col>
+          </v-row>
+          <v-row class="pa-0 ma-0">
+            <v-col class="d-flex justify-center align-center">
+              <p class="case-title">
+                我就是
+              </p>
+            </v-col>
+          </v-row>
+          <v-row class="pa-0 ma-0">
+            <v-col class="d-flex justify-center align-center">
+              <p class="case-subtitle">
+                我憧憬的職業
+              </p>
+            </v-col>
+          </v-row>
+        </v-col>
+
+        <v-col
+          cols="7"
+          class="guide-border"
+        >
+          <v-row>
+            <v-col>
+              <div class="guide-section d-flex justify-center align-center">
+                <div
+                  class="content"
+                  v-html="guideContent"
+                />
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <v-spacer />
+            <v-col cols="4">
+              <v-btn
+                rounded="xl"
+                color="#FA5015"
+                text="開始測驗"
+                size="large"
+                block
+                @click="isStart = !isStart"
+              />
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, defineProps, computed, onBeforeUnmount } from 'vue'
 import { useCardsStore } from '@/stores/cards'
-import { useCountdown } from '@/plugins/utils/countdown.js'
+import {
+  remainingSeconds,
+  formattedTime,
+  startTimer,
+  stopTimer,
+  cleanup,
+  setTimer
+} from '@/plugins/utils/countdown.js'
 import { handleAlert } from '@/plugins/utils/alert.js'
 import {
   careImages,
@@ -115,6 +191,7 @@ import {
   goalImages
 } from '@/plugins/utils/psy_cards.js'
 import emptyCard from '@/assets/images/covers/empty.webp'
+import caseGoal from '@/assets/images/case/case_goal.webp'
 
 // 定義 props
 const props = defineProps({
@@ -150,11 +227,39 @@ const cards_status = ref(
   props.cardsStatus.length ? props.cardsStatus : Array(cards_pool.value.length).fill(false) // 設置為 true
 )
 const CurrentPage = ref(0)
-const { remainingSeconds, formattedTime, startTimer, cleanup } = useCountdown(
-  props.countdownSeconds
-)
+const isStart = ref(false)
+setTimer(props.countdownSeconds)
+
+// 監聽 isStart 狀態
+watch(isStart, (newValue) => {
+  if (newValue) {
+    startTimer(true) // 啟動計時器
+  } else {
+    stopTimer()
+  }
+})
+
 const logs = ref([]) // 用於記錄翻牌事件
 const cardsStore = useCardsStore() // 使用 cards store
+
+// 指導語
+const guideContent = ref(
+  `  <ul>
+    <li>
+      接下來將會有有 100 種職業別顯示於畫面上，請依照你個人的判斷與感受，選出<span
+        class="highlight"
+        >你喜歡的、你憧憬的、對該職業有熱情未來有可能想去從事的行業</span
+      >。
+    </li>
+    <li>
+      請在 5 分鐘內，<span class="highlight">點擊</span
+      >職業卡牌可以將牌面翻開或蓋上，留下你選擇的職業卡牌。
+    </li>
+    <li>
+      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
+    </li>
+  </ul>`
+)
 
 // 取得初始卡片集合
 function getInitialCards(type) {
@@ -257,11 +362,60 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .card-playground {
   max-width: 1100px;
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.card-case {
+  border-radius: 15px;
+  height: 440px;
+}
+
+.case-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: #fa5015;
+}
+
+.case-subtitle {
+  font-size: 32px;
+  margin-top: -30px;
+  color: #fa5015;
+}
+
+.guide-view {
+  width: 1100px;
+  // height: 720px;
+  min-height: 720px;
+}
+
+.guide-border {
+  border: 2px solid black;
+  border-radius: 15px;
+}
+
+.guide-section {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  // background-color: lightblue;
+  font-size: 24px;
+  padding-top: 100px;
+
+  .highlight {
+    color: #fa5015;
+    font-weight: 900;
+  }
+
+  .content {
+    padding-left: 30px;
+    ul {
+      list-style-type: "\1F44D";
+    }
+  }
 }
 </style>
