@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps, defineEmits, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { getCardImageName, getCardCoverImage } from '@/plugins/utils/psy_cards.js'
 import general_a from '@/assets/images/covers/general_a.webp'
 import general_c from '@/assets/images/covers/general_c.webp'
