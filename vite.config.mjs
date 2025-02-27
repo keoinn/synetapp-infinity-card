@@ -51,6 +51,13 @@ export default defineConfig({
     }),
   ],
   define: { 'process.env': {} },
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: 'assets/[name].[ext]',
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

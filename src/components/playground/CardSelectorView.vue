@@ -75,7 +75,14 @@
 <script setup>
 import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { careImages, combineAndShuffle } from '@/plugins/utils/psy_cards.js'
-import { useCountdown } from '@/plugins/utils/countdown.js'
+import {
+  remainingSeconds,
+  formattedTime,
+  startTimer,
+  stopTimer,
+  cleanup,
+  setTimer
+} from '@/plugins/utils/countdown.js'
 import { handleAlert } from '@/plugins/utils/alert.js'
 
 // 常量
@@ -89,7 +96,8 @@ const PageSize = ref(Math.ceil(careImages.length / CARDS_PER_PAGE))
 const cardImages = combineAndShuffle(careImages) // TODO: 動態計算
 
 // 倒數計時相關
-const { remainingSeconds, formattedTime, startTimer, cleanup } = useCountdown(COUNTDOWN_SECONDS)
+setTimer(COUNTDOWN_SECONDS)
+startTimer(true)
 
 // 事件處理
 const handleCardFlip = ({ cardName, isFold, imagePath }) => {

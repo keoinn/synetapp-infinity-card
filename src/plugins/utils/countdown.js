@@ -19,10 +19,8 @@ const startTimer = (action = null) => {
     timerInterval = setInterval(() => {
       if (remainingSeconds.value > 0) {
         remainingSeconds.value--
-        console.log('remainingSeconds', remainingSeconds.value);
       } else {
         stopTimer()
-        console.log('stopTimer');
       }
     }, 1000)
   }
