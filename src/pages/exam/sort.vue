@@ -1,6 +1,5 @@
 <template>
   <div class="sort-page">
-    <h1>卡片分類頁面</h1>
     <CardClassify />
   </div>
 </template>
