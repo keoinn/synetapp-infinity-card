@@ -218,25 +218,10 @@ onBeforeUnmount(() => {
     style=""
   >
     <div v-show="isStart">
-      <v-row class="pa-0 ma-0">
-        <v-col cols="12">
-          <v-progress-linear
-            :model-value="(remainingSeconds / countdownSeconds) * 100"
-            height="20"
-            color="#FA5015"
-            rounded="xl"
-          />
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-spacer />
-        <v-col
-          cols="1"
-          class="pa-0 ma-0"
-        >
-          <span class="text-h6">{{ formattedTime }}</span>
-        </v-col>
-      </v-row>
+      <TimeRemainingBar
+        :remaining-seconds="remainingSeconds"
+        :countdown-seconds="countdownSeconds"
+      />
       <v-row>
         <v-col
           v-for="(image, index) in currentCardPool"
@@ -393,6 +378,7 @@ onBeforeUnmount(() => {
   width: 100%;
   display: flex;
   flex-direction: column;
+  background-color: lightblue;
 }
 
 .card-case {

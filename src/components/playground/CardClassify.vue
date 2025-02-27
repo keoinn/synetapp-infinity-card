@@ -88,86 +88,74 @@ onMounted(() => {
 
 <template>
   <div class="card-playground">
-    <v-row class="pa-0 ma-0">
-      <v-col cols="11">
-        <v-progress-linear
-          :model-value="(remainingSeconds / 300) * 100"
-          height="20"
-          color="#FA5015"
-          rounded="xl"
-        />
-      </v-col>
-      <v-spacer />
-      <v-col
-        cols="1"
-        class="pt-2 ma-0"
-      >
-        <span class="text-h6"> {{ formattedTime }}</span>
+    <TimeRemainingBar
+      :remaining-seconds="remainingSeconds"
+      :countdown-seconds="300"
+    />
+    <v-row>
+      <v-col cols="12">
+        <div class="drop-areas-container">
+          <div
+            v-for="(profession, index) in professions"
+            :key="index"
+            class="drop-area"
+            @drop.prevent="handleDrop($event, index)"
+            @dragover.prevent
+          >
+            {{ profession.title }} ({{ profession.cards.length }})
+            <v-img
+              :src="profession.class_img"
+              alt="職業圖片"
+              class="profession-img"
+            />
+          </div>
+        </div>
+        <div
+          v-show="isStart"
+          class="card-container"
+        >
+          <CardView
+            v-for="(card, index) in currentCardPool"
+            v-show="index >= currentSequence"
+            :key="index"
+            :image="card"
+            class="card"
+            :is-fold="cards_status[index]"
+            :card-draggable="true"
+            draggable="true"
+            :style="{
+              zIndex: 1000 - index,
+              transform: `translate(${index * 0.9}px, ${index * 0.5}px)`}"
+            @dragstart="handleDragStart(card)"
+          />
+          <v-btn
+            v-if="remainingCards === 0"
+            rounded="xl"
+            color="#FA5015"
+            text="完成卡片選擇"
+            size="x-large"
+            class="finish"
+            @click="handleFinish"
+          />
+        </div>
+        <div class="card-count">
+          卡牌剩餘張數 <span class="card-count-number">{{ remainingCards }}</span>
+        </div>
       </v-col>
     </v-row>
-
-    <div class="drop-areas-container">
-      <div
-        v-for="(profession, index) in professions"
-        :key="index"
-        class="drop-area"
-        @drop.prevent="handleDrop($event, index)"
-        @dragover.prevent
-      >
-        {{ profession.title }} ({{ profession.cards.length }})
-        <v-img
-          :src="profession.class_img"
-          alt="職業圖片"
-          class="profession-img"
-        />
-      </div>
-    </div>
-    <div
-      v-show="isStart"
-      class="card-container"
-    >
-      <CardView
-        v-for="(card, index) in currentCardPool"
-        v-show="index >= currentSequence"
-        :key="index"
-        :image="card"
-        class="card"
-        :is-fold="cards_status[index]"
-        :card-draggable="true"
-        draggable="true"
-        :style="{
-          zIndex: 1000 - index,
-          transform: `translate(${index * 0.9}px, ${index * 0.5}px)`}"
-        @dragstart="handleDragStart(card)"
-      />
-      <v-btn
-        v-if="remainingCards === 0"
-        rounded="xl"
-        color="#FA5015"
-        text="完成卡片選擇"
-        size="x-large"
-        class="finish"
-        @click="handleFinish"
-      />
-    </div>
-    <div class="card-count">
-      卡牌剩餘張數 <span class="card-count-number">{{ remainingCards }}</span>
-    </div>
   </div>
 </template>
 
-
-
 <style lang="scss" scoped>
 .card-playground {
-  flex-direction: column;
-  align-items: center;
-  //   background-color: lightblue;
+  background-color: lightblue;
   position: relative;
-  width: 100%;
   min-height: 600px;
-  max-width: 1300px;
+  max-width: 1100px;
   min-width: 960px;
+  width: 100%;
+  flex-direction: column;
+  display: flex;
 }
 
 .drop-areas-container {
