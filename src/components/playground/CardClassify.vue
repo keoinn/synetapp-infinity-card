@@ -5,61 +5,79 @@
         v-for="(profession, index) in professions"
         :key="index"
         class="drop-area"
-        @drop.prevent="handleDrop"
+        @drop.prevent="handleDrop($event, index)"
         @dragover.prevent
       >
-        {{ profession }}
+        {{ profession.title }} ({{ profession.cards.length }})
+        <v-img :src="profession.class_img" alt="職業圖片" class="profession-img"></v-img>
       </div>
     </div>
     <div class="card-container">
-      <div
-        v-for="(card, index) in cards"
-        :key="card.id"
-        class="card"
-        :style="{ transitionDelay: `${index * 100}ms` }"
+      <CardView
+        v-for="(card, index) in currentCardPool"
+        v-show="index >= currentSequence"
+        :key="index"
+        :image="card"
+        :is-fold="cards_status[index]"
+        :card-draggable="true"
         draggable="true"
         @dragstart="handleDragStart(card)"
-      >
-        {{ card.content }}
-      </div>
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-
-const professions = ref(['職業一', '職業二', '職業三']);
-const cards = ref([
-  { id: 1, content: '卡片 1' },
-  { id: 2, content: '卡片 2' },
-  { id: 3, content: '卡片 3' }
-]);
-const draggedCard = ref(null);
-
-const router = useRouter();
+import { ref, onMounted } from 'vue'
+import { handleAlert } from '@/plugins/utils/alert.js'
+import {
+  careImages,
+  leImages,
+  ljImages,
+  ceImages,
+  cjImages,
+  goalImages,
+} from '@/plugins/utils/psy_cards.js'
+import { getCardImageName } from '@/plugins/utils/psy_cards.js'
+const professions = ref([
+  { title: '職業一', cards: [], class_img: goalImages[0] },
+  { title: '職業二', cards: [], class_img: goalImages[1] },
+  { title: '職業三', cards: [], class_img: goalImages[2] }
+])
+const professionCards = ref({
+  '職業一': [],
+  '職業二': [],
+  '職業三': []
+})
+const draggedCard = ref(null)
+const currentSequence = ref(0)
+const currentCardPool = ref(careImages)
+const cards_status = ref(
+  Array(currentCardPool.value.length).fill(true) // 設置為 true
+)
 
 const handleDragStart = (card) => {
-  draggedCard.value = card;
-};
+  draggedCard.value = card
+}
 
-const handleDrop = (event) => {
+const handleDrop = async (event, professionIndex) => {
   event.preventDefault();
   if (draggedCard.value) {
-    alert(`你已經成功拖曳 ${draggedCard.value.content}`);
-    cards.value = cards.value.filter((c) => c.id !== draggedCard.value.id);
+    professions.value[professionIndex].cards.push(draggedCard.value);
+    handleAlert({
+      auction: 'success',
+      text: `你已經成功拖曳 ${getCardImageName(draggedCard.value)} 到 ${professions.value[professionIndex].title}`
+    });
+    currentSequence.value++
+    cards_status.value[currentSequence.value] = false
     draggedCard.value = null;
   }
 };
 
-const handleActive = (item) => {
-  return router.currentRoute.value.path.replace('/', '') === item;
-};
-
 onMounted(() => {
-  document.body.setAttribute('ondragstart', 'true');
-});
+  document.body.setAttribute('ondragstart', 'true')
+  cards_status.value[currentSequence.value] = false
+})
 </script>
 
 <style lang="scss" scoped>
@@ -83,7 +101,7 @@ onMounted(() => {
 
 .drop-area {
   flex: 1;
-  height: 100px;
+  height: 300px;
   margin: 0 10px;
   padding: 20px;
   text-align: center;

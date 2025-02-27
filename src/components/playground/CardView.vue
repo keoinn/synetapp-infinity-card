@@ -2,7 +2,7 @@
   <div 
     class="flip-card" 
     :class="{ 'is-flipped': isFold }"
-    @click="toggleFlip"
+    @click="handleClick"
   >
     <div class="flip-card__front">
       <v-img :src="image" />
@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, defineProps, defineEmits, onMounted } from 'vue'
 import { getCardImageName, getCardCoverImage } from '@/plugins/utils/psy_cards.js'
 import general_a from '@/assets/images/covers/general_a.webp'
 import general_c from '@/assets/images/covers/general_c.webp'
@@ -53,10 +53,14 @@ const props = defineProps({
   isFold: {
     type: Boolean,
     default: false
+  },
+  cardDraggable: {
+    type: Boolean,
+    default: false  // 預設值為 false
   }
 })
 
-const emit = defineEmits(['update:isFold', 'cardFlipped'])
+const emit = defineEmits(['cardFlipped', 'toggleDrag'])
 
 const isFold = ref(props.isFold)
 
@@ -66,20 +70,27 @@ watch(() => props.isFold, (newValue) => {
 })
 
 const toggleFlip = () => {
-  const newFoldState = !isFold.value
-  isFold.value = newFoldState
-  
-  const cardName = getCardImageName(props.image)
-  
-  // 發送雙向綁定的 v-model 更新
-  // emit('update:isFold', newFoldState)
-  
-  // 發送翻牌事件，包含卡片資訊
+  isFold.value = !isFold.value
   emit('cardFlipped', {
-    cardName,
-    isFold: newFoldState,
+    cardName: getCardImageName(props.image),
+    isFold: isFold.value,
     imagePath: props.image
   })
+}
+
+const toggleDrag = () => {
+  emit('toggleDrag', {
+    cardName: getCardImageName(props.image),
+    imagePath: props.image
+  })
+}
+
+const handleClick = () => {
+  if (props.cardDraggable) {
+    toggleDrag()
+  } else {
+    toggleFlip()
+  }
 }
 </script>
 

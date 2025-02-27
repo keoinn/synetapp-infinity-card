@@ -249,6 +249,7 @@ onBeforeUnmount(() => {
           <CardView
             :image="image"
             :is-fold="cards_status[cardsPerPage * CurrentPage + index]"
+            :card-draggable="false"
             @card-flipped="handleCardFlip"
           />
         </v-col>
