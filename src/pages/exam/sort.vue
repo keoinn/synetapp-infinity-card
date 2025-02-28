@@ -40,6 +40,11 @@ const cardsPool = ref(
   ]
 )
 
+// 接收 emit 事件
+const handleFinishClassify = (data) => {
+  console.log(data)
+}
+
 </script>
 
 <template>
@@ -48,6 +53,7 @@ const cardsPool = ref(
       :professions="professions"
       :cards-pool="cardsPool"
       :type="type"
+      @finish-classify="handleFinishClassify"
     />
   </div>
 </template>

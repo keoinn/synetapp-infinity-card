@@ -36,6 +36,7 @@ import {
 } from '@/plugins/utils/psy_cards.js'
 import emptyCard from '@/assets/images/covers/empty.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
+import { addLog, getLogs, clearLogs, setProcessType } from '@/plugins/utils/process_logger.js'
 
 // 定義 props
 const props = defineProps({
@@ -83,7 +84,6 @@ watch(isStart, (newValue) => {
   }
 })
 
-const logs = ref([]) // 用於記錄翻牌事件
 const cardsStore = useCardsStore() // 使用 cards store
 
 // 指導語
@@ -154,22 +154,25 @@ watch(CurrentPage, (newValue) => {
 
 // 處理卡片翻轉事件
 const handleCardFlip = ({ cardName, isFold, imagePath }) => {
-  const logEntry = {
-    seq: logs.value.length + 1,
+  // 使用新的日誌管理功能
+  addLog({
+    action: 'flip',
     card: cardName,
-    status: isFold,
-    timestamp: remainingSeconds.value
-  }
-  logs.value.push(logEntry)
+    remainingSeconds: remainingSeconds.value,
+    additional: {
+      status: isFold,
+      imagePath: imagePath
+    }
+  });
 
   // 根據 cardName 更新 cards_status
-  const cardIndex = cards_pool.value.findIndex((card) => card === imagePath)
+  const cardIndex = cards_pool.value.findIndex((card) => card === imagePath);
   if (cardIndex !== -1) {
-    cards_status.value[cardIndex] = isFold // 更新對應的狀態
+    cards_status.value[cardIndex] = isFold; // 更新對應的狀態
   }
 
   // 更新 store 狀態
-  cardsStore.updateCards(cards_pool.value, cards_status.value, logs.value, CurrentPage.value)
+  cardsStore.updateCards(cards_pool.value, cards_status.value, getLogs(), CurrentPage.value);
 }
 
 // 檢查是否為最後一頁
@@ -190,10 +193,11 @@ const handleFinish = () => {
   emit('finish', {
     cards_pool: cards_pool.value,
     cards_status: cards_status.value,
-    logs: logs.value,
+    logs: getLogs(),
     current_page: CurrentPage.value,
     keep_cards: filterKeepCards.value
   })
+  clearLogs()
 }
 
 // 建立計算屬性 filterKeepCards
@@ -204,6 +208,7 @@ const filterKeepCards = computed(() => {
 // 生命週期鉤子
 onMounted(() => {
   startTimer()
+  setProcessType(props.type)
 })
 
 // 清理
