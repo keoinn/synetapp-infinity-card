@@ -172,6 +172,7 @@ const handleFinish = () => {
   clearLogs()
   isStart.value = false
   stopTimer()
+  document.body.setAttribute('ondragstart', 'return false')
 }
 
 /**
