@@ -7,25 +7,32 @@ import {
   ljImages,
   ceImages,
   cjImages,
-  goalImages
+  goalImages,
+  getCardImageName,
+  getGoalCardData,
 } from '@/plugins/utils/psy_cards.js'
+
+
+const job1 = Math.floor(Math.random() * goalImages.length)
+const job2 = Math.floor(Math.random() * goalImages.length)
+const job3 = Math.floor(Math.random() * goalImages.length)
 
 const type = ref('care')
 const professions = ref([
   {
-    title: '職業一',
+    title: getGoalCardData(getCardImageName(goalImages[job1])).title,
     cards: [],
-    class_img: goalImages[0]
+    class_img: goalImages[job1]
   },
   {
-    title: '職業二',
+    title: getGoalCardData(getCardImageName(goalImages[job2])).title,
     cards: [],
-    class_img: goalImages[6]
+    class_img: goalImages[job2]
   },
   {
-    title: '職業三',
+    title: getGoalCardData(getCardImageName(goalImages[job3])).title,
     cards: [],
-    class_img: goalImages[2]
+    class_img: goalImages[job3]
   }
 ])
 const cardsPool = ref(

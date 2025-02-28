@@ -184,7 +184,7 @@ const isLastPage = computed(() => {
 // 處理暫存按鈕
 const handleSave = () => {
   // 儲存邏輯
-  cardsStore.saveCards(cards_pool.value, cards_status.value, logs.value, CurrentPage.value)
+  cardsStore.saveCards(cards_pool.value, cards_status.value, getLogs(), CurrentPage.value)
 }
 
 // 處理完成按鈕
