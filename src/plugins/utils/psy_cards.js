@@ -1,5 +1,11 @@
 // 使用 Vite 的 glob 匯入功能批次匯入圖片
 const imageModules = import.meta.glob('@/assets/images/cards/*.webp', { eager: true })
+import caseGoal from '@/assets/images/case/case_goal.webp'
+import caseCare from '@/assets/images/case/case_care.webp'
+import caseLe from '@/assets/images/case/case_le.webp'
+import caseLj from '@/assets/images/case/case_lj.webp'
+import caseCe from '@/assets/images/case/case_ce.webp'
+import caseCj from '@/assets/images/case/case_cj.webp'
 
 // 依照前綴分類圖片並排序
 const categorizeImages = () => {
@@ -501,6 +507,11 @@ const getCardCoverImage = (cardName) => {
   return coverMapping[prefix] && coverMapping[prefix][index] ? coverMapping[prefix][index] : null;
 }
 
+/**
+ * 取得職業卡片資料
+ * @param {string} imgName
+ * @returns {Object}
+ */
 function getGoalCardData(imgName) {
   const imgData = {
       "goal001": { "title": "戶外體驗教練", "hcode": "SAE" },
@@ -607,6 +618,122 @@ function getGoalCardData(imgName) {
   return imgData[imgName] || { "title": "未知", "hcode": "未知" };
 }
 
+function getGuidanceContent(type) {
+  switch (type) {
+    case 'goal':
+      return {
+        coverImg: caseGoal,
+        title: '我就是',
+        subtitle: '我憧憬的職業',
+        content: `<ul>
+                    <li>
+                      接下來將會有有 100 種職業別顯示於畫面上，請依照你個人的判斷與感受，選出<span
+                        class="highlight"
+                        >你喜歡的、你憧憬的、對該職業有熱情未來有可能想去從事的行業</span
+                      >。
+                    </li>
+                    <li>
+                      請在 5 分鐘內，<span class="highlight">點擊</span
+                      >職業卡牌可以將牌面翻開或蓋上，正面表示你留下選擇的職業卡牌。
+                    </li>
+                    <li>
+                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
+                    </li>
+                  </ul>`
+      }
+    case 'care':
+      return {
+        coverImg: caseCare,
+        title: '我重視',
+        subtitle: '我重視的特質',
+        content: `<ul>
+                    <li>
+                      接下來將會有有 60 種特質顯示於畫面上，請依照你個人的判斷與感受，選出
+                      <span class="highlight">你重視的能力或特質</span>，請以第一直覺選擇。
+                    </li>
+                    <li>
+                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示你留下該重視的能力或特質。
+                    </li>
+                    <li>
+                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
+                    </li>
+                  </ul>
+        `
+      }
+    case 'lj':
+      return {
+        coverImg: caseLj,
+        title: '我喜歡',
+        subtitle: '我喜歡的特質',
+        content: `<ul>
+                    <li>
+                      接下來將會有有 60 種喜歡做的事情顯示於畫面上，請依照你個人的判斷與感受，選出
+                      <span class="highlight">你喜歡做的事情</span>，請以第一直覺選擇。
+                    </li>
+                    <li>
+                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你喜歡做的事情。
+                    </li>
+                    <li>
+                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
+                    </li>
+                  </ul>`
+      }
+    case 'le':
+      return {
+        coverImg: caseLe,
+        title: '我喜歡-國小版',
+        subtitle: '我喜歡的特質',
+        content: `<ul>
+                    <li>
+                      接下來將會有有 60 種喜歡做的事情顯示於畫面上，請依照你個人的判斷與感受，選出
+                      <span class="highlight">你喜歡做的事情</span>，請以第一直覺選擇。
+                    </li>
+                    <li>
+                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你喜歡做的事情。
+                    </li>
+                    <li>
+                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
+                    </li>
+                  </ul>`
+      }
+    case 'ce':
+      return {
+        coverImg: caseCe,
+        title: '我可以-國小版',
+        subtitle: '我可以做到的事情',
+        content: `<ul>
+                    <li>
+                      接下來將會有有 60 種自己會或是做得到的敘述顯示於畫面上，請依照你個人的判斷與感受，選出
+                      <span class="highlight">自己會的或是做得到的事情</span>，請以第一直覺選擇。
+                    </li>
+                    <li>
+                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你可以做到的事情或能力。
+                    </li>
+                    <li>
+                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
+                    </li>
+                  </ul>`
+      }
+    case 'cj':
+      return {
+        coverImg: caseCj,
+        title: '我可以',
+        subtitle: '我可以做到的事情',
+        content: `<ul>
+                      <li>
+                        接下來將會有有 60 種自己會或是做得到的敘述顯示於畫面上，請依照你個人的判斷與感受，選出
+                        <span class="highlight">自己會的或是做得到的事情</span>，請以第一直覺選擇。
+                      </li>
+                      <li>
+                        請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你可以做到的事情或能力。
+                      </li>
+                      <li>
+                        最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
+                      </li>
+                    </ul>`
+        }
+  }
+}
 
 export {
   careImages,
@@ -619,4 +746,5 @@ export {
   getCardImageName,
   getCardCoverImage,
   getGoalCardData,
+  getGuidanceContent
 }

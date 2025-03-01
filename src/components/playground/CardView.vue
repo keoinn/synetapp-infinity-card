@@ -1,6 +1,6 @@
 <template>
-  <div 
-    class="flip-card" 
+  <div
+    class="flip-card"
     :class="{ 'is-flipped': isFold }"
     @click="handleClick"
   >
@@ -31,18 +31,18 @@ import goal_r from '@/assets/images/covers/goal_r.webp'
 import goal_s from '@/assets/images/covers/goal_s.webp'
 
 const coverImages = {
-  'general_a': general_a,
-  'general_c': general_c,
-  'general_e': general_e,
-  'general_i': general_i,
-  'general_r': general_r,
-  'general_s': general_s,
-  'goal_a': goal_a,
-  'goal_c': goal_c,
-  'goal_e': goal_e,
-  'goal_i': goal_i,
-  'goal_r': goal_r,
-  'goal_s': goal_s,
+  general_a: general_a,
+  general_c: general_c,
+  general_e: general_e,
+  general_i: general_i,
+  general_r: general_r,
+  general_s: general_s,
+  goal_a: goal_a,
+  goal_c: goal_c,
+  goal_e: goal_e,
+  goal_i: goal_i,
+  goal_r: goal_r,
+  goal_s: goal_s
 }
 
 const props = defineProps({
@@ -56,7 +56,11 @@ const props = defineProps({
   },
   cardDraggable: {
     type: Boolean,
-    default: false  // 預設值為 false
+    default: false // 預設值為 false
+  },
+  freeze: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -65,17 +69,22 @@ const emit = defineEmits(['cardFlipped', 'toggleDrag'])
 const isFold = ref(props.isFold)
 
 // 監聽 props.isFold 的變化
-watch(() => props.isFold, (newValue) => {
-  isFold.value = newValue
-})
+watch(
+  () => props.isFold,
+  (newValue) => {
+    isFold.value = newValue
+  }
+)
 
 const toggleFlip = () => {
-  isFold.value = !isFold.value
-  emit('cardFlipped', {
-    cardName: getCardImageName(props.image),
-    isFold: isFold.value,
-    imagePath: props.image
-  })
+  if (!props.freeze) {
+    isFold.value = !isFold.value
+    emit('cardFlipped', {
+      cardName: getCardImageName(props.image),
+      isFold: isFold.value,
+      imagePath: props.image
+    })
+  }
 }
 
 const toggleDrag = () => {

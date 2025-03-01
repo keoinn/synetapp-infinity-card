@@ -19,7 +19,6 @@ import { ref, onMounted, watch, defineProps, computed, onBeforeUnmount } from 'v
 import { useCardsStore } from '@/stores/cards'
 import {
   remainingSeconds,
-  formattedTime,
   startTimer,
   stopTimer,
   cleanup,
@@ -32,10 +31,11 @@ import {
   ljImages,
   ceImages,
   cjImages,
-  goalImages
+  goalImages,
+  getGuidanceContent
 } from '@/plugins/utils/psy_cards.js'
 import emptyCard from '@/assets/images/covers/empty.webp'
-import caseGoal from '@/assets/images/case/case_goal.webp'
+
 import { addLog, getLogs, clearLogs, setProcessType } from '@/plugins/utils/process_logger.js'
 
 // 定義 props
@@ -66,44 +66,75 @@ const props = defineProps({
 // 定義 emit
 const emit = defineEmits(['finish'])
 
+// 定義 store
+const cardsStore = useCardsStore()
+
 // 狀態
+/**
+ * 卡片池
+ * @type {Ref<Array>}
+ * @Note 如果卡片池是 props 傳入，如果 props 是 empty，則會使用 getInitialCards (props.type) 初始化卡片池
+ */
 const cards_pool = ref(props.cardsPool.length ? props.cardsPool : getInitialCards(props.type))
+
+/**
+ * 卡片狀態
+ * @type {Ref<Array>}
+ * @Note 如果卡片狀態是 props 傳入，如果 props 是 empty，則會使用 Array(cards_pool.value.length).fill(false) 初始化卡片狀態
+ *       - false 表示卡片蓋著
+ *       - true 表示卡片翻開
+ */
 const cards_status = ref(
   props.cardsStatus.length ? props.cardsStatus : Array(cards_pool.value.length).fill(false) // 設置為 true
 )
+
+/**
+ * 目前瀏覽頁數
+ * @type {Ref<Number>}
+ */
 const CurrentPage = ref(0)
+
+/**
+ * 是否開始測驗
+ * @type {Ref<Boolean>}
+ * @Note 如果 isStart 為 true，關閉指導語畫面，顯示卡片選擇畫面
+ *       如果 isStart 為 true，開始計時器
+ *       如果 isStart 為 false，停止計時器
+ */
 const isStart = ref(false)
-setTimer(props.countdownSeconds)
+
+/**
+ * 是否完成測驗
+ * @type {Ref<Boolean>}
+ * @Note 如果 isFinish 為 true，則卡片無法翻轉
+ *       如果 isFinish 為 true，完成按鈕會消失
+ */
+const isFinish = ref(false)
+
+/**
+ * 指導語
+ * @type {Ref<Object>}
+ */
+const guideInfo = ref(getGuidanceContent(props.type))
 
 // 監聽 isStart 狀態
 watch(isStart, (newValue) => {
   if (newValue) {
     startTimer(true) // 啟動計時器
+    addLog({
+      action: 'start',
+      card: null,
+      remainingSeconds: props.countdownSeconds,
+      additional: {
+        code: '2000',
+        msg: '開始測驗'
+      }
+    })
   } else {
     stopTimer()
   }
 })
 
-const cardsStore = useCardsStore() // 使用 cards store
-
-// 指導語
-const guideContent = ref(
-  `  <ul>
-    <li>
-      接下來將會有有 100 種職業別顯示於畫面上，請依照你個人的判斷與感受，選出<span
-        class="highlight"
-        >你喜歡的、你憧憬的、對該職業有熱情未來有可能想去從事的行業</span
-      >。
-    </li>
-    <li>
-      請在 5 分鐘內，<span class="highlight">點擊</span
-      >職業卡牌可以將牌面翻開或蓋上，留下你選擇的職業卡牌。
-    </li>
-    <li>
-      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
-    </li>
-  </ul>`
-)
 
 // 取得初始卡片集合
 function getInitialCards(type) {
@@ -131,6 +162,12 @@ const currentCardPool = computed(() => {
   return cards_pool.value.slice(start, start + props.cardsPerPage)
 })
 
+// 檢查是否為最後一頁 -> 限制瀏覽頁數在卡片池的範圍內
+const isLastPage = computed(() => {
+  const maxPage = Math.ceil(cards_pool.value.length / props.cardsPerPage) - 1
+  return CurrentPage.value >= maxPage
+})
+
 // 監聽倒數結束
 watch(remainingSeconds, (newValue) => {
   if (newValue === 0) {
@@ -138,10 +175,21 @@ watch(remainingSeconds, (newValue) => {
       auction: 'warning',
       text: '時間到！請確認是否要繼續？'
     })
+    addLog({
+      action: 'warning',
+      card: null,
+      remainingSeconds: 0,
+      additional: {
+        code: '4000',
+        msg: '倒數計時結束'
+      }
+    })
   }
 })
 
+// 監聽瀏覽頁數 -> 限制瀏覽頁數在卡片池的範圍內
 watch(CurrentPage, (newValue) => {
+  const oldValue = CurrentPage.value
   const maxPage = Math.ceil(cards_pool.value.length / props.cardsPerPage) - 1
   const minPage = 0
   if (newValue > maxPage) {
@@ -150,9 +198,23 @@ watch(CurrentPage, (newValue) => {
   if (newValue < minPage) {
     CurrentPage.value = minPage
   }
+  addLog({
+    action: 'change_page',
+    card: null,
+    remainingSeconds: remainingSeconds.value,
+    additional: {
+      code: '2002',
+      msg: '瀏覽頁數變更',
+      data: {
+        currentPage: oldValue,
+        targetPage: CurrentPage.value,
+      }
+    }
+  })
+
 })
 
-// 處理卡片翻轉事件
+// 處理卡片翻轉事件 -> 更新卡片狀態並加入日誌
 const handleCardFlip = ({ cardName, isFold, imagePath }) => {
   // 使用新的日誌管理功能
   addLog({
@@ -175,21 +237,26 @@ const handleCardFlip = ({ cardName, isFold, imagePath }) => {
   cardsStore.updateCards(cards_pool.value, cards_status.value, getLogs(), CurrentPage.value);
 }
 
-// 檢查是否為最後一頁
-const isLastPage = computed(() => {
-  const maxPage = Math.ceil(cards_pool.value.length / props.cardsPerPage) - 1
-  return CurrentPage.value >= maxPage
-})
 
-// 處理暫存按鈕
+// 處理暫存按鈕 -> 儲存卡片狀態
 const handleSave = () => {
   // 儲存邏輯
   cardsStore.saveCards(cards_pool.value, cards_status.value, getLogs(), CurrentPage.value)
 }
 
-// 處理完成按鈕
+// 處理完成按鈕 -> 發出 emit 事件
 const handleFinish = () => {
+  isFinish.value = true
   // 發出 emit 事件
+  addLog({
+    action: 'finish',
+    card: null,
+    remainingSeconds: remainingSeconds.value,
+    additional: {
+      code: '2001',
+      msg: '完成卡片選擇'
+    }
+  })
   emit('finish', {
     cards_pool: cards_pool.value,
     cards_status: cards_status.value,
@@ -197,6 +264,7 @@ const handleFinish = () => {
     current_page: CurrentPage.value,
     keep_cards: filterKeepCards.value
   })
+  stopTimer()
   clearLogs()
 }
 
@@ -207,6 +275,7 @@ const filterKeepCards = computed(() => {
 
 // 生命週期鉤子
 onMounted(() => {
+  setTimer(props.countdownSeconds)
   startTimer()
   setProcessType(props.type)
 })
@@ -224,6 +293,7 @@ onBeforeUnmount(() => {
   >
     <div v-show="isStart">
       <TimeRemainingBar
+        v-show="!isFinish"
         :remaining-seconds="remainingSeconds"
         :countdown-seconds="countdownSeconds"
       />
@@ -240,6 +310,7 @@ onBeforeUnmount(() => {
             :image="image"
             :is-fold="cards_status[cardsPerPage * CurrentPage + index]"
             :card-draggable="false"
+            :freeze="isFinish"
             @card-flipped="handleCardFlip"
           />
         </v-col>
@@ -283,6 +354,7 @@ onBeforeUnmount(() => {
           cols="2"
         >
           <v-btn
+            v-show="!isFinish"
             rounded="xl"
             color="#FA5015"
             text="完成卡片選擇"
@@ -294,6 +366,7 @@ onBeforeUnmount(() => {
         <v-spacer />
         <v-col cols="1">
           <v-btn
+            :disabled="CurrentPage === 0"
             icon="mdi-chevron-left"
             color="#FA5015"
             @click="CurrentPage--"
@@ -301,6 +374,7 @@ onBeforeUnmount(() => {
         </v-col>
         <v-col cols="1">
           <v-btn
+            :disabled="isLastPage"
             icon="mdi-chevron-right"
             color="#FA5015"
             @click="CurrentPage++"
@@ -320,7 +394,7 @@ onBeforeUnmount(() => {
           <v-row class="pa-0 ma-0">
             <v-col class="d-flex justify-center align-center">
               <img
-                :src="caseGoal"
+                :src="guideInfo.coverImg"
                 class="card-case"
               >
             </v-col>
@@ -328,14 +402,14 @@ onBeforeUnmount(() => {
           <v-row class="pa-0 ma-0">
             <v-col class="d-flex justify-center align-center">
               <p class="case-title">
-                我就是
+                {{ guideInfo.title }}
               </p>
             </v-col>
           </v-row>
           <v-row class="pa-0 ma-0">
             <v-col class="d-flex justify-center align-center">
               <p class="case-subtitle">
-                我憧憬的職業
+                {{ guideInfo.subtitle }}
               </p>
             </v-col>
           </v-row>
@@ -350,7 +424,7 @@ onBeforeUnmount(() => {
               <div class="guide-section d-flex justify-center align-center">
                 <div
                   class="content"
-                  v-html="guideContent"
+                  v-html="guideInfo.content"
                 />
               </div>
             </v-col>
