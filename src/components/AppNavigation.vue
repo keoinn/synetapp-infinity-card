@@ -24,7 +24,7 @@
         active-class="nav-item-active"
         :active="handleActive(item.value)"
         :disabled="handleActive(item.value)"
-        @click="aution(item.value)"
+        @click="action(item.value)"
       >
         <!-- :to="item.path" -->
         <template #prepend>
@@ -96,7 +96,7 @@ const navItems = ref([
     value: 'exam',
     icon: 'mdi-cards-playing',
     text: '卡牌測驗',
-    path: '/exam',
+    path: '/exam/',
     show: true
   },
   {
@@ -154,11 +154,11 @@ const filteredNavItems = computed(() => {
   return navItems.value.filter((item) => item.show)
 })
 
-const aution = (auctionId) => {
+const action = (auctionId) => {
   console.log(auctionId)
   switch (auctionId) {
     case 'exam':
-      router.push('/exam/playcard')
+      router.push('/exam/')
       break;
     case 'permission':
       router.push('/permission')

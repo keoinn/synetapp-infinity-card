@@ -14,7 +14,7 @@ import { ref } from 'vue'
 import CardPlayground from '@/components/playground/CardPlayground.vue'
 
 // 定義卡片類型和狀態
-const cardType = ref('care') // 可以根據需要更改
+const cardType = ref('le') // 可以根據需要更改
 const cardsPool = ref([]) // 初始為空，根據需求填充
 const cardsStatus = ref([]) // 初始為空，根據需求填充
 
