@@ -40,7 +40,7 @@ jobs:
         with:
           envkey_VITE_DEPLOY_URL: /synetapp-infinity-card/
           envkey_VITE_API_BASEURL: https://liff.synet-app.com/api/utilite/auction
-          envkey_SECRET_KEY: wepro1101
+          envkey_VITE_SECRET_KEY: wepro1101
           file_name: .env
       - name: Build
         run: npm run build
