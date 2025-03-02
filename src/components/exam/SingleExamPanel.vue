@@ -32,6 +32,10 @@ const props = defineProps({
   finished: {
     type: Boolean,
     default: false
+  },
+  token: {
+    type: String,
+    default: ''
   }
 })
 
@@ -150,8 +154,12 @@ const caseSubtitle = computed(() => {
         </v-col>
       </v-row>
     </v-card-text>
-    <v-card-title class="card-title"> {{ caseName }} </v-card-title>
-    <v-card-subtitle class="card-subtitle"> {{ caseSubtitle }} </v-card-subtitle>
+    <v-card-title class="card-title">
+      {{ caseName }}
+    </v-card-title>
+    <v-card-subtitle class="card-subtitle">
+      {{ caseSubtitle }}
+    </v-card-subtitle>
     <v-card-actions class="card-action">
       <v-btn
         variant="tonal"
@@ -167,6 +175,7 @@ const caseSubtitle = computed(() => {
         color="#FA5015"
         :text="finished ? '已完成' : '開始測驗'"
         :disabled="finished"
+        :to="(props.action === 'pick')? `/exam/pick/${props.case}/${props.token}` : `/exam/pair/${props.case}/${props.token}`"
       />
       <!-- TODO: router 跳轉 -->
     </v-card-actions>

@@ -5,7 +5,7 @@ import { decrypt } from '@/plugins/utils/encryption'
 import SingleExamPanel from '@/components/exam/SingleExamPanel.vue'
 import { getReportSettings } from '@/plugins/utils/requests/mock/backend'
 const route = useRoute()
-const pid = decrypt(route.params.pid)
+const pid = decrypt(route.params.token)
 const cards_set = ref([])
 
 /**
@@ -37,7 +37,9 @@ onMounted(async () => {
       <v-row>
         <v-col cols="12">
           <v-row>
-            <v-col class="text-h6"> 進行測驗 </v-col>
+            <v-col class="text-h6">
+              進行測驗
+            </v-col>
             <v-spacer />
             <v-col
               class="text-h6"
@@ -60,8 +62,9 @@ onMounted(async () => {
         >
           <div class="exam-signal-card">
             <SingleExamPanel
-              :case="set"
               action="pick"
+              :case="set"
+              :token="route.params.token"
             />
           </div>
         </v-col>
@@ -91,6 +94,7 @@ onMounted(async () => {
             <SingleExamPanel
               :case="set"
               action="pair"
+              :token="route.params.token"
             />
           </div>
         </v-col>
