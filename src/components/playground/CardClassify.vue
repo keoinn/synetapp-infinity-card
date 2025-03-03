@@ -166,7 +166,9 @@ const handleFinish = () => {
   emit('finishClassify', {
     professions: professions.value,
     classifyList: classifyList.value,
-    logs: getLogs()
+    logs: getLogs(),
+    cards_pool: currentCardPool.value,
+    isFinished: true,
   })
 
   clearLogs()

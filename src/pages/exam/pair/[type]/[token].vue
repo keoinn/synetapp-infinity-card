@@ -11,50 +11,46 @@ import {
   getCardImageName,
   getGoalCardData,
 } from '@/plugins/utils/psy_cards.js'
-
+import { useExamProcessStore } from '@/stores/examProcess'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
+const examProcessStore = useExamProcessStore()
+const type = ref(route.params.type)
 
-const job1 = Math.floor(Math.random() * goalImages.length)
-const job2 = Math.floor(Math.random() * goalImages.length)
-const job3 = Math.floor(Math.random() * goalImages.length)
-
-const type = ref('care')
-const professions = ref([
-  {
-    title: getGoalCardData(getCardImageName(goalImages[job1])).title,
+const professions_data= examProcessStore.pick_goal.final_cards.map(card => {
+  return {
+    title: getGoalCardData(getCardImageName(card)).title,
     cards: [],
-    class_img: goalImages[job1]
-  },
-  {
-    title: getGoalCardData(getCardImageName(goalImages[job2])).title,
-    cards: [],
-    class_img: goalImages[job2]
-  },
-  {
-    title: getGoalCardData(getCardImageName(goalImages[job3])).title,
-    cards: [],
-    class_img: goalImages[job3]
+    class_img: card
   }
-])
-const cardsPool = ref(
-  [
-    careImages[0],
-    careImages[1],
-    careImages[2],
-    careImages[3],
-    careImages[4],
-    careImages[5],
-    // ...careImages,
-  ]
-)
+})
+const professions = ref([...professions_data])
+const cardsPool = ref()
+
+/** Initializat Data from store */
+switch (type.value) {
+  case 'care':
+    cardsPool.value = examProcessStore.pick_care.keep_cards
+    break
+  case 'ce':
+    cardsPool.value = examProcessStore.pick_ce.keep_cards
+    break
+  case 'cj':
+    cardsPool.value = examProcessStore.pick_cj.keep_cards
+    break
+  case 'le':
+    cardsPool.value = examProcessStore.pick_le.keep_cards
+    break
+  case 'lj':
+    cardsPool.value = examProcessStore.pick_lj.keep_cards
+    break
+}
 
 // 接收 emit 事件
 const handleFinishClassify = (data) => {
-  console.log(data)
+  examProcessStore.setPairRecord(type.value, data)
   router.push(`/exam/${route.params.token}`)
-  
 }
 
 </script>

@@ -618,7 +618,27 @@ function getGoalCardData(imgName) {
   return imgData[imgName] || { "title": "未知", "hcode": "未知" };
 }
 
-function getGuidanceContent(type) {
+function getGuidanceContent(type, stage = 0, remainingCards = 0) {
+  const goalContentFirstLine = () => {
+    if (stage === 0) {
+      return `<li>
+                接下來將會有 100 種職業別顯示於畫面上，請依照你個人的判斷與感受，選出<span
+                  class="highlight"
+                  >你喜歡的、你憧憬的、對該職業有熱情未來有可能想去從事的行業</span
+                >。
+              </li>`
+    } else if (stage === 1) {
+      return `<li>
+                 請在剛剛選擇<span class="highlight">「喜歡的職業」</span>中共有 ${remainingCards} 種職業別顯示於畫面上，
+                 挑選至多<span class="highlight"> 10 </span>個，你<span class="highlight">「未來很想從事的職業」</span>。
+              </li>`
+    } else if (stage === 2) {
+      return `<li>
+                 請在剛剛選擇<span class="highlight">「未來很想從事的職業」</span>中共有 ${remainingCards} 種職業別顯示於畫面上，
+                 挑選至多<span class="highlight"> 3 </span>個，你<span class="highlight">「未來最想做的職業」</span>。
+              </li>`
+    }
+  }
   switch (type) {
     case 'goal':
       return {
@@ -626,12 +646,7 @@ function getGuidanceContent(type) {
         title: '我就是',
         subtitle: '我憧憬的職業',
         content: `<ul>
-                    <li>
-                      接下來將會有有 100 種職業別顯示於畫面上，請依照你個人的判斷與感受，選出<span
-                        class="highlight"
-                        >你喜歡的、你憧憬的、對該職業有熱情未來有可能想去從事的行業</span
-                      >。
-                    </li>
+                    ${goalContentFirstLine()}
                     <li>
                       請在 5 分鐘內，<span class="highlight">點擊</span
                       >職業卡牌可以將牌面翻開或蓋上，正面表示你留下選擇的職業卡牌。

@@ -155,7 +155,6 @@ const filteredNavItems = computed(() => {
 })
 
 const action = (auctionId) => {
-  console.log(auctionId)
   switch (auctionId) {
     case 'exam':
       router.push('/exam/')

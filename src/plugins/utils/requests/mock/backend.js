@@ -20,12 +20,17 @@ export const getReportSettings = (rep_id) => {
           id: rep_id,
           attributes: {
             cards_set: ['goal', 'care', 'lj', 'cj'],
-            goal_res: {},
-            care_res: {},
-            cj_res: {},
-            ce_res: {},
-            lj_res: {},
-            le_res: {}
+            pick_goal: {},
+            pick_care: {},
+            pick_cj: {},
+            pick_ce: {},
+            pick_lj: {},
+            pick_le: {},
+            pair_care: {},
+            pair_lj: {},
+            pair_le: {},
+            pair_cj: {},
+            pair_ce: {}
           }
         },
         jsonapi: {
@@ -33,66 +38,242 @@ export const getReportSettings = (rep_id) => {
         }
       })
     })
-  } else  if (rep_id === '1740885538301'){
+  } else if (rep_id === '1740885538301') {
     return new Promise((resolve) => {
-        resolve({
-          meta: {
-            status: '200',
-            code: '2000',
-            title: 'success',
-            detail: 'success',
-            query_params: {
-              rep_id: rep_id
-            }
-          },
-          data: {
-            type: 'report',
-            id: rep_id,
-            attributes: {
-              cards_set: ['care', 'lj', 'cj'],
-              goal_res: {},
-              care_res: {},
-              cj_res: {},
-              ce_res: {},
-              lj_res: {},
-              le_res: {}
-            }
-          },
-          jsonapi: {
-            version: '1.1'
+      resolve({
+        meta: {
+          status: '200',
+          code: '2000',
+          title: 'success',
+          detail: 'success',
+          query_params: {
+            rep_id: rep_id
           }
-        })
+        },
+        data: {
+          type: 'report',
+          id: rep_id,
+          attributes: {
+            cards_set: ['care', 'lj', 'cj'],
+            pick_goal: {
+              stage1: {
+                cards_pool: [],
+                cards_status: [],
+                current_page: 0,
+                keep_cards: [],
+                logs: [],
+                isFinished: false,
+                canTest: false
+              },
+              stage2: {
+                cards_pool: [],
+                cards_status: [],
+                current_page: 0,
+                keep_cards: [],
+                logs: [],
+                isFinished: false,
+                canTest: false
+              },
+              stage3: {
+                cards_pool: [],
+                cards_status: [],
+                current_page: 0,
+                keep_cards: [],
+                logs: [],
+                isFinished: false,
+                canTest: false
+              },
+              canTest: false
+            },
+            pick_care: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_cj: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_ce: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_lj: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_le: {},
+            pair_care: {},
+            pair_lj: {},
+            pair_le: {},
+            pair_cj: {},
+            pair_ce: {}
+          }
+        },
+        jsonapi: {
+          version: '1.1'
+        }
       })
+    })
   } else {
     return new Promise((resolve) => {
-        resolve({
-          meta: {
-            status: '200',
-            code: '2000',
-            title: 'success',
-            detail: 'success',
-            query_params: {
-              rep_id: rep_id
-            }
-          },
-          data: {
-            type: 'report',
-            id: rep_id,
-            attributes: {
-              cards_set: ['goal', 'care', 'lj', 'cj'],
-              goal_res: {},
-              care_res: {},
-              cj_res: {},
-              ce_res: {},
-              lj_res: {},
-              le_res: {}
-            }
-          },
-          jsonapi: {
-            version: '1.1'
+      resolve({
+        meta: {
+          status: '200',
+          code: '2000',
+          title: 'success',
+          detail: 'success',
+          query_params: {
+            rep_id: rep_id
           }
-        })
+        },
+        data: {
+          type: 'report',
+          id: rep_id,
+          attributes: {
+            cards_set: ['goal', 'care', 'lj', 'cj'],
+            pick_goal: {
+              stage1: {
+                cards_pool: [],
+                cards_status: [],
+                current_page: 0,
+                keep_cards: [],
+                logs: [],
+                isFinished: false,
+                canTest: false
+              },
+              stage2: {
+                cards_pool: [],
+                cards_status: [],
+                current_page: 0,
+                keep_cards: [],
+                logs: [],
+                isFinished: false,
+                canTest: false
+              },
+              stage3: {
+                cards_pool: [],
+                cards_status: [],
+                current_page: 0,
+                keep_cards: [],
+                logs: [],
+                isFinished: false,
+                canTest: false
+              },
+              final_cards: {},
+              canTest: false,
+              isFinished: false
+            },
+            pick_care: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_cj: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_ce: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_lj: {
+              cards_pool: [],
+              cards_status: [],
+              current_page: 0,
+              keep_cards: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pick_le: {
+              cards_pool: [],
+              professions: [],
+              classifyList: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pair_care: {
+              cards_pool: [],
+              professions: [],
+              classifyList: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pair_lj: {
+              cards_pool: [],
+              professions: [],
+              classifyList: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pair_le: {
+              cards_pool: [],
+              professions: [],
+              classifyList: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pair_cj: {
+              cards_pool: [],
+              professions: [],
+              classifyList: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            },
+            pair_ce: {
+              cards_pool: [],
+              professions: [],
+              classifyList: [],
+              logs: [],
+              isFinished: false,
+              canTest: false
+            }
+          }
+        },
+        jsonapi: {
+          version: '1.1'
+        }
       })
+    })
   }
 }
 

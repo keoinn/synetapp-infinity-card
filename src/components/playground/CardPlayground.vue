@@ -15,7 +15,7 @@
  * @property {Function} finish - Emit when the card selection process is completed.
  */
 
-import { ref, onMounted, watch, defineProps, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue'
 import { useCardsStore } from '@/stores/cards'
 import {
   remainingSeconds,
@@ -32,11 +32,14 @@ import {
   ceImages,
   cjImages,
   goalImages,
-  getGuidanceContent
+  getGuidanceContent,
+  combineAndShuffle
 } from '@/plugins/utils/psy_cards.js'
 import emptyCard from '@/assets/images/covers/empty.webp'
-
 import { addLog, getLogs, clearLogs, setProcessType } from '@/plugins/utils/process_logger.js'
+import { useExamProcessStore } from '@/stores/examProcess'
+
+const examProcessStore = useExamProcessStore()
 
 // 定義 props
 const props = defineProps({
@@ -75,7 +78,7 @@ const cardsStore = useCardsStore()
  * @type {Ref<Array>}
  * @Note 如果卡片池是 props 傳入，如果 props 是 empty，則會使用 getInitialCards (props.type) 初始化卡片池
  */
-const cards_pool = ref(props.cardsPool.length ? props.cardsPool : getInitialCards(props.type))
+const cards_pool = ref(props.cardsPool.length ? props.cardsPool : props.cardsStatus.length ? props.cardsPool : combineAndShuffle(getInitialCards(props.type)))
 
 /**
  * 卡片狀態
@@ -115,7 +118,21 @@ const isFinish = ref(false)
  * 指導語
  * @type {Ref<Object>}
  */
-const guideInfo = ref(getGuidanceContent(props.type))
+const guideInfo = ref(getGuidanceContent(props.type, examProcessStore.computedPickGoalStage, cards_pool.value.length))
+
+
+// 建立計算屬性 filterKeepCards
+const filterKeepCards = computed(() => {
+  return cards_pool.value.filter((card, index) => !cards_status.value[index]);
+});
+
+const keepCardsNum = computed(() => {
+  return cards_pool.value.filter((card, index) => !cards_status.value[index]).length
+})
+
+const currentCardPoolNum = computed(() => {
+  return cards_pool.value.length
+})
 
 // 監聽 isStart 狀態
 watch(isStart, (newValue) => {
@@ -246,32 +263,57 @@ const handleSave = () => {
 
 // 處理完成按鈕 -> 發出 emit 事件
 const handleFinish = () => {
-  isFinish.value = true
-  // 發出 emit 事件
-  addLog({
-    action: 'finish',
-    card: null,
-    remainingSeconds: remainingSeconds.value,
-    additional: {
-      code: '2001',
-      msg: '完成卡片選擇'
+  let submitCheck = false;
+  const warningCount = examProcessStore.computedPickGoalStage === 1 ? 10 : examProcessStore.computedPickGoalStage === 2 ? 3 : 0;
+  const warningStageText = examProcessStore.computedPickGoalStage === 1 ? '第二階段' : examProcessStore.computedPickGoalStage === 2 ? '第三階段' : '第一階段';
+  if (props.type === 'goal') {
+    if (examProcessStore.computedPickGoalStage === 1) {
+      if(keepCardsNum.value <= 10 && keepCardsNum.value > 1) {
+        submitCheck = true;
+      }
+    } else if (examProcessStore.computedPickGoalStage === 2) {
+      if(keepCardsNum.value <= 3 && keepCardsNum.value > 1) {
+        submitCheck = true;
+      }
+    } else {
+      submitCheck = true;
     }
-  })
-  emit('finish', {
-    cards_pool: cards_pool.value,
-    cards_status: cards_status.value,
-    logs: getLogs(),
-    current_page: CurrentPage.value,
-    keep_cards: filterKeepCards.value
-  })
-  stopTimer()
-  clearLogs()
+  } else {
+    submitCheck = true;
+  }
+
+  if(submitCheck) {
+    isFinish.value = true
+    // 發出 emit 事件
+    addLog({
+      action: 'finish',
+      card: null,
+      remainingSeconds: remainingSeconds.value,
+      additional: {
+        code: '2001',
+        msg: '完成卡片選擇'
+      }
+    })
+    emit('finish', {
+      cards_pool: cards_pool.value,
+      cards_status: cards_status.value,
+      logs: getLogs(),
+      current_page: CurrentPage.value,
+      keep_cards: filterKeepCards.value,
+      isFinished: true,
+      canTest: false
+    })
+    stopTimer()
+    clearLogs()
+  } else {
+    handleAlert({
+      auction: 'warning',
+      text: `${warningStageText}: 請至多保留 ${warningCount} 張卡片，目前保留 ${keepCardsNum.value} 張卡片，至少要保留 2 張卡片。`
+    })
+  }
 }
 
-// 建立計算屬性 filterKeepCards
-const filterKeepCards = computed(() => {
-  return cards_pool.value.filter((card, index) => !cards_status.value[index]);
-});
+
 
 // 生命週期鉤子
 onMounted(() => {
@@ -330,25 +372,28 @@ onBeforeUnmount(() => {
         </v-col>
       </v-row>
       <v-row class="pa-0 ma-0">
+        <!-- TODO: 完成按鈕 -->
         <v-col cols="3">
           <v-btn
             rounded="xl"
             color="#FA5015"
-            text="我憧憬的職業"
+            text="*我憧憬的職業"
             size="large"
             block
           />
         </v-col>
+        <!-- TODO: 暫存按鈕 -->
         <v-col cols="2">
           <v-btn
             rounded="xl"
             color="#FA5015"
-            text="暫存"
+            text="*暫存"
             size="large"
             block
             @click="handleSave"
           />
         </v-col>
+
         <v-col
           v-if="isLastPage"
           cols="2"
@@ -356,12 +401,18 @@ onBeforeUnmount(() => {
           <v-btn
             v-show="!isFinish"
             rounded="xl"
-            color="#FA5015"
+            color="green"
             text="完成卡片選擇"
             size="large"
             block
             @click="handleFinish"
           />
+        </v-col>
+        <v-col cols="3">
+          <div class="d-flex justify-left align-center pt-3">
+            <span class="text-h6 text-primary">保留：{{ keepCardsNum }}</span>
+            <span class="text-h6 text-red pl-4">全部：{{ currentCardPoolNum }}</span>
+          </div>
         </v-col>
         <v-spacer />
         <v-col cols="1">

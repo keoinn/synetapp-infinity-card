@@ -20,6 +20,10 @@ import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
 
+import { useExamProcessStore } from '@/stores/examProcess'
+
+const examProcessStore = useExamProcessStore()
+
 const props = defineProps({
   case: {
     type: String,
@@ -36,6 +40,10 @@ const props = defineProps({
   token: {
     type: String,
     default: ''
+  },
+  stage: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -134,6 +142,79 @@ const caseSubtitle = computed(() => {
     return ''
   }
 })
+
+const chipText = computed(() => {
+  if (props.stage === 0) {
+    return '第一階段'
+  } else if (props.stage === 1) {
+    return '第二階段'
+  } else if (props.stage === 2) {
+    return '第三階段'
+  } else {
+    return '全部完成'
+  }
+})
+
+const checkFinishedWithGoal = computed(() => {
+  if (props.action === 'pick') {
+    return true
+  } else {
+    if (!examProcessStore.pick_goal.isFinished) {
+      return false
+    } else {
+      switch (props.case) {
+        case 'care':
+          return examProcessStore.pick_care.isFinished
+        case 'ce':
+          return examProcessStore.pick_ce.isFinished
+        case 'cj':
+          return examProcessStore.pick_cj.isFinished
+        case 'le':
+          return examProcessStore.pick_le.isFinished
+        case 'lj':
+          return examProcessStore.pick_lj.isFinished
+        default:
+          return false
+      }
+    }
+  }
+})
+
+const checkFinished = computed(() => {
+  if (props.action === 'pick') {
+    switch (props.case) {
+      case 'goal':
+        return examProcessStore.pick_goal.isFinished
+      case 'care':
+        return examProcessStore.pick_care.isFinished
+      case 'ce':
+        return examProcessStore.pick_ce.isFinished
+      case 'cj':
+        return examProcessStore.pick_cj.isFinished
+      case 'le':
+        return examProcessStore.pick_le.isFinished
+      case 'lj':
+        return examProcessStore.pick_lj.isFinished
+      default:
+        return false
+    }
+  } else {
+    switch (props.case) {
+      case 'care':
+        return examProcessStore.pair_care.isFinished
+      case 'ce':
+        return examProcessStore.pair_ce.isFinished
+      case 'cj':
+        return examProcessStore.pair_cj.isFinished
+      case 'le':
+        return examProcessStore.pair_le.isFinished
+      case 'lj':
+        return examProcessStore.pair_lj.isFinished
+      default:
+        return false
+    }
+  }
+})
 </script>
 
 <template>
@@ -156,28 +237,55 @@ const caseSubtitle = computed(() => {
     </v-card-text>
     <v-card-title class="card-title">
       {{ caseName }}
+      <v-chip
+        v-show="props.case === 'goal' && props.stage < 3 && props.stage !== -1"
+        size="x-small"
+        color="primary"
+      >
+        {{ chipText }}
+      </v-chip>
     </v-card-title>
     <v-card-subtitle class="card-subtitle">
       {{ caseSubtitle }}
     </v-card-subtitle>
-    <v-card-actions class="card-action">
+    <v-card-actions
+      v-if="checkFinishedWithGoal"
+      class="card-action"
+    >
       <v-btn
         variant="tonal"
         rounded="xl"
         color="#FA5015"
         text="觀看紀錄"
       />
-      <!-- TODO: router 跳轉 -->
       <v-spacer />
       <v-btn
         variant="elevated"
         rounded="xl"
         color="#FA5015"
-        :text="finished ? '已完成' : '開始測驗'"
-        :disabled="finished"
-        :to="(props.action === 'pick')? `/exam/pick/${props.case}/${props.token}` : `/exam/pair/${props.case}/${props.token}`"
+        :text="checkFinished ? '已完成' : '開始測驗'"
+        :disabled="checkFinished"
+        :to="
+          props.action === 'pick'
+            ? `/exam/pick/${props.case}/${props.token}`
+            : `/exam/pair/${props.case}/${props.token}`
+        "
       />
-      <!-- TODO: router 跳轉 -->
+    </v-card-actions>
+    <v-card-actions
+      v-else
+      class="card-action-disabled"
+    >
+      <v-spacer />
+      <v-btn
+        variant="elevated"
+        rounded="xl"
+        color="#FA5015"
+        block
+        disabled
+        text="請先完成前一階段測試"
+      />
+      <v-spacer />
     </v-card-actions>
   </v-card>
 </template>
@@ -187,6 +295,13 @@ const caseSubtitle = computed(() => {
   margin-top: -5px;
   margin-bottom: 10px;
   color: white;
+}
+.card-action-disabled {
+  margin-top: -5px;
+  margin-bottom: 10px;
+  color: white;
+  padding-right: 20px;
+  padding-left: 10px;
 }
 .card-title {
   margin-top: -15px;

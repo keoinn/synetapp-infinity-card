@@ -1,12 +1,21 @@
 <script setup>
 import { encrypt } from '@/plugins/utils/encryption'
-
+import { useExamProcessStore } from '@/stores/examProcess'
+import { useRouter } from 'vue-router'
 const props = defineProps({
   report: {
     type: Object,
     required: true
   }
 })
+
+const examProcessStore = useExamProcessStore()
+const router = useRouter()
+
+const startExam = () => {
+  examProcessStore.$reset()
+  router.push(`/exam/${encrypt(props.report.id.toString())}`)
+}
 </script>
 
 <template>
@@ -44,7 +53,7 @@ const props = defineProps({
         color="#FA5015"
         size="large"
         rounded="xl"
-        :to="`/exam/${encrypt(report.id.toString())}`"
+        @click="startExam"
       >
         <v-icon>mdi-pencil</v-icon>
         進行測驗

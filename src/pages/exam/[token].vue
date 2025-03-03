@@ -1,34 +1,32 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+/**
+ * 測驗項目一覽
+ */
+import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { decrypt } from '@/plugins/utils/encryption'
 import SingleExamPanel from '@/components/exam/SingleExamPanel.vue'
-import { getReportSettings } from '@/plugins/utils/requests/mock/backend'
+import { useExamProcessStore } from '@/stores/examProcess'
+
 const route = useRoute()
+const examProcessStore = useExamProcessStore()
 const pid = decrypt(route.params.token)
-const cards_set = ref([])
-
-/**
- * 檢查是否存在 goal 卡牌 -> 沒有配置 goal 牌組就無法配對
- * @returns {boolean}
- * @example
- * console.log("CHECK GOAL SET EXIST: ", checkGoalSetExist.value)
- */
-const checkGoalSetExist = computed(() => {
-  return cards_set.value.includes('goal')
-})
-
-const filerOutGoalSet = computed(() => {
-  return cards_set.value.filter((set) => set !== 'goal')
-})
 
 onMounted(async () => {
-  // const res = await getReportSettings('1740885538301')
-  const res = await getReportSettings(pid)
-  console.log(res)
-  cards_set.value = res.data.attributes.cards_set
-  console.log(cards_set.value)
+  await examProcessStore.getReportBackend(pid)
 })
+
+const stage = (target) => {
+  if (target === 'goal') {
+    return examProcessStore.computedPickGoalStage
+  } else {
+    return 0
+  }
+}
+
+const viewReport = () => {
+  console.log('viewReport')
+}
 </script>
 
 <template>
@@ -37,13 +35,18 @@ onMounted(async () => {
       <v-row>
         <v-col cols="12">
           <v-row>
-            <v-col class="text-h6">
+            <v-col
+              class="text-h6"
+              cols="8"
+            >
               進行測驗
+              <ExamResultView />
             </v-col>
             <v-spacer />
             <v-col
               class="text-h6"
               align="right"
+              cols="4"
             >
               測驗編號：{{ pid }}
             </v-col>
@@ -53,7 +56,7 @@ onMounted(async () => {
       </v-row>
       <v-row>
         <v-col
-          v-for="(set, index) in cards_set"
+          v-for="(set, index) in examProcessStore.cards_set"
           :key="index"
           cols="12"
           md="4"
@@ -65,13 +68,14 @@ onMounted(async () => {
               action="pick"
               :case="set"
               :token="route.params.token"
+              :stage="stage(set)"
             />
           </div>
         </v-col>
       </v-row>
 
       <v-row
-        v-if="checkGoalSetExist"
+        v-if="examProcessStore.checkGoalSetExist"
         class="pt-2"
       >
         <v-col cols="12">
@@ -83,7 +87,7 @@ onMounted(async () => {
       </v-row>
       <v-row>
         <v-col
-          v-for="(set, index) in filerOutGoalSet"
+          v-for="(set, index) in examProcessStore.filerOutGoalSet"
           :key="index"
           cols="12"
           md="4"
@@ -134,9 +138,6 @@ onMounted(async () => {
     height: 100%;
     background-color: white;
     padding: 20px;
-  }
-
-  .exam-section-text {
   }
 }
 </style>
