@@ -1,3 +1,8 @@
+<script setup>
+import { useAppStore } from '@/stores/app'
+
+const appStore = useAppStore()
+</script>
 <template>
   <v-app-bar
     app
@@ -5,7 +10,7 @@
     color="#FFFFFF"
   >
     <div
-      v-if="true"
+      v-show="appStore.isLogin"
       class="header-start-icon"
     >
       <v-icon
@@ -51,12 +56,6 @@
     </div>
   </v-app-bar>
 </template>
-
-<script setup>
-import { useAppStore } from '@/stores/app'
-
-const appStore = useAppStore()
-</script>
 
 <style scoped lang="scss">
 .header-title {

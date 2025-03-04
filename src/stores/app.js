@@ -1,37 +1,47 @@
 // Utilities
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
 
-export const useAppStore = defineStore('app', () => {
-  const isDrawerOpen = ref(false)
-  const isLogin = ref(false)
-
-  function toggleDrawer() {
-    isDrawerOpen.value = !isDrawerOpen.value
-    console.log(isDrawerOpen.value)
-  }
-
-  function toggleLogin(account, password) {
-    console.log(account, password)
-    if (account === 'admin' && password === '123456') {
-      isLogin.value = true
-    } else {
-      isLogin.value = false
+import { authAPI, verifyTokenAPI } from '@/plugins/utils/requests/api/backend.js'
+export const useAppStore = defineStore('app', {
+  state: () => ({
+    isDrawerOpen: false,
+    isLogin: false,
+    token: null,
+    refreshToken: null,
+    user_id: null,
+  }),
+  actions: {
+    toggleDrawer() {
+      this.isDrawerOpen = !this.isDrawerOpen
+    },
+    toggleLogin(account, password) {
+      if (account === 'admin' && password === '123456') {
+        this.isLogin = true
+      } else {
+        this.isLogin = false
+      }
+    },
+    async login(account, password) {
+      const response = await authAPI({identification: account, password: password})
+      console.log(response)
+      if (response.meta.code === '2000') {
+        this.token = response.meta.token
+        this.refreshToken = response.meta.refresh_token
+        this.user_id = response.data.attributes.uid
+        this.isLogin = true
+      }
+    },
+    async verifyToken() {
+      const response = await verifyTokenAPI()
+      console.log(response)
+    },
+    logout() {
+      this.isLogin = false
     }
-    console.log(isLogin.value)
-  }
+  },
+  getters: {
 
-  function logout() {
-    isLogin.value = false
-  }
-
-  return {
-    isDrawerOpen,
-    toggleDrawer,
-    isLogin,
-    toggleLogin,
-    logout
-  }
-}, {
+  },
   persist: true
+
 })

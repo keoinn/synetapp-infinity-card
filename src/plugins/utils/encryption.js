@@ -29,3 +29,7 @@ export const decrypt = (hexCiphertext) => {
     const plaintext = bytes.toString(CryptoJS.enc.Utf8);
     return plaintext;
 }; 
+
+export const hashpwd = (pwd) => {
+    return  CryptoJS.SHA256(pwd).toString(CryptoJS.enc.Hex)
+}

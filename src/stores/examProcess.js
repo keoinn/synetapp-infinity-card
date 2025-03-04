@@ -231,5 +231,5 @@ export const useExamProcessStore = defineStore('examProcess', {
       }
     }
   },
-  
+  persist: true
 })
