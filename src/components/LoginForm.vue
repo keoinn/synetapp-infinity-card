@@ -1,22 +1,96 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '@/stores/app'
+import { registerAPI } from '@/plugins/utils/requests/api/backend'
+import { handleAlert } from '@/plugins/utils/alert'
 
 const visible_pwd = ref(false)
 const visible_pwd_confirm = ref(false)
 const appStore = useAppStore()
-const account = ref('test')
-const password = ref('123456')
-const password_confirm = ref('123456')
+const account = ref('')
+const password = ref('')
+const password_confirm = ref('')
 const newAccount = ref(false)
+const error_detail = ref(null)
+const testing_status = ref(false)
 
 const login = async () => {
-  appStore.login(account.value, password.value)
+  try{
+    await appStore.login(account.value, password.value)
+    account.value = ''
+    password.value = ''
+    password_confirm.value = ''
+    error_detail.value = null
+    newAccount.value = false
+
+  } catch (error) {
+    errorHandler(error)
+  }
+
 }
 
-const register = () => {
-  // appStore.toggleRegister(account.value, password.value)
-  appStore.verifyToken()
+const register = async () => {
+  if (password.value !== password_confirm.value) {
+    error_detail.value = '密碼不一致'
+    return
+  }
+
+  /** */
+  try{
+    const res = await registerAPI({email: account.value, password: password.value})
+    if(res.meta.code === '2004') {
+      handleAlert({
+        auction: 'success',
+        text: res.meta.msg
+      })
+      account.value = ''
+      password.value = ''
+      password_confirm.value = ''
+      error_detail.value = null
+      newAccount.value = false
+    }
+  } catch (error) {
+    errorHandler(error)
+  }
+}
+
+const errorHandler = (error_response) => {
+  const error_data = error_response.response.data
+  console.log(error_data)
+  if(error_data.errors[0].status === '401'){
+      if(error_data.errors[0].code === '4012'){
+        error_detail.value = '帳號不存在或密碼錯誤！'
+      } else if(error_data.errors[0].code === '4013'){
+        error_detail.value = '帳號不存在或密碼錯誤！'
+      } else {
+        error_detail.value = '接收資料失敗，請稍後再試。'
+      }
+    } else if(error_data.errors[0].status === '409') {
+      if(error_data.errors[0].code === '4006') {
+        error_detail.value = '電子信箱已在 WEPRO 註冊過!'
+      } else if (error_data.errors[0].code === '4005') {
+        error_detail.value = '帳號已在 WEPRO 註冊過!'
+      } else {
+        error_detail.value = '接收資料失敗，請稍後再試。'
+      }
+    } else if(error_data.errors[0].status === '400') {
+      if (error_data.errors[0].code === '4007') {
+        error_detail.value = '電子信箱是必要欄位!'
+      }  else if (error_data.errors[0].code === '4008') {
+        error_detail.value = '密碼是必要欄位!'
+      } else if (error_data.errors[0].code === '4009') {
+        error_detail.value = '系統發生錯誤 (缺少必要參數: platform)，請稍後再試。'
+      } else if (error_data.errors[0].code === '4010'){
+        error_detail.value = '密碼是必要欄位!'
+      } else if (error_data.errors[0].code === '4011'){
+        error_detail.value = '系統發生錯誤 (缺少必要參數: platform)，請稍後再試。'
+      } else if (error_data.errors[0].code === '4030') {
+        error_detail.value = '信箱格式錯誤!'
+      } else {
+        error_detail.value = '接收資料失敗，請稍後再試。'
+      }
+    }
+
 }
 
 const inputAccountLabel = computed(() => {
@@ -39,10 +113,9 @@ const inputAccountLabel = computed(() => {
             class="text-caption text-decoration-none text-blue"
             href="#"
             rel="noopener noreferrer"
+            :text="newAccount ? '返回登入介面' : '或者進行註冊?'"
             @click="newAccount = !newAccount"
-          >
-            或者進行註冊?
-          </a>
+          />
         </div>
 
         <v-text-field
@@ -61,6 +134,7 @@ const inputAccountLabel = computed(() => {
             href="#"
             rel="noopener noreferrer"
           >
+            <!-- TODO: Password Reset -->
             忘記密碼?
           </a>
         </div>
@@ -92,17 +166,30 @@ const inputAccountLabel = computed(() => {
           variant="outlined"
           @click:append-inner="visible_pwd_confirm = !visible_pwd_confirm"
         />
-
         <v-card
-          class="mb-12"
+          v-if="testing_status"
+          class="mt-1 mb-2"
           color="surface-variant"
           variant="tonal"
         >
           <v-card-text class="text-medium-emphasis text-caption">
-            測試帳號: admin<br />
+            測試帳號: admin<br>
             測試密碼: 123456
           </v-card-text>
         </v-card>
+
+        <v-card
+          v-if="error_detail !== null"
+          color="error"
+          variant="tonal"
+          class="mt-1 mb-12"
+        >
+          <v-card-text class="text-caption">
+            {{ error_detail }}
+          </v-card-text>
+        </v-card>
+
+        
 
         <v-btn
           class="mb-8"

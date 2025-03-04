@@ -32,15 +32,10 @@ requestInstance.interceptors.response.use(
     return response.data
   },
   (event) => {
-    if (event.response.status === 401) {
-      console.log('401')
-    } else if (event.response.status === 403) {
-      console.log('403')
-    } else if (event.response.status === 404) {
-      console.log('404')
-    } else if (event.response.status === 500) {
-      console.log('500')
+    switch(event.response.status) {
+      
+      default:
+        return Promise.reject(event)
     }
-    return Promise.reject(event)
   }
 )
