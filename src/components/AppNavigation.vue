@@ -100,24 +100,10 @@ const navItems = ref([
     show: true
   },
   {
-    value: 'exam-playground',
-    icon: 'mdi-cards-playing',
-    text: '選牌(Test)',
-    path: '/exam/playground',
-    show: true
-  },
-  {
-    value: 'exam-card-classify',
-    icon: 'mdi-cards-playing',
-    text: '分牌(Test)',
-    path: '/exam/card-classify',
-    show: true
-  },
-  {
     value: 'permission',
     icon: 'mdi-account',
-    text: '權限管理',
-    path: '/permission',
+    text: '建立測驗',
+    path: '/inventory',
     show: true
   },
   {
@@ -160,17 +146,19 @@ const action = (auctionId) => {
       router.push('/exam/')
       break;
     case 'permission':
-      router.push('/permission')
+      router.push('/inventory')
       break;
     case 'user':
-      router.push('/user')
+      // router.push('/user')
+      router.push('/')
       break;
     case 'logout':
       appStore.logout()
       router.push('/')
       break;
     case 'cards':
-      router.push('/cards')
+      // router.push('/cards')
+      router.push('/inventory')
       break;
     case 'exam-playground':
       router.push('/exam/playground')

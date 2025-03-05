@@ -35,3 +35,15 @@ export const saveReportAPI = (report_id, card_res) => {
   const request = requestInstance.post(`/psycard/report/${report_id}`, data, JSONAPI_HEADER)
   return request
 }
+
+export const getCardInventoryAPI = (uid) => {
+  const data = jsonapiEnc('inventory', Date.now(), {own_id: uid})
+  const request = requestInstance.post('/psycard/inventory', data, JSONAPI_HEADER)
+  return request
+}
+
+export const createReportAPI = (uid, card_res) => {
+  const data = jsonapiEnc('report', Date.now(), {own_id: uid, cards_set: card_res})
+  const request = requestInstance.post(`/psycard/exam/new`, data, JSONAPI_HEADER)
+  return request
+}
