@@ -48,8 +48,8 @@ switch (type.value) {
 }
 
 // 接收 emit 事件
-const handleFinishClassify = (data) => {
-  examProcessStore.setPairRecord(type.value, data)
+const handleFinishClassify = async (data) => {
+  await examProcessStore.setPairRecord(type.value, data)
   router.push(`/exam/${route.params.token}`)
 }
 

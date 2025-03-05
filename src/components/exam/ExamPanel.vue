@@ -1,4 +1,6 @@
 <script setup>
+/* eslint-disable vue/no-v-html */
+import { computed } from 'vue'
 import { encrypt } from '@/plugins/utils/encryption'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useRouter } from 'vue-router'
@@ -14,23 +16,68 @@ const router = useRouter()
 
 const startExam = () => {
   examProcessStore.$reset()
-  router.push(`/exam/${encrypt(props.report.id.toString())}`)
+  router.push(`/exam/${encrypt(props.report.report_id.toString())}`)
 }
+
+const NULLstringFilter = (target) => {
+  return target === null ? '尚未設定' : target
+}
+
+const cardsSetString = computed(() => {
+  if (props.report.cards_set.length === 0) {
+    return '尚未設定'
+  } else {
+    let cardsSetString = ''
+    // props.report.cards_set.forEach(card => {
+    //   cardsSetString += card === 'goal' ? '我就是 (I Goal),' : 
+    //     card === 'care' ? '我在乎 (I Care),' : 
+    //     card === 'ce' ? '我可以 國小 (I Can),' : 
+    //     card === 'cj' ? '我可以-社青 (I Can),' : 
+    //     card === 'lj' ? '我喜歡-社青 (I Like),' : 
+    //     card === 'le' ? '我喜歡-國小 (I Like),' : ''
+    // })
+    cardsSetString = '<ul style="list-style: none; padding-left: 5px;">'
+    props.report.cards_set.forEach(card => {
+    cardsSetString += card === 'goal' ? '<li>我就是 (I Goal)</li>' : 
+      card === 'care' ? '<li>我在乎 (I Care)</li>' : 
+      card === 'ce' ? '<li>我可以 國小 (I Can)</li>' : 
+      card === 'cj' ? '<li>我可以-社青 (I Can)</li>' : 
+      card === 'lj' ? '<li>我喜歡-社青 (I Like)</li>' : 
+      card === 'le' ? '<li>我喜歡-國小 (I Like)</li>' : ''
+    })
+    cardsSetString += '</ul>'
+    return cardsSetString.slice(0, -1)
+  }
+})
+
+const statusString = computed(() => {
+  return props.report.status === '0' ? '進行中' : props.report.status === '1' ? '已完成' : '已取消'
+})
+
 </script>
 
 <template>
   <v-card>
-    <v-card-title>測驗序號：{{ report.id }}</v-card-title>
+    <v-card-title>
+      <v-icon
+        size="xsmall"
+        icon="mdi-pencil"
+      />
+      {{
+        report.report_name === null || report.report_name === ''
+          ? `${report.report_id} (未設定名稱)`
+          : report.report_name
+      }}
+    </v-card-title>
     <v-card-text>
       <div class="exam-card-content">
         <ul class="content-list">
           <!-- TODO: 內容規劃 -->
-          <li>測驗續號：{{ report.id }}</li>
-          <li>測驗類型：{{ report.cards_set }}</li>
-          <li>測驗狀態：{{ report.is_active }}</li>
-          <li>測驗結果：{{ report.has_result }}</li>
-          <li>測驗時間：{{ report.created_at }}</li>
-          <li>測驗更新時間：{{ report.updated_at }}</li>
+          <li>序號: {{ report.report_id }}</li>
+          <li>卡片組合: <span v-html="cardsSetString" /></li>
+          <li>測驗狀態: {{ statusString }}</li>
+          <li>建立時間: {{ NULLstringFilter(report.created_at) }}</li>
+          <li>更新時間: {{ NULLstringFilter(report.updated_at) }}</li>
         </ul>
       </div>
     </v-card-text>
@@ -41,7 +88,6 @@ const startExam = () => {
         color="#FA5015"
         size="large"
         rounded="xl"
-        :to="`/report/${encrypt(report.id.toString())}`"
       >
         <v-icon>mdi-eye</v-icon>
         查看
@@ -69,8 +115,13 @@ const startExam = () => {
     padding: 5px;
     margin-left: 20px;
 
+    .sub-list {
+      list-style: none;
+      padding-left: 5px;
+    }
+
     li {
-        text-indent: 10px;
+      text-indent: 10px;
     }
   }
 }

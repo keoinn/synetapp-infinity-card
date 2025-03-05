@@ -7,7 +7,6 @@ import { useRoute } from 'vue-router'
 import { decrypt } from '@/plugins/utils/encryption'
 import SingleExamPanel from '@/components/exam/SingleExamPanel.vue'
 import { useExamProcessStore } from '@/stores/examProcess'
-
 const route = useRoute()
 const examProcessStore = useExamProcessStore()
 const pid = decrypt(route.params.token)

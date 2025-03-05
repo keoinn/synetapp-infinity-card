@@ -56,7 +56,6 @@ const register = async () => {
 
 const errorHandler = (error_response) => {
   const error_data = error_response.response.data
-  console.log(error_data)
   if(error_data.errors[0].status === '401'){
       if(error_data.errors[0].code === '4012'){
         error_detail.value = '帳號不存在或密碼錯誤！'

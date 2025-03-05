@@ -18,3 +18,20 @@ export const registerAPI = ({email, password}) => {
   const request = requestInstance.post('/register', data, JSONAPI_HEADER)
   return request
 }
+
+export const getReportListAPI = (uid) => {
+  const data = jsonapiEnc('report', Date.now(), {own_id: uid})
+  const request = requestInstance.post('/psycard/report', data, JSONAPI_HEADER)
+  return request
+}
+
+export const getReportDetailAPI = (hash_id) => {
+  const request = requestInstance.get(`/psycard/report/${hash_id}`)
+  return request
+}
+
+export const saveReportAPI = (report_id, card_res) => {
+  const data = jsonapiEnc('report', Date.now(), card_res)
+  const request = requestInstance.post(`/psycard/report/${report_id}`, data, JSONAPI_HEADER)
+  return request
+}

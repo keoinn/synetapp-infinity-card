@@ -39,7 +39,7 @@ jobs:
         uses: SpicyPizza/create-envfile@v2.0
         with:
           envkey_VITE_DEPLOY_URL: /synetapp-infinity-card/
-          envkey_VITE_API_BASEURL: https://liff.synet-app.com/api/utilite/auction
+          envkey_VITE_API_BASEURL: https://api.wepro.synet-app.com/api/v1/
           envkey_VITE_SECRET_KEY: wepro1101
           file_name: .env
       - name: Build
