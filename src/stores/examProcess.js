@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { getReportSettings } from '@/plugins/utils/requests/mock/backend'
+// import { getReportSettings } from '@/plugins/utils/requests/mock/backend'
 import { getReportDetailAPI, saveReportAPI } from '@/plugins/utils/requests/api/backend'
+import { getCardImageName, getCardCoverImage } from '@/plugins/utils/psy_cards'
 export const useExamProcessStore = defineStore('examProcess', {
   state: () => ({
     crd_id: null,
@@ -169,7 +170,7 @@ export const useExamProcessStore = defineStore('examProcess', {
       if (report_detail.length == 0) {
         return
       }
-      
+
       // 儲存後台資訊
       this.$patch({
         crd_id: report_detail.crd_id,
@@ -271,7 +272,8 @@ export const useExamProcessStore = defineStore('examProcess', {
         status: this.status
       }
 
-      const save_res = await saveReportAPI(this.report_id, res)
+      // const save_res = await saveReportAPI(this.report_id, res)
+      await saveReportAPI(this.report_id, res)
     },
 
     async setRecord(cardType, data, stage = 0) {
@@ -393,6 +395,98 @@ export const useExamProcessStore = defineStore('examProcess', {
         stage2_cards: stage2.keep_cards.length,
         stage3_cards: stage3.keep_cards.length
       }
+    },
+
+    computedPickCardsHollandCodeNum: (state) => {
+      // console.log('state.cards_set:', state)
+      let result = []
+      let total_cate_r = 0
+      let total_cate_i = 0
+      let total_cate_a = 0
+      let total_cate_s = 0
+      let total_cate_e = 0
+      let total_cate_c = 0
+
+      state.cards_set.filter((set) => set !== 'goal').map((set) => {
+          let cate_r = 0
+          let cate_i = 0
+          let cate_a = 0
+          let cate_s = 0
+          let cate_e = 0
+          let cate_c = 0
+          let type_total = 0
+          let cate_result = {}
+
+          state[`pick_${set}`].keep_cards.map((card) => {
+            let card_type = getCardCoverImage(getCardImageName(card))
+            // console.log('card:', getCardImageName(card), card_type,)
+            if (card_type === 'general_r') {
+              cate_r += 1
+            }
+            if (card_type === 'general_i') {
+              cate_i += 1
+            }
+            if (card_type === 'general_a') {
+              cate_a += 1
+            }
+            if (card_type === 'general_s') {
+              cate_s += 1
+            }
+            if (card_type === 'general_e') {
+              cate_e += 1
+            }
+            if (card_type === 'general_c') {
+              cate_c += 1
+            }
+            type_total += 1
+          })
+          total_cate_r += cate_r
+          total_cate_i += cate_i
+          total_cate_a += cate_a
+          total_cate_s += cate_s
+          total_cate_e += cate_e
+          total_cate_c += cate_c
+
+          cate_result = {
+            cate_r: cate_r,
+            cate_i: cate_i,
+            cate_a: cate_a,
+            cate_s: cate_s,
+            cate_e: cate_e,
+            cate_c: cate_c,
+            type_total: type_total
+          }
+
+          switch (set) {
+            case 'care':
+              result['care'] = cate_result
+              break
+            case 'cj':
+              result['cj'] = cate_result
+              break
+            case 'ce':
+              result['ce'] = cate_result
+              break
+            case 'lj':
+              result['lj'] = cate_result
+              break
+            case 'le':
+              result['le'] = cate_result
+              break
+          }
+        })
+      let all_total = total_cate_r + total_cate_i + total_cate_a + total_cate_s + total_cate_e + total_cate_c
+      result['total'] = {
+        cate_r: total_cate_r,
+        cate_i: total_cate_i,
+        cate_a: total_cate_a,
+        cate_s: total_cate_s,
+        cate_e: total_cate_e,
+        cate_c: total_cate_c,
+        type_total: all_total
+      }
+
+      return result
     }
   },
   persist: true
