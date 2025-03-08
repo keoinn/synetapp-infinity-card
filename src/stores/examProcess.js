@@ -397,7 +397,10 @@ export const useExamProcessStore = defineStore('examProcess', {
       }
     },
 
-    computedPickCardsHollandCodeNum: (state) => {
+    computedPickCardsHollandCodeNum: async(state) => {
+      if (state.cards_set.length === 0) {
+        return null
+      }
       // console.log('state.cards_set:', state)
       let result = []
       let total_cate_r = 0

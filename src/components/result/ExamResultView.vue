@@ -1,12 +1,15 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 
 const examProcess = useExamProcessStore()
-const pickExamResult = ref(examProcess.computedPickCardsHollandCodeNum)
+const pickExamResult = ref(null)
 
 // 新增一個計算屬性來處理資料格式
 const formattedExamResults = computed(() => {
+  if (pickExamResult.value === null) {
+    return null
+  }
   return Object.entries(pickExamResult.value).map(([type, data]) => ({
     type,
     ...data
@@ -35,14 +38,22 @@ const stringOfType = (type) => {
 // 控制對話框開啟的狀態
 const dialogIsActive = ref(false)
 
-onMounted(() => {
+watch(dialogIsActive, async (newVal) => {
+  if (newVal) {
+    pickExamResult.value = await examProcess.computedPickCardsHollandCodeNum
+  }
+})
+
+onMounted(async () => {
   // console.log(examProcess.pick_care)
   // console.log(examProcess.pick_ce)
   // console.log(examProcess.pick_cj)
   // console.log(examProcess.pick_le)
   // console.log(examProcess.pick_lj)
-  // console.log(examProcess.computedPickCardsHollandCodeNum)
-  // console.log(formattedExamResults.value)
+  pickExamResult.value = await examProcess.computedPickCardsHollandCodeNum
+  console.log(examProcess.computedPickCardsHollandCodeNum)
+  console.log(formattedExamResults.value)
+  console.log(pickExamResult.value)
 })
 /**
  {"goal":{"R":"0","I":"0","A":"0","S":"0","E":"0","C":"0"},"care":{"R":"2","I":"3","A":"4","S":"6","E":"2","C":"2"},"like":{"R":"1","I":"3","A":"2","S":"1","E":"2","C":"5"},"can":{"R":"3","I":"0","A":"1","S":"7","E":"5","C":"4"},"job":{"j1":{"opt":"","care":"5","like":"","can":""},"j2":{"opt":"","care":"0","like":"","can":""},"j3":{"opt":"","care":"","like":"","can":""}}}
@@ -95,7 +106,7 @@ onMounted(() => {
           <!-- 卡片挑選結果 -->
           <h2>卡片挑選結果</h2>
           <v-divider />
-          <v-table class="result-table">
+          <v-table v-if="pickExamResult !== null" class="result-table">
             <thead>
               <tr align="center">
                 <th class="text-center">
