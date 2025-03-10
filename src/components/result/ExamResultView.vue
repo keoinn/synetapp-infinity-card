@@ -1,10 +1,11 @@
 <script setup>
+/* eslint-disable vue/no-v-html */
 import { onMounted, ref, computed, watch } from 'vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 
 const examProcess = useExamProcessStore()
 const pickExamResult = ref(null)
-
+const pairExamResult = ref(null)
 // 新增一個計算屬性來處理資料格式
 const formattedExamResults = computed(() => {
   if (pickExamResult.value === null) {
@@ -41,22 +42,53 @@ const dialogIsActive = ref(false)
 watch(dialogIsActive, async (newVal) => {
   if (newVal) {
     pickExamResult.value = await examProcess.computedPickCardsHollandCodeNum
+    pairExamResult.value = await examProcess.computedPairCardsHollandCodeNum
+    console.log(pickExamResult.value)
+    console.log(pairExamResult.value)
+    
   }
 })
 
 onMounted(async () => {
-  // console.log(examProcess.pick_care)
-  // console.log(examProcess.pick_ce)
-  // console.log(examProcess.pick_cj)
-  // console.log(examProcess.pick_le)
-  // console.log(examProcess.pick_lj)
   pickExamResult.value = await examProcess.computedPickCardsHollandCodeNum
-  console.log(examProcess.computedPickCardsHollandCodeNum)
-  console.log(formattedExamResults.value)
-  console.log(pickExamResult.value)
+  pairExamResult.value = await examProcess.computedPairCardsHollandCodeNum
 })
+
+const filterResultForProfessionName= (index,result) => {
+  if(index === 'total') {
+    return '總數'
+  }
+  return result.name
+}
+
+const filterResultForProfessionCol= (card_type, index, result) => {
+  if(index === 'total') {
+    if(card_type === 'care') {
+      return result['care_total']
+    } else if(card_type === 'like') {
+      return result['like_total']
+    } else if(card_type === 'can') {
+      return result['can_total']
+    } else{
+      return result['all_total']
+    }
+  }
+
+  return result[card_type]
+}
+
+const paddingNewLineForCol = (col) => {
+  // 檢查輸入是否為字符串且長度大於 4
+  if (typeof col === 'string' && Array.from(col).length > 4) {
+    // 將字符串分割為字符數組，並在第四個和第五個字符之間插入 <br>
+    let chars = Array.from(col);
+    chars.splice(4, 0, '<br>');
+    return chars.join('');
+  }
+  return col;
+}
 /**
- {"goal":{"R":"0","I":"0","A":"0","S":"0","E":"0","C":"0"},"care":{"R":"2","I":"3","A":"4","S":"6","E":"2","C":"2"},"like":{"R":"1","I":"3","A":"2","S":"1","E":"2","C":"5"},"can":{"R":"3","I":"0","A":"1","S":"7","E":"5","C":"4"},"job":{"j1":{"opt":"","care":"5","like":"","can":""},"j2":{"opt":"","care":"0","like":"","can":""},"j3":{"opt":"","care":"","like":"","can":""}}}
+{"goal":{"R":"0","I":"0","A":"0","S":"0","E":"0","C":"0"},"care":{"R":"2","I":"3","A":"4","S":"6","E":"2","C":"2"},"like":{"R":"1","I":"3","A":"2","S":"1","E":"2","C":"5"},"can":{"R":"3","I":"0","A":"1","S":"7","E":"5","C":"4"},"job":{"j1":{"opt":"0038","care":"6","like":"5","can":"2"},"j2":{"opt":"0086","care":"9","like":"10","can":"12"},"j3":{"opt":"0093","care":"4","like":"5","can":"0"}}}
  */
 </script>
 
@@ -106,7 +138,10 @@ onMounted(async () => {
           <!-- 卡片挑選結果 -->
           <h2>卡片挑選結果</h2>
           <v-divider />
-          <v-table v-if="pickExamResult !== null" class="result-table">
+          <v-table
+            v-if="pickExamResult !== null"
+            class="result-table"
+          >
             <thead>
               <tr align="center">
                 <th class="text-center">
@@ -170,6 +205,66 @@ onMounted(async () => {
             職業卡牌
           </h2>
           <v-divider />
+          <v-table
+            v-if="pairExamResult !== null"
+            class="result-table"
+          >
+            <thead>
+              <tr align="center">
+                <th class="text-center">
+                  類型
+                </th>
+                <th
+                  v-for="(item, index) in pairExamResult"
+                  :key="index"
+                  class="text-center"
+                  v-html="paddingNewLineForCol(filterResultForProfessionName(index, item))"
+                />
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>我在乎</td>
+                <td 
+                  v-for="(item, index) in pairExamResult" 
+                  :key="index"
+                  :class="index === 'total' ? 'total-cell' : 'raw-cell'"
+                >
+                  {{ filterResultForProfessionCol('care', index, item) }}
+                </td>
+              </tr>
+              <tr>
+                <td>我喜歡</td>
+                <td
+                  v-for="(item, index) in pairExamResult"
+                  :key="index"
+                  :class="index === 'total' ? 'total-cell' : 'raw-cell'"
+                >
+                  {{ filterResultForProfessionCol('like', index, item) }}
+                </td>
+              </tr>
+              <tr>
+                <td>我可以</td>
+                <td
+                  v-for="(item, index) in pairExamResult"
+                  :key="index"
+                  :class="index === 'total' ? 'total-cell' : 'raw-cell'"
+                >
+                  {{ filterResultForProfessionCol('can', index, item) }}
+                </td>
+              </tr>
+              <tr>
+                <td>總數</td>
+                <td
+                  v-for="(item, index) in pairExamResult"
+                  :key="index"
+                  class="total-cell"
+                >
+                  {{ filterResultForProfessionCol('total', index, item) }}
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
         </v-card-text>
 
         <v-card-actions>

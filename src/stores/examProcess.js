@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 // import { getReportSettings } from '@/plugins/utils/requests/mock/backend'
 import { getReportDetailAPI, saveReportAPI } from '@/plugins/utils/requests/api/backend'
-import { getCardImageName, getCardCoverImage } from '@/plugins/utils/psy_cards'
+import { getCardImageName, getCardCoverImage, getGoalCardData } from '@/plugins/utils/psy_cards'
 export const useExamProcessStore = defineStore('examProcess', {
   state: () => ({
     crd_id: null,
@@ -45,7 +45,8 @@ export const useExamProcessStore = defineStore('examProcess', {
         canTest: false
       },
       isFinished: false,
-      canTest: false
+      canTest: false,
+      final_cards: [],
     },
     pick_care: {
       cards_pool: [],
@@ -420,6 +421,8 @@ export const useExamProcessStore = defineStore('examProcess', {
           let type_total = 0
           let cate_result = {}
 
+          
+
           state[`pick_${set}`].keep_cards.map((card) => {
             let card_type = getCardCoverImage(getCardImageName(card))
             // console.log('card:', getCardImageName(card), card_type,)
@@ -461,6 +464,9 @@ export const useExamProcessStore = defineStore('examProcess', {
           }
 
           switch (set) {
+            case 'goal':
+              result['goal'] = cate_result
+              break
             case 'care':
               result['care'] = cate_result
               break
@@ -490,7 +496,92 @@ export const useExamProcessStore = defineStore('examProcess', {
       }
 
       return result
+    },
+
+    computedPairCardsHollandCodeNum: async(state) => {
+      let profession_result = {}
+
+      if (state.cards_set.length === 0) {
+        return null
+      }
+      if(state.pick_goal.final_cards.length === 0) {
+        return null
+      } else {
+        state.pick_goal.final_cards.map((card) => {
+          let card_type = getCardImageName(card)
+          const profession_data = getGoalCardData(getCardImageName(card))
+          profession_result[card_type] = {
+            total: 0,
+            name: profession_data.title,
+            hcode: profession_data.hcode,
+            img: card
+          };
+        })
+      }
+
+      let care_total = 0
+      let can_total = 0
+      let like_total = 0
+      let all_total = 0
+
+      state.cards_set.filter((set) => set !== 'goal').map((set) => {
+        let target = ''
+        let card_type = ''
+        if (set === 'care') {
+          target = 'pair_care'
+          card_type = 'care'
+        }
+        if (set === 'lj') {
+          target = 'pair_lj'
+          card_type = 'like'
+        }
+        if (set === 'le') {
+          target = 'pair_le'
+          card_type = 'like'
+        }
+        if (set === 'cj') {
+          target = 'pair_cj'
+          card_type = 'can'
+        }
+        if (set === 'ce') {
+          target = 'pair_ce'
+          card_type = 'can'
+        }
+
+
+        // TODO: profession = 0; cards_pool = 0
+
+
+        state[target].professions.map((profession) => {
+          let profession_name = getCardImageName(profession.class_img)
+          profession_result[profession_name][card_type] = profession.cards.length
+          profession_result[profession_name]['total'] += profession.cards.length
+          if(card_type === 'care') {
+            care_total += profession.cards.length
+          }
+          if(card_type === 'can') {
+            can_total += profession.cards.length
+          }
+          if(card_type === 'like') {
+            like_total += profession.cards.length
+          }
+          all_total += profession.cards.length
+        })
+
+        profession_result['total'] = {
+          care_total: care_total,
+          can_total: can_total,
+          like_total: like_total,
+          all_total: all_total
+        }
+
+      })
+      
+      
+      return profession_result
     }
+
+
   },
   persist: true
 })
