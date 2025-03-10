@@ -19,6 +19,8 @@ const formattedExamResults = computed(() => {
 
 const stringOfType = (type) => {
   switch (type) {
+    case 'goal':
+      return '我就是'
     case 'care':
       return '我在乎'
     case 'cj':
@@ -292,10 +294,8 @@ const paddingNewLineForCol = (col) => {
 .result-table {
   max-width: 900px;
 
-  ::v-deep {
-    table {
-      border-spacing: 3px !important; /* 強制設定格子之間的間隔 */
-    }
+  :deep(table) {
+    border-spacing: 3px !important; /* 強制設定格子之間的間隔 */
   }
 
   td {

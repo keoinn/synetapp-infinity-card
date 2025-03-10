@@ -411,7 +411,7 @@ export const useExamProcessStore = defineStore('examProcess', {
       let total_cate_e = 0
       let total_cate_c = 0
 
-      state.cards_set.filter((set) => set !== 'goal').map((set) => {
+      state.cards_set.map((set) => {
           let cate_r = 0
           let cate_i = 0
           let cate_a = 0
@@ -421,10 +421,22 @@ export const useExamProcessStore = defineStore('examProcess', {
           let type_total = 0
           let cate_result = {}
 
-          
+          let analysisCardSet = set === 'goal' ? state.pick_goal.stage1.keep_cards : state[`pick_${set}`].keep_cards
 
-          state[`pick_${set}`].keep_cards.map((card) => {
-            let card_type = getCardCoverImage(getCardImageName(card))
+          analysisCardSet.map((card) => {
+            let card_type = null
+            if(set === 'goal') {
+              let goal_card_type = getCardCoverImage(getCardImageName(card))
+              card_type = goal_card_type === 'goal_r' ? 
+                'general_r' : goal_card_type === 'goal_i' ? 
+                'general_i' : goal_card_type === 'goal_a' ? 
+                'general_a' : goal_card_type === 'goal_s' ? 
+                'general_s' : goal_card_type === 'goal_e' ? 
+                'general_e' : goal_card_type === 'goal_c' ? 
+                'general_c' : null
+            } else {
+              card_type = getCardCoverImage(getCardImageName(card))
+            }
             // console.log('card:', getCardImageName(card), card_type,)
             if (card_type === 'general_r') {
               cate_r += 1
