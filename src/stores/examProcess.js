@@ -129,6 +129,99 @@ export const useExamProcessStore = defineStore('examProcess', {
       canTest: false
     },
 
+    calculate_pick: {
+      goal: {
+        r: 0,
+        i: 0,
+        a: 0,
+        s: 0,
+        e: 0,
+        c: 0,
+        total: 0,
+        h_code: null,
+        rate: {
+          r: 0.0,
+          i: 0.0,
+          a: 0.0,
+          s: 0.0,
+          e: 0.0,
+          c: 0.0,
+        }
+      },
+      care: {
+        r: 0,
+        i: 0,
+        a: 0,
+        s: 0,
+        e: 0,
+        c: 0,
+        total: 0,
+        h_code: null,
+        rate: {
+          r: 0.0,
+          i: 0.0,
+          a: 0.0,
+          s: 0.0,
+          e: 0.0,
+          c: 0.0,
+        }
+      },
+      can: {
+        r: 0,
+        i: 0,
+        a: 0,
+        s: 0,
+        e: 0,
+        c: 0,
+        total: 0,
+        h_code: null,
+        rate: {
+          r: 0.0,
+          i: 0.0,
+          a: 0.0,
+          s: 0.0,
+          e: 0.0,
+          c: 0.0,
+        }
+      },
+      like: {
+        r: 0,
+        i: 0,
+        a: 0,
+        s: 0,
+        e: 0,
+        c: 0,
+        total: 0,
+        h_code: null,
+        rate: {
+          r: 0.0,
+          i: 0.0,
+          a: 0.0,
+          s: 0.0,
+          e: 0.0,
+          c: 0.0,
+        }
+      },
+      total: {
+        r: 0,
+        i: 0,
+        a: 0,
+        s: 0,
+        e: 0,
+        c: 0,
+        total: 0,
+        h_code: null,
+        rate: {
+          r: 0.0,
+          i: 0.0,
+          a: 0.0,
+          s: 0.0,
+          e: 0.0,
+          c: 0.0,
+        }
+      }
+    },
+
     status: 0
   }),
   actions: {
@@ -591,6 +684,293 @@ export const useExamProcessStore = defineStore('examProcess', {
       
       
       return profession_result
+    },
+
+    calculatePickResult: (state) => {
+      // Reset calculate_pick
+      state.calculate_pick = {
+        goal: {
+          r: 0,
+          i: 0,
+          a: 0,
+          s: 0,
+          e: 0,
+          c: 0,
+          total: 0,
+          h_code: null,
+          rate: {
+            r: 0.0,
+            i: 0.0,
+            a: 0.0,
+            s: 0.0,
+            e: 0.0,
+            c: 0.0,
+          }
+        },
+        care: {
+          r: 0,
+          i: 0,
+          a: 0,
+          s: 0,
+          e: 0,
+          c: 0,
+          total: 0,
+          h_code: null,
+          rate: {
+            r: 0.0,
+            i: 0.0,
+            a: 0.0,
+            s: 0.0,
+            e: 0.0,
+            c: 0.0,
+          }
+        },
+        can: {
+          r: 0,
+          i: 0,
+          a: 0,
+          s: 0,
+          e: 0,
+          c: 0,
+          total: 0,
+          h_code: null,
+          rate: {
+            r: 0.0,
+            i: 0.0,
+            a: 0.0,
+            s: 0.0,
+            e: 0.0,
+            c: 0.0,
+          }
+        },
+        like: {
+          r: 0,
+          i: 0,
+          a: 0,
+          s: 0,
+          e: 0,
+          c: 0,
+          total: 0,
+          h_code: null,
+          rate: {
+            r: 0.0,
+            i: 0.0,
+            a: 0.0,
+            s: 0.0,
+            e: 0.0,
+            c: 0.0,
+          }
+        },
+        total: {
+          r: 0,
+          i: 0,
+          a: 0,
+          s: 0,
+          e: 0,
+          c: 0,
+          total: 0,
+          h_code: null,
+          rate: {
+            r: 0.0,
+            i: 0.0,
+            a: 0.0,
+            s: 0.0,
+            e: 0.0,
+            c: 0.0,
+          }
+        }
+      }
+
+      if(state.cards_set == null) {
+        return
+      }
+  
+      // 計算 pick_goal 的階段卡片數量
+      let total_cate_r = 0
+      let total_cate_i = 0
+      let total_cate_a = 0
+      let total_cate_s = 0
+      let total_cate_e = 0
+      let total_cate_c = 0
+
+      state.cards_set.map((set) => {
+        let analysisCardSet = set === 'goal' ? state.pick_goal.stage1.keep_cards : state[`pick_${set}`].keep_cards
+        let targetRef = set === 'goal' ? 'goal' : set === 'care' ? 'care' : set === 'cj' ? 'can' : set === 'ce' ? 'can' : set === 'lj' ? 'like' : null
+        let type_num = 0
+        analysisCardSet.map((card) => {
+          let card_type = null
+          if(set === 'goal') {
+            let goal_card_type = getCardCoverImage(getCardImageName(card))
+            card_type = goal_card_type === 'goal_r' ? 
+              'general_r' : goal_card_type === 'goal_i' ? 
+              'general_i' : goal_card_type === 'goal_a' ? 
+              'general_a' : goal_card_type === 'goal_s' ? 
+              'general_s' : goal_card_type === 'goal_e' ? 
+              'general_e' : goal_card_type === 'goal_c' ? 
+              'general_c' : null
+          } else {
+            card_type = getCardCoverImage(getCardImageName(card))
+          }
+
+
+          if(card_type === 'general_r') {
+            state.calculate_pick[targetRef].r += 1
+          }
+          if(card_type === 'general_i') {
+            state.calculate_pick[targetRef].i += 1
+          } 
+          if(card_type === 'general_a') {
+            state.calculate_pick[targetRef].a += 1
+          }
+          if(card_type === 'general_s') {
+            state.calculate_pick[targetRef].s += 1
+          }
+          if(card_type === 'general_e') {
+            state.calculate_pick[targetRef].e += 1
+          }
+          if(card_type === 'general_c') {
+            state.calculate_pick[targetRef].c += 1
+          }
+          type_num += 1
+        })
+        state.calculate_pick[targetRef].total = type_num
+        total_cate_r += state.calculate_pick[targetRef].r
+        total_cate_i += state.calculate_pick[targetRef].i
+        total_cate_a += state.calculate_pick[targetRef].a
+        total_cate_s += state.calculate_pick[targetRef].s
+        total_cate_e += state.calculate_pick[targetRef].e
+        total_cate_c += state.calculate_pick[targetRef].c
+      })
+      state.calculate_pick.total.r = total_cate_r
+      state.calculate_pick.total.i = total_cate_i
+      state.calculate_pick.total.a = total_cate_a
+      state.calculate_pick.total.s = total_cate_s
+      state.calculate_pick.total.e = total_cate_e
+      state.calculate_pick.total.c = total_cate_c
+
+      // 計算 rate
+      state.calculate_pick.goal.rate.r = parseFloat((state.calculate_pick.goal.r / 14 * 100).toFixed(2))
+      state.calculate_pick.goal.rate.i = parseFloat((state.calculate_pick.goal.i / 13 * 100).toFixed(2))
+      state.calculate_pick.goal.rate.a = parseFloat((state.calculate_pick.goal.a / 20 * 100).toFixed(2))
+      state.calculate_pick.goal.rate.s = parseFloat((state.calculate_pick.goal.s / 13 * 100).toFixed(2))
+      state.calculate_pick.goal.rate.e = parseFloat((state.calculate_pick.goal.e / 30 * 100).toFixed(2))
+      state.calculate_pick.goal.rate.c = parseFloat((state.calculate_pick.goal.c / 10 * 100).toFixed(2))
+
+      state.calculate_pick.care.rate.r = parseFloat((state.calculate_pick.care.r /  6 * 100).toFixed(2))
+      state.calculate_pick.care.rate.i = parseFloat((state.calculate_pick.care.i / 10 * 100).toFixed(2))
+      state.calculate_pick.care.rate.a = parseFloat((state.calculate_pick.care.a / 11 * 100).toFixed(2))
+      state.calculate_pick.care.rate.s = parseFloat((state.calculate_pick.care.s / 15 * 100).toFixed(2))
+      state.calculate_pick.care.rate.e = parseFloat((state.calculate_pick.care.e / 7 * 100).toFixed(2))
+      state.calculate_pick.care.rate.c = parseFloat((state.calculate_pick.care.c / 11 * 100).toFixed(2))
+
+      state.calculate_pick.can.rate.r = parseFloat((state.calculate_pick.can.r /  9 * 100).toFixed(2))
+      state.calculate_pick.can.rate.i = parseFloat((state.calculate_pick.can.i / 10 * 100).toFixed(2))
+      state.calculate_pick.can.rate.a = parseFloat((state.calculate_pick.can.a /  9 * 100).toFixed(2))
+      state.calculate_pick.can.rate.s = parseFloat((state.calculate_pick.can.s / 11 * 100).toFixed(2))
+      state.calculate_pick.can.rate.e = parseFloat((state.calculate_pick.can.e / 11 * 100).toFixed(2))
+      state.calculate_pick.can.rate.c = parseFloat((state.calculate_pick.can.c / 10 * 100).toFixed(2))
+      
+      state.calculate_pick.like.rate.r = parseFloat((state.calculate_pick.like.r /  9 * 100).toFixed(2))
+      state.calculate_pick.like.rate.i = parseFloat((state.calculate_pick.like.i / 10 * 100).toFixed(2))
+      state.calculate_pick.like.rate.a = parseFloat((state.calculate_pick.like.a /  9 * 100).toFixed(2))
+      state.calculate_pick.like.rate.s = parseFloat((state.calculate_pick.like.s / 11 * 100).toFixed(2))
+      state.calculate_pick.like.rate.e = parseFloat((state.calculate_pick.like.e / 11 * 100).toFixed(2))
+      state.calculate_pick.like.rate.c = parseFloat((state.calculate_pick.like.c / 10 * 100).toFixed(2))
+      
+      state.calculate_pick.total.rate.r = parseFloat((state.calculate_pick.total.r / 38 * 100).toFixed(2))
+      state.calculate_pick.total.rate.i = parseFloat((state.calculate_pick.total.i / 43 * 100).toFixed(2))
+      state.calculate_pick.total.rate.a = parseFloat((state.calculate_pick.total.a / 49 * 100).toFixed(2))
+      state.calculate_pick.total.rate.s = parseFloat((state.calculate_pick.total.s / 50 * 100).toFixed(2))
+      state.calculate_pick.total.rate.e = parseFloat((state.calculate_pick.total.e / 60 * 100).toFixed(2))
+      state.calculate_pick.total.rate.c = parseFloat((state.calculate_pick.total.c / 40 * 100).toFixed(2))
+      
+      // 計算 h_code
+      state.calculate_pick.goal.rate.r = parseFloat(14)
+      state.calculate_pick.goal.rate.i = parseFloat(88)
+      state.calculate_pick.goal.rate.a = parseFloat(66)
+      state.calculate_pick.goal.rate.s = parseFloat(66)
+      state.calculate_pick.goal.rate.e = parseFloat(12)
+      state.calculate_pick.goal.rate.c = parseFloat(25)
+
+
+      const exam_type = ['goal', 'care', 'can', 'like', 'total']
+      exam_type.map((exam) => {
+        let high_sign = 0
+        let medium_high_sign = 0
+        // eslint-disable-next-line no-unused-vars
+        let medium_sign = 0
+        // eslint-disable-next-line no-unused-vars
+        let low_sign = 0
+  
+        const rate_list = ['r', 'i', 'a', 's', 'e', 'c']
+        rate_list.map((type) => {
+          if(state.calculate_pick[exam].rate[type] > 66) {
+            high_sign += 1
+          } else if(state.calculate_pick[exam].rate[type] > 50 && state.calculate_pick[exam].rate[type] <= 66) {
+            medium_high_sign += 1
+          } else if(state.calculate_pick[exam].rate[type] > 33 && state.calculate_pick[exam].rate[type] <= 50) {
+            medium_sign += 1
+          } else {
+            low_sign += 1
+          }
+        })
+        
+        let h_code_analysis = {
+          r: state.calculate_pick[exam].rate.r,
+          i: state.calculate_pick[exam].rate.i,
+          a: state.calculate_pick[exam].rate.a,
+          s: state.calculate_pick[exam].rate.s,
+          e: state.calculate_pick[exam].rate.e,
+          c: state.calculate_pick[exam].rate.c
+        }
+        let h_code = ""
+  
+        if(high_sign == 1) {
+          // 找出最大值並返回其 key（大寫）
+          h_code = Object.entries(h_code_analysis).reduce((max, entry) => {
+            return entry[1] > max[1] ? entry : max;
+          }, ['initial', 0])[0].toUpperCase();
+        } else if(high_sign == 2) {
+          let high_values = Object.entries(h_code_analysis)
+            .filter(( value) => value > 66) // 篩選出大於 66 的元素
+            .sort((a, b) => b[1] - a[1]); // 由大至小排
+          let difference = Math.abs(high_values[0][1] - high_values[1][1]);
+          if (difference >= 12) {
+            h_code = high_values[0][0].toUpperCase(); // 輸出比例最高的 key
+          } else {
+            h_code = high_values.map(([key]) => key.toUpperCase()).join(''); // 串接兩個 key
+          }
+        } else if(high_sign == 3) {
+          let high_values = Object.entries(h_code_analysis)
+            .filter((value) => value > 66) // 篩選出大於 66 的元素
+            .sort((a, b) => b[1] - a[1]); // 由大至小排
+          let differences = high_values.map(value => value[1] - high_values[2][1]);
+          if (differences[0] >= 12 && differences[1] < 12) {
+            h_code = high_values[0][0].toUpperCase(); // 輸出比例最高的 key
+          } else if (differences[0] < 12 && differences[1] < 12) {
+            h_code = '職業傾向不明';
+          }
+        } else if (high_sign == 0 && medium_high_sign == 1) {
+          h_code = Object.entries(h_code_analysis).reduce((max, entry) => {
+            return entry[1] > max[1] ? entry : max;
+          }, ['initial', 0])[0].toUpperCase();
+        } else if(high_sign == 0 && medium_high_sign == 2) {
+          let medium_high_values = Object.entries(h_code_analysis)
+          .filter((value) => value > 50 && value <= 66) // 篩選出大於 50 小於 66 的元素
+          .sort((a, b) => b[1] - a[1]); // 由大至小排
+          let difference = Math.abs(medium_high_values[0][1] - medium_high_values[1][1]);
+          if (difference >= 12) {
+            h_code = medium_high_values[0][0].toUpperCase(); // 輸出比例最高的 key
+          } else {
+            h_code = medium_high_values.map(([key]) => key.toUpperCase()).join(''); // 串接兩個 key
+          }
+        } else if (high_sign == 0 && medium_high_sign >= 3) {
+          h_code = '職業傾向不明';
+        } else { // high_sign == 0 && medium_high_sign == 0
+          h_code = '職業傾向不明';
+        }
+        state.calculate_pick[exam].h_code = h_code
+      });
     }
 
 

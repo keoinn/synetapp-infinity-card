@@ -419,7 +419,7 @@ const getCardCoverImage = (cardName) => {
       17: 'goal_s',
       18: 'goal_e',
       19: 'goal_c',
-      20: 'goal_c',
+      20: 'goal_e',
       21: 'goal_a',
       22: 'goal_s',
       23: 'goal_i',

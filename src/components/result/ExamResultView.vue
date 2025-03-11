@@ -89,8 +89,14 @@ const paddingNewLineForCol = (col) => {
   }
   return col;
 }
+
+onMounted(() => {
+  examProcess.calculatePickResult
+  console.log('pickExamResult:', examProcess.calculate_pick)
+})
 /**
-{"goal":{"R":"0","I":"0","A":"0","S":"0","E":"0","C":"0"},"care":{"R":"2","I":"3","A":"4","S":"6","E":"2","C":"2"},"like":{"R":"1","I":"3","A":"2","S":"1","E":"2","C":"5"},"can":{"R":"3","I":"0","A":"1","S":"7","E":"5","C":"4"},"job":{"j1":{"opt":"0038","care":"6","like":"5","can":"2"},"j2":{"opt":"0086","care":"9","like":"10","can":"12"},"j3":{"opt":"0093","care":"4","like":"5","can":"0"}}}
+
+{"goal":{"R":"12","I":"11","A":"19","S":"12","E":"27","C":"11"},"care":{"R":"2","I":"3","A":"4","S":"6","E":"2","C":"2"},"like":{"R":"1","I":"3","A":"2","S":"1","E":"2","C":"5"},"can":{"R":"3","I":"0","A":"1","S":"7","E":"5","C":"4"},"job":{"j1":{"opt":"0038","care":"6","like":"5","can":"2"},"j2":{"opt":"0086","care":"9","like":"10","can":"12"},"j3":{"opt":"0093","care":"4","like":"5","can":"0"}}}
  */
 </script>
 
