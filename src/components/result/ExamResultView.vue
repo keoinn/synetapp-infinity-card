@@ -156,8 +156,10 @@ const radarChartData = () => {
   const pointBorderColors = ["#fff", "#fff", "#fff"]
   const pointHoverBackgroundColors = ["#fff", "#fff", "#fff"]
   const pointHoverBorderColors = ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"]
+  const showLabel = findMaxValueInJobs.value
 
   const datasets = Object.entries(pairResult.value).filter(([key, value]) => key !== 'total').map(([key, value], index) => {
+    const isShow = value.title === showLabel ? true : false
     return {
       label: value.title,
       data: [value.rate.care, value.rate.like, value.rate.can],
@@ -167,6 +169,7 @@ const radarChartData = () => {
       pointBorderColor: pointBorderColors[index],
       pointHoverBackgroundColor: pointHoverBackgroundColors[index],
       pointHoverBorderColor: pointHoverBorderColors[index],
+      hidden: !isShow,
     }
   })
 
@@ -179,6 +182,32 @@ const radarChartData = () => {
 
 }
 
+const findMaxValueInJobs = computed(() => {
+  let maxRate = 0;
+  let maxTitle = "";
+
+  // 遍歷每個職業
+  Object.values(pairResult.value).forEach(job => {
+    if (job.rate) {
+      // 檢查每個 rate 是否大於當前最大值
+      if (job.rate.care > maxRate) {
+        maxRate = job.rate.care;
+        maxTitle = job.title;
+      }
+      if (job.rate.like > maxRate) {
+        maxRate = job.rate.like;
+        maxTitle = job.title;
+      }
+      if (job.rate.can > maxRate) {
+        maxRate = job.rate.can;
+        maxTitle = job.title;
+      }
+    }
+  });
+
+  return maxTitle;
+})
+
 </script>
 
 <template>
@@ -187,7 +216,7 @@ const radarChartData = () => {
     v-model="dialogIsActive"
     transition="dialog-bottom-transition"
     scrollable
-    height="80%"
+    height="90%"
     class="report-dialog"
   >
     <template #activator="{ props: activatorProps }">
@@ -561,13 +590,11 @@ const radarChartData = () => {
 }
 
 .radar-chart-container {
-    width: 100%;
-    height: 100%;
-    max-width: 900px;
-    max-height: 900px;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    margin: 0 auto;
-  }
+  max-width: 850px;
+  max-height: 850px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin: 0 auto;
+}
 </style>
