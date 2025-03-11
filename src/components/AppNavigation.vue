@@ -6,6 +6,7 @@
     :rail="appStore.isDrawerOpen"
     color="#FFFFFF"
     :permanent="mdAndDown ? true : false"
+    style="z-index: 100;"
   >
     <!-- rail / permanent 
      DOCME:

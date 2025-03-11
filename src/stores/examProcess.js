@@ -222,6 +222,65 @@ export const useExamProcessStore = defineStore('examProcess', {
       }
     },
 
+    calculate_pair: {
+      job1: {
+        care: 0,
+        like: 0,
+        can: 0,
+        total: 0,
+        rate: {
+          care: 0.0,
+          like: 0.0,
+          can: 0.0,
+        },
+        title: null,
+        img: null,
+        hcode: null,
+      },
+      job2: {
+        care: 0,
+        like: 0,
+        can: 0,
+        total: 0,
+        rate: {
+          care: 0.0,
+          like: 0.0,
+          can: 0.0,
+        },
+        title: null,
+        img: null,
+        hcode: null,
+      },
+      job3: {
+        care: 0,
+        like: 0,
+        can: 0,
+        total: 0,
+        rate: {
+          care: 0.0,
+          like: 0.0,
+          can: 0.0,
+        },
+        title: null,
+        img: null,
+        hcode: null,
+      },
+      total: {
+        care: 0,
+        like: 0,
+        can: 0,
+        total: 0,
+        rate: {
+          care: 0.0,
+          like: 0.0,
+          can: 0.0,
+        },
+        title: '總和',
+        img: null,
+        hcode: null,
+      }
+    },
+
     status: 0
   }),
   actions: {
@@ -847,6 +906,7 @@ export const useExamProcessStore = defineStore('examProcess', {
       state.calculate_pick.total.s = total_cate_s
       state.calculate_pick.total.e = total_cate_e
       state.calculate_pick.total.c = total_cate_c
+      state.calculate_pick.total.total = total_cate_r + total_cate_i + total_cate_a + total_cate_s + total_cate_e + total_cate_c
 
       // 計算 rate
       state.calculate_pick.goal.rate.r = parseFloat((state.calculate_pick.goal.r / 14 * 100).toFixed(2))
@@ -885,12 +945,12 @@ export const useExamProcessStore = defineStore('examProcess', {
       state.calculate_pick.total.rate.c = parseFloat((state.calculate_pick.total.c / 40 * 100).toFixed(2))
       
       // 計算 h_code
-      state.calculate_pick.goal.rate.r = parseFloat(14)
-      state.calculate_pick.goal.rate.i = parseFloat(88)
-      state.calculate_pick.goal.rate.a = parseFloat(66)
-      state.calculate_pick.goal.rate.s = parseFloat(66)
-      state.calculate_pick.goal.rate.e = parseFloat(12)
-      state.calculate_pick.goal.rate.c = parseFloat(25)
+      // state.calculate_pick.goal.rate.r = parseFloat(14)
+      // state.calculate_pick.goal.rate.i = parseFloat(88)
+      // state.calculate_pick.goal.rate.a = parseFloat(66)
+      // state.calculate_pick.goal.rate.s = parseFloat(66)
+      // state.calculate_pick.goal.rate.e = parseFloat(12)
+      // state.calculate_pick.goal.rate.c = parseFloat(25)
 
 
       const exam_type = ['goal', 'care', 'can', 'like', 'total']
@@ -971,6 +1031,163 @@ export const useExamProcessStore = defineStore('examProcess', {
         }
         state.calculate_pick[exam].h_code = h_code
       });
+
+      return state.calculate_pick
+    },
+
+    calculatePairResult: (state) => {
+      // Reset calculate_pair
+      state.calculate_pair = {
+        job1: {
+          care: 0,
+          like: 0,
+          can: 0,
+          total: 0,
+          rate: {
+            care: 0.0,
+            like: 0.0,
+            can: 0.0,
+          },
+          title: null,
+          img: null,
+          hcode: null,
+        },
+        job2: {
+          care: 0,
+          like: 0,
+          can: 0,
+          total: 0,
+          rate: {
+            care: 0.0,
+            like: 0.0,
+            can: 0.0,
+          },
+          title: null,
+          img: null,
+          hcode: null,
+        },
+        job3: {
+          care: 0,
+          like: 0,
+          can: 0,
+          total: 0,
+          rate: {
+            care: 0.0,
+            like: 0.0,
+            can: 0.0,
+          },
+          title: null,
+          img: null,
+          hcode: null,
+        },
+        total: {
+          care: 0,
+          like: 0,
+          can: 0,
+          total: 0,
+          rate: {
+            care: 0.0,
+            like: 0.0,
+            can: 0.0,
+          },
+          title: '總和',
+          img: null,
+          hcode: null,
+        }
+      }
+
+      if(state.cards_set == null) {
+        return state.calculate_pair
+      }
+
+      if(state.pick_goal.final_cards === undefined) {
+        return state.calculate_pair
+      }
+
+      if(state.pick_goal.final_cards.length === 0) {
+        return state.calculate_pair
+      } else {
+        state.pick_goal.final_cards.map((card, idx) => {
+          let card_type = getCardImageName(card)
+          const profession_data = getGoalCardData(card_type)
+          state.calculate_pair[`job${idx + 1}`].title = profession_data.title
+          state.calculate_pair[`job${idx + 1}`].img = card
+          state.calculate_pair[`job${idx + 1}`].hcode = profession_data.hcode
+        })
+      }
+
+      // 計算 pair 階段卡片數量
+      let care_total = 0
+      let can_total = 0
+      let like_total = 0
+      let all_total = 0
+
+      state.cards_set.filter((set) => set !== 'goal').map((set) => {
+        let target = ''
+        let card_type = ''
+        if (set === 'care') {
+          target = 'pair_care'
+          card_type = 'care'
+        }
+        if (set === 'lj') {
+          target = 'pair_lj'
+          card_type = 'like'
+        }
+        if (set === 'le') {
+          target = 'pair_le'
+          card_type = 'like'
+        }
+        if (set === 'cj') {
+          target = 'pair_cj'
+          card_type = 'can'
+        }
+        if (set === 'ce') {
+          target = 'pair_ce'
+          card_type = 'can'
+        }
+
+        state[target].professions.map((profession, idx) => {
+          state.calculate_pair[`job${idx + 1}`][card_type] = profession.cards.length
+          state.calculate_pair[`job${idx + 1}`]['total'] += profession.cards.length
+          if(card_type === 'care') {
+            care_total += profession.cards.length
+          }
+          if(card_type === 'can') {
+            can_total += profession.cards.length
+          }
+          if(card_type === 'like') {
+            like_total += profession.cards.length
+          }
+          all_total += profession.cards.length
+        })
+      })
+
+      state.calculate_pair.total.care = care_total
+      state.calculate_pair.total.can = can_total
+      state.calculate_pair.total.like = like_total
+      state.calculate_pair.total.total = all_total
+
+      // 計算 pair 階段的 rate 與 職業卡牌的得牌總數
+      if(state.calculate_pair.job1.title != null) {
+        state.calculate_pair.job1.total = state.calculate_pair.job1.care + state.calculate_pair.job1.like + state.calculate_pair.job1.can
+        state.calculate_pair.job1.rate.care = parseFloat((state.calculate_pair.job1.care / state.calculate_pair.total.care * 100).toFixed(2))
+        state.calculate_pair.job1.rate.like = parseFloat((state.calculate_pair.job1.like / state.calculate_pair.total.like * 100).toFixed(2))
+        state.calculate_pair.job1.rate.can = parseFloat((state.calculate_pair.job1.can / state.calculate_pair.total.can * 100).toFixed(2))
+      }
+      if(state.calculate_pair.job2.title != null) {
+        state.calculate_pair.job2.total = state.calculate_pair.job2.care + state.calculate_pair.job2.like + state.calculate_pair.job2.can
+        state.calculate_pair.job2.rate.care = parseFloat((state.calculate_pair.job2.care / state.calculate_pair.total.care * 100).toFixed(2))
+        state.calculate_pair.job2.rate.like = parseFloat((state.calculate_pair.job2.like / state.calculate_pair.total.like * 100).toFixed(2))
+        state.calculate_pair.job2.rate.can = parseFloat((state.calculate_pair.job2.can / state.calculate_pair.total.can * 100).toFixed(2))
+      }
+      if(state.calculate_pair.job3.title != null) {
+        state.calculate_pair.job3.total = state.calculate_pair.job3.care + state.calculate_pair.job3.like + state.calculate_pair.job3.can
+        state.calculate_pair.job3.rate.care = parseFloat((state.calculate_pair.job3.care / state.calculate_pair.total.care * 100).toFixed(2))
+        state.calculate_pair.job3.rate.like = parseFloat((state.calculate_pair.job3.like / state.calculate_pair.total.like * 100).toFixed(2))
+        state.calculate_pair.job3.rate.can = parseFloat((state.calculate_pair.job3.can / state.calculate_pair.total.can * 100).toFixed(2))
+      }
+
+      return state.calculate_pair 
     }
 
 

@@ -3,7 +3,7 @@
     :height="footerHeight"
     app
     class="footer d-none d-sm-flex"
-    style="position: absolute; left: 0; right: 0; z-index: 9999; width: 100%"
+    style="position: absolute; left: 0; right: 0; z-index: 100; width: 100%"
   >
     <v-row>
       <v-col
