@@ -376,7 +376,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .card-playground {
-  background-color: lightblue;
   position: relative;
   min-height: 600px;
   max-width: 1100px;

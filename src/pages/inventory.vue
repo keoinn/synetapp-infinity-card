@@ -179,14 +179,12 @@ const dropItemToArray = computed(() => {
 
 <style lang="scss" scoped>
 .inventory-page {
-  background-color: lightblue;
   padding: 40px;
   min-width: 1350px;
 
   .inventory-row {
     display: flex;
     flex-wrap: wrap;
-    background-color: white;
     padding: 20px;
   }
 

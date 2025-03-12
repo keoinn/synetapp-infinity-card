@@ -508,7 +508,6 @@ onBeforeUnmount(() => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: lightblue;
 }
 
 .card-case {
@@ -543,7 +542,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   min-height: 400px;
-  // background-color: lightblue;
   font-size: 24px;
   padding-top: 100px;
 

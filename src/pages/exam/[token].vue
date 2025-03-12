@@ -116,7 +116,6 @@ const viewReport = () => {
 }
 .exam-landing {
   width: 1100px;
-  background-color: lightblue;
   padding-top: 20px;
   padding-bottom: 40px;
   padding-left: 40px;
@@ -135,7 +134,6 @@ const viewReport = () => {
   .exam-signal-card {
     width: 100%;
     height: 100%;
-    background-color: white;
     padding: 20px;
   }
 }

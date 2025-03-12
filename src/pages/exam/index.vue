@@ -48,14 +48,12 @@ onMounted(async () => {
 .exam-dashboard {
   width: 100%;
   height: 100%;
-  background-color: lightblue;
   padding: 40px;
   min-width: 520px;
 
   .exam-list {
     display: flex;
     flex-wrap: wrap;
-    background-color: white;
     padding: 20px;
   }
 
