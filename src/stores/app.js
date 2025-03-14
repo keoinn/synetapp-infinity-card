@@ -1,7 +1,7 @@
 // Utilities
 import { defineStore } from 'pinia'
-
 import { authAPI, verifyTokenAPI } from '@/plugins/utils/requests/api/backend.js'
+
 export const useAppStore = defineStore('app', {
   state: () => ({
     isDrawerOpen: false,
@@ -29,6 +29,9 @@ export const useAppStore = defineStore('app', {
         this.refreshToken = response.meta.refresh_token
         this.user_id = response.data.attributes.uid
         this.isLogin = true
+        return response
+      } else {
+        return response
       }
     },
     async verifyToken() {
@@ -37,6 +40,13 @@ export const useAppStore = defineStore('app', {
     },
     logout() {
       this.isLogin = false
+      this.$patch(() => {
+        this.isDrawerOpen = false
+        this.isLogin = false
+        this.token = null
+        this.refreshToken = null
+        this.user_id = null
+      })
     }
   },
   getters: {

@@ -1,7 +1,8 @@
 <script setup>
 import { useAppStore } from '@/stores/app'
-
+import { useRouter } from 'vue-router'
 const appStore = useAppStore()
+const router = useRouter()
 </script>
 <template>
   <v-app-bar
@@ -47,6 +48,16 @@ const appStore = useAppStore()
     </div>
 
     <v-spacer />
+    <div
+      v-show="!appStore.isLogin"
+      class="header-start-icon pr-6"
+    >
+      <v-icon
+        size="32"
+        icon="mdi-login"
+        @click="router.push('/login')"
+      />
+    </div>
 
     <div class="header-end-icon">
       <v-icon

@@ -3,7 +3,9 @@ import { ref, computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { registerAPI } from '@/plugins/utils/requests/api/backend'
 import { handleAlert } from '@/plugins/utils/alert'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const visible_pwd = ref(false)
 const visible_pwd_confirm = ref(false)
 const appStore = useAppStore()
@@ -22,7 +24,7 @@ const login = async () => {
     password_confirm.value = ''
     error_detail.value = null
     newAccount.value = false
-
+    router.push('/')
   } catch (error) {
     errorHandler(error)
   }
