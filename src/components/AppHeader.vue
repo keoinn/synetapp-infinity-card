@@ -21,29 +21,26 @@ const router = useRouter()
       />
     </div>
 
-    <a
-      href="#"
+    <span
       class="header-link d-none d-md-flex"
       @click="router.push('/news')"
     >
       最新消息
-    </a>
+    </span>
 
-    <a
-      href="#"
+    <span
       class="header-link d-none d-md-flex"
       @click="router.push('/shop')"
     >
       購買卡牌
-    </a>
+    </span>
 
-    <a
-      href="#"
+    <span
       class="header-link d-none d-md-flex"
       @click="router.push('/about')"
     >
       關於我們
-    </a>
+    </span>
 
     <div class="header-title">
       <span class="header-main-title">無限可能卡</span>
@@ -106,6 +103,7 @@ const router = useRouter()
   font-style: normal;
   font-weight: 700;
   line-height: normal;
+  cursor: pointer;
 }
 
 .header-end-icon {
