@@ -13,20 +13,23 @@
         />
       </div>
     </div>
-    <v-btn
-      class="nav-btn left"
-      icon="mdi-chevron-left"
-      color="green"
-      size="small"
-      @click="prev"
-    />
-    <v-btn
-      class="nav-btn right"
-      icon="mdi-chevron-right"
-      color="green"
-      size="small"
-      @click="next"
-    />
+    <div class="nav-btn-container">
+      <v-btn
+        class="nav-btn"
+        icon="mdi-chevron-left"
+        color="green"
+        size="x-small"
+        @click="prev"
+      />
+      <span class="nav-btn-text"> 職業卡牌 </span>
+      <v-btn
+        class="nav-btn right"
+        icon="mdi-chevron-right"
+        color="green"
+        size="x-small"
+        @click="next"
+      />
+    </div>
   </div>
 </template>
 
@@ -59,7 +62,7 @@ const computeStyle = (index) => {
     zIndex = 0,
     width = '100%',
     height = '100%'
-  const baseTranslateX = 150 // 使用 carousel-container 的宽度作为基础平移量
+  const baseTranslateX = 100 // 使用 carousel-container 的宽度作为基础平移量
   const adjustValue = 100
   if (index === currentIndex.value) {
     x = 0
@@ -74,8 +77,8 @@ const computeStyle = (index) => {
     x = `calc(-${baseTranslateX}px - ${adjustValue}px)` // 100px 为调整值
     z = -400
     y = 0
-    width = '600px'
-    height = '300px'
+    width = '400px'
+    height = '200px'
     opacity = 0.5
   } else if (
     index === currentIndex.value + 1 ||
@@ -84,8 +87,8 @@ const computeStyle = (index) => {
     x = `calc(${baseTranslateX}px + ${adjustValue}px)` // 100px 为调整值
     z = -400
     y = 0
-    width = '600px'
-    height = '300px'
+    width = '400px'
+    height = '200px'
     opacity = 0.5
   } else {
     x = `calc(2 * ${baseTranslateX}px)` // 隐藏其他图片
@@ -131,10 +134,10 @@ const next = () => {
 .carousel-container {
   position: relative;
   perspective: 1000px;
-  height: 300px;
+  height: 200px;
   overflow: hidden;
   background-color: lightblue;
-  width: 600px;
+  width: 400px;
 }
 
 .carousel-item {
@@ -151,17 +154,22 @@ img {
 }
 
 .nav-btn {
-  position: absolute;
-  top: 50%;
   transform: translateY(-50%);
+}
+
+.nav-btn-container {
   z-index: 20;
+  padding-top: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
-.nav-btn.left {
-  left: 10px;
+.nav-btn-text {
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: -30px;
 }
 
-.nav-btn.right {
-  right: 10px;
-}
 </style>

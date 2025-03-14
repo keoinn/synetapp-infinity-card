@@ -2,8 +2,9 @@
 </script>
 
 <template>
+  <!-- height="75vh" -->
   <v-carousel
-    height="75vh"
+    height="100%"
     direction="vertical"
     vertical-delimiters="right"
     :show-arrows="false"
@@ -15,7 +16,7 @@
       <FirstCarouselItem />
     </v-carousel-item>
     <v-carousel-item align="center">
-      <SecondaryCarouselItem :images="images" />
+      <SecondaryCarouselItem />
     </v-carousel-item>
   </v-carousel>
 </template>
