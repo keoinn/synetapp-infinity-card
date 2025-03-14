@@ -18,6 +18,9 @@
     <v-carousel-item align="center">
       <SecondaryCarouselItem />
     </v-carousel-item>
+    <v-carousel-item align="center">
+      <ThirdCarouselItem />
+    </v-carousel-item>
   </v-carousel>
 </template>
 
