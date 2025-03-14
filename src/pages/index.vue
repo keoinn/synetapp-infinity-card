@@ -14,6 +14,9 @@
     <v-carousel-item align="center">
       <FirstCarouselItem />
     </v-carousel-item>
+    <v-carousel-item align="center">
+      <SecondaryCarouselItem :images="images" />
+    </v-carousel-item>
   </v-carousel>
 </template>
 
