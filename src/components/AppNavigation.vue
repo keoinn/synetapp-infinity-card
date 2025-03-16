@@ -146,8 +146,11 @@ const action = (auctionId) => {
     case 'exam':
       router.push('/exam')
       break;
-    case 'permission':
+    case 'inventory':
       router.push('/inventory')
+      break;
+    case 'cart':
+      router.push('/cart')
       break;
     case 'user':
       router.push('/')

@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { VNumberInput } from 'vuetify/labs/VNumberInput'
+import { useCartStore } from '@/stores/cart'
+import { handleAlert } from '@/plugins/utils/alert'
 import caseCare from '@/assets/images/case/case_care.webp'
 import caseCe from '@/assets/images/case/case_ce.webp'
 import caseCj from '@/assets/images/case/case_cj.webp'
@@ -38,6 +40,8 @@ import lj003 from '@/assets/images/cards/lj003.webp'
 import lj004 from '@/assets/images/cards/lj004.webp'
 import lj005 from '@/assets/images/cards/lj005.webp'
 
+
+const cartStore = useCartStore()
 const selectedCard = ref('goal')
 const quantity = ref(1)
 const pageSubCard = ref(0)
@@ -127,6 +131,14 @@ const handleSubCardClick = (img) => {
   } else {
     selectedSubCard.value = img
   }
+}
+
+const handleAddToCart = () => {
+  cartStore.addItem(selectedCard.value, quantity.value, optionsCardSet.find((item) => item.value === selectedCard.value)?.price)
+  handleAlert({
+    auction: 'success',
+    text: '加入購物車成功'
+  })
 }
 </script>
 
@@ -283,6 +295,7 @@ const handleSubCardClick = (img) => {
               <v-btn
                 block
                 class="buy-card-btn buy-card-btn-secondary"
+                @click="handleAddToCart"
               >
                 加入購物車
               </v-btn>

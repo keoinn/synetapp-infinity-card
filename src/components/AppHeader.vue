@@ -1,8 +1,10 @@
 <script setup>
 import { useAppStore } from '@/stores/app'
 import { useRouter } from 'vue-router'
+import { useCartStore } from '@/stores/cart'
 const appStore = useAppStore()
 const router = useRouter()
+const cartStore = useCartStore()
 </script>
 <template>
   <v-app-bar
@@ -60,10 +62,17 @@ const router = useRouter()
     </div>
 
     <div class="header-end-icon">
-      <v-icon
-        size="32"
-        icon="mdi-cart-outline"
-      />
+      <v-badge
+        v-if="cartStore.totalItems > 0"
+        color="error"
+        :content="cartStore.totalItems"
+      >
+        <v-icon
+          size="32"
+          icon="mdi-cart-outline"
+          @click="router.push('/cart')"
+        />
+      </v-badge>
     </div>
   </v-app-bar>
 </template>

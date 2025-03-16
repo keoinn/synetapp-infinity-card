@@ -41,7 +41,6 @@ const thoeryItems = [
 
 const toggleSelection = (index) => {
   selectedTheory.value = index
-  console.log(selectedTheory.value)
 }
 
 // 计算属性，判断每个项是否被选中

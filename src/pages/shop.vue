@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import { VNumberInput } from 'vuetify/labs/VNumberInput'
+import { useCartStore } from '@/stores/cart'
+import { handleAlert } from '@/plugins/utils/alert'
 import caseCare from '@/assets/images/case/case_care.webp'
 import caseCe from '@/assets/images/case/case_ce.webp'
 import caseCj from '@/assets/images/case/case_cj.webp'
@@ -8,6 +10,7 @@ import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
 
+const cartStore = useCartStore()
 const quantity_set1 = ref(0)
 const quantity_set2 = ref(0)
 const quantity_goal = ref(0)
@@ -16,6 +19,72 @@ const quantity_ce = ref(0)
 const quantity_cj = ref(0)
 const quantity_le = ref(0)
 const quantity_lj = ref(0)
+
+const handleAddToCart = (target) => {
+  switch (target) {
+    case 'set1':
+      if(quantity_set1.value > 0) {
+        cartStore.addItem('set_j', quantity_set1.value, 2800)
+      } else {
+        cartStore.addItem('set_j', 1, 2800)
+      }
+      break;
+    case 'set2':
+      if(quantity_set2.value > 0) {
+        cartStore.addItem('set_e', quantity_set2.value, 2800)
+      } else {
+        cartStore.addItem('set_e', 1, 2800)
+      }
+      break;
+    case 'goal':
+      if(quantity_goal.value > 0) {
+        cartStore.addItem(target, quantity_goal.value, 790)
+      } else {
+        cartStore.addItem(target, 1, 790)
+      }
+      break;
+    case 'care':
+      if(quantity_care.value > 0) {
+        cartStore.addItem(target, quantity_care.value, 790)
+      } else {
+        cartStore.addItem(target, 1, 790)
+      }
+      break;
+    case 'ce':
+      if(quantity_ce.value > 0) {
+        cartStore.addItem(target, quantity_ce.value, 790)
+      } else {
+        cartStore.addItem(target, 1, 790)
+      }
+      break;
+    case 'cj':
+      if(quantity_cj.value > 0) {
+        cartStore.addItem(target, quantity_cj.value, 790)
+      } else {
+        cartStore.addItem(target, 1, 790)
+      }
+      break;
+    case 'le':
+      if(quantity_le.value > 0) {
+        cartStore.addItem(target, quantity_le.value, 790)
+      } else {
+        cartStore.addItem(target, 1, 790)
+      }
+      break;
+    case 'lj':
+      if(quantity_lj.value > 0) {
+        cartStore.addItem(target, quantity_lj.value, 790)
+      } else {
+        cartStore.addItem(target, 1, 790)
+      }
+      break;
+  }
+  handleAlert({
+    auction: 'success',
+    text: '加入購物車成功'
+  })
+  
+}
 </script>
 
 <template>
@@ -82,6 +151,19 @@ const quantity_lj = ref(0)
                   :step="1"
                   rounded="xl"
                   density="compact"
+                />
+              </v-col>
+              <v-col
+                cols="1"
+                class="mb-6"
+              >
+                <v-btn
+                  icon="mdi-cart-plus"
+                  variant="outlined"
+                  rounded="xl"
+                  size="large"
+                  density="compact"
+                  @click="handleAddToCart('set1')"
                 />
               </v-col>
               <v-col
@@ -165,6 +247,19 @@ const quantity_lj = ref(0)
                 />
               </v-col>
               <v-col
+                cols="1"
+                class="mb-6"
+              >
+                <v-btn
+                  icon="mdi-cart-plus"
+                  variant="outlined"
+                  rounded="xl"
+                  size="large"
+                  density="compact"
+                  @click="handleAddToCart('set2')"
+                />
+              </v-col>
+              <v-col
                 cols="2"
                 class="mb-6"
               >
@@ -239,6 +334,7 @@ const quantity_lj = ref(0)
                           rounded="xl"
                           size="large"
                           density="compact"
+                          @click="handleAddToCart('goal')"
                         />
                       </v-col>
                       <v-col
@@ -311,6 +407,7 @@ const quantity_lj = ref(0)
                           rounded="xl"
                           size="large"
                           density="compact"
+                          @click="handleAddToCart('care')"
                         />
                       </v-col>
                       <v-col
@@ -383,6 +480,7 @@ const quantity_lj = ref(0)
                           rounded="xl"
                           size="large"
                           density="compact"
+                          @click="handleAddToCart('lj')"
                         />
                       </v-col>
                       <v-col
@@ -455,6 +553,7 @@ const quantity_lj = ref(0)
                           rounded="xl"
                           size="large"
                           density="compact"
+                          @click="handleAddToCart('le')"
                         />
                       </v-col>
                       <v-col
@@ -527,6 +626,7 @@ const quantity_lj = ref(0)
                           rounded="xl"
                           size="large"
                           density="compact"
+                          @click="handleAddToCart('cj')"
                         />
                       </v-col>
                       <v-col
@@ -599,6 +699,7 @@ const quantity_lj = ref(0)
                           rounded="xl"
                           size="large"
                           density="compact"
+                          @click="handleAddToCart('ce')"
                         />
                       </v-col>
                       <v-col
