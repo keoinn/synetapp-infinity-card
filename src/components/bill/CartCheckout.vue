@@ -2,7 +2,9 @@
 import { ref } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useAppStore } from '@/stores/app'
-
+import { handleAlert } from '@/plugins/utils/alert'
+import { createPaymentAPI } from '@/plugins/utils/requests/api/bill'
+import { useRouter } from 'vue-router'
 import caseCare from '@/assets/images/case/case_care.webp'
 import caseCe from '@/assets/images/case/case_ce.webp'
 import caseCj from '@/assets/images/case/case_cj.webp'
@@ -10,6 +12,7 @@ import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
 
+const router = useRouter()
 const cartStore = useCartStore()
 const appStore = useAppStore()
 const email = ref('')
@@ -53,6 +56,34 @@ const getCardImage = (item_id) => {
   } else if (item_id === 'set_e') {
     return [caseCare, caseCe, caseLe, caseGoal]
   }
+}
+
+const handleCheckout = async () => {
+  if (!appStore.isLogin) {
+    // TODO: check email format
+    if (email.value === '') {
+      handleAlert({
+        auction: 'error',
+        text: '請輸入付款信箱',
+        toast: false,
+      })
+      return
+    }
+    console.log('checkout')
+  } else {
+    console.log(window.location.href)
+    const request = await createPaymentAPI(cartStore.totalCheckedPrice, window.location.href)
+    if (request.meta.status === '300') {
+      window.location.href = request.meta.redirect_url
+    } else {
+      handleAlert({
+        auction: 'error',
+        text: '付款失敗',
+        toast: false,
+      })
+    }
+  }
+
 }
 </script>
 
@@ -191,6 +222,7 @@ const getCardImage = (item_id) => {
                 block
                 color="#FA5015"
                 text="確認付款"
+                @click="handleCheckout"
               />
             </v-col>
           </v-row>

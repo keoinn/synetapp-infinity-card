@@ -33,7 +33,8 @@ requestInstance.interceptors.response.use(
   },
   (event) => {
     switch(event.response.status) {
-      
+      case 300:
+        return event.response.data
       default:
         return Promise.reject(event)
     }
