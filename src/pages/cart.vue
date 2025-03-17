@@ -1,8 +1,23 @@
 <script setup>
-import { ref } from 'vue'
-import { useCartStore } from '@/stores/cart'
-const cartStore = useCartStore()
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 const tab = ref(null)
+
+const getTab = () => {
+  if (route.query.tabs === 'order') {
+    tab.value = 'order'
+  } else if (route.query.tabs === 'cart') {
+    tab.value = 'cart'
+  } else {
+    tab.value = 'cart'
+  }
+}
+
+onMounted(() => {
+  getTab()
+})
 
 </script>
 
@@ -13,8 +28,14 @@ const tab = ref(null)
         v-model="tab"
         bg-color="primary"
       >
-        <v-tab value="cart">購物車</v-tab>
-        <v-tab value="order">訂單</v-tab>
+        <v-tab value="cart">
+          <v-icon>mdi-cart</v-icon>
+          購物車
+        </v-tab>
+        <v-tab value="order">
+          <v-icon>mdi-check-circle</v-icon>
+          訂單
+        </v-tab>
       </v-tabs>
 
       <v-card-text>
@@ -26,7 +47,10 @@ const tab = ref(null)
             <CartCheckout />
           </v-tabs-window-item>
 
-          <v-tabs-window-item value="order"> Two </v-tabs-window-item>
+          <!-- 訂單 -->
+          <v-tabs-window-item value="order">
+            <CheckoutList />
+          </v-tabs-window-item>
         </v-tabs-window>
       </v-card-text>
     </v-card>

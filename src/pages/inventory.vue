@@ -1,10 +1,12 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useAppStore } from '@/stores/app'
+import { useCartStore } from '@/stores/cart'
 import { getCardInventoryAPI, createReportAPI } from '@/plugins/utils/requests/api/backend'
 import { handleAlert } from '@/plugins/utils/alert'
 import { useRouter } from 'vue-router'
 const appStore = useAppStore()
+const cartStore = useCartStore()
 const inventory = reactive({
   goal: 0,
   care: 0,
@@ -61,10 +63,15 @@ const handleRemoveItem = (index) => {
 }
 
 const updateInventory = (cardCase) => {
-  inventory[cardCase] = (parseInt(inventory[cardCase]) + 1).toString()
+  // inventory[cardCase] = (parseInt(inventory[cardCase]) + 1).toString()
+  // handleAlert({
+  //   auction: 'success',
+  //   text: `(模擬)【${caseText(cardCase)}】牌組已購買。`,
+  // })
+  cartStore.addItem(cardCase, 1, 790)
   handleAlert({
     auction: 'success',
-    text: `(模擬)【${caseText(cardCase)}】牌組已購買。`,
+    text: `【${caseText(cardCase)}】牌組已加入購物車，請到購物車結帳。`,
   })
 }
 

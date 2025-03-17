@@ -3,8 +3,7 @@ import { ref } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useAppStore } from '@/stores/app'
 import { handleAlert } from '@/plugins/utils/alert'
-import { createPaymentAPI } from '@/plugins/utils/requests/api/bill'
-import { useRouter } from 'vue-router'
+import { createPaymentAPI, createOrderAPI } from '@/plugins/utils/requests/api/bill'
 import caseCare from '@/assets/images/case/case_care.webp'
 import caseCe from '@/assets/images/case/case_ce.webp'
 import caseCj from '@/assets/images/case/case_cj.webp'
@@ -12,11 +11,9 @@ import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
 
-const router = useRouter()
 const cartStore = useCartStore()
 const appStore = useAppStore()
 const email = ref('')
-
 
 const getItemTitle = (item_id) => {
   if (item_id === 'goal') {
@@ -59,29 +56,57 @@ const getCardImage = (item_id) => {
 }
 
 const handleCheckout = async () => {
+  // 取得付款資訊
+  let transaction_uid = null
+  let transaction_email = null
   if (!appStore.isLogin) {
     // TODO: check email format
     if (email.value === '') {
       handleAlert({
         auction: 'error',
         text: '請輸入付款信箱',
-        toast: false,
+        toast: false
       })
       return
     }
-    console.log('checkout')
+    transaction_email = email.value
   } else {
-    console.log(window.location.href)
-    const request = await createPaymentAPI(cartStore.totalCheckedPrice, window.location.href)
-    if (request.meta.status === '300') {
-      window.location.href = request.meta.redirect_url
-    } else {
-      handleAlert({
-        auction: 'error',
-        text: '付款失敗',
-        toast: false,
-      })
-    }
+    transaction_uid = appStore.user_id
+  }
+
+  // 商品資訊   
+  const transaction_product = cartStore.cartItems.filter((item) => item.checked).map((item) => item)
+  const transaction_price = cartStore.totalCheckedPrice
+
+  // 建立付款連結
+  const paymentInfo = await createPaymentAPI(
+    cartStore.totalCheckedPrice,
+    'https://api.wepro.synet-app.com/payment/payback?redirect_url=' + window.location.href + '?tabs=order'
+  )
+
+  // 紀錄訂單
+  await createOrderAPI(
+    transaction_uid,
+    transaction_email,
+    paymentInfo.data.id,
+    transaction_product,
+    transaction_price
+  )
+  
+  // 清除購物車
+  cartStore.cartItems.filter((item) => item.checked).map((item) => {
+    cartStore.removeItem(item.item_id)
+  })
+
+  
+  if (paymentInfo.meta.status === '300') {
+    window.location.href = paymentInfo.meta.redirect_url
+  } else {
+    handleAlert({
+      auction: 'error',
+      text: '付款失敗',
+      toast: false,
+    })
   }
 
 }
@@ -106,7 +131,9 @@ const handleCheckout = async () => {
                     />
                   </th>
                   <th class="cart-table-header-image" />
-                  <th class="cart-table-header-name">商品名稱</th>
+                  <th class="cart-table-header-name">
+                    商品名稱
+                  </th>
                   <th>價格</th>
                   <th>數量</th>
                   <th>小計</th>
@@ -175,7 +202,7 @@ const handleCheckout = async () => {
               <span class="cart-total-price">購買人信箱：</span>
             </v-col>
           </v-row>
-          <v-row style="margin-top: -10px;">
+          <v-row style="margin-top: -10px">
             <v-col cols="12">
               <v-text-field
                 v-model="email"
@@ -185,7 +212,10 @@ const handleCheckout = async () => {
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="3">
+        <v-col 
+          cols="3" 
+          class="pr-5"
+        >
           <v-row>
             <v-col
               cols="12"
@@ -281,7 +311,9 @@ const handleCheckout = async () => {
 
 .cart-total-price-card {
   background-color: #ecf0f3;
-  padding-top: 30px;
-  padding-bottom: 30px;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  border-radius: 20px;
+  border: 1px dashed #000;
 }
 </style>
