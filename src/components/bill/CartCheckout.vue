@@ -10,7 +10,9 @@ import caseCj from '@/assets/images/case/case_cj.webp'
 import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const cartStore = useCartStore()
 const appStore = useAppStore()
 const email = ref('')
@@ -114,12 +116,21 @@ const handleCheckout = async () => {
 
 <template>
   <div class="cart-list">
-    <v-row>
+    <v-row v-if="cartStore.cartItems.length === 0">
+      <v-col
+        cols="12"
+        align="center"
+        class="pt-10"
+      >
+        <span class="cart-empty-title">
+          購物車是空的！<br>
+          去商城逛逛 <a @click="router.push('/shop')">購買卡牌</a> 吧！
+        </span>
+      </v-col>
+    </v-row>
+    <v-row v-else>
       <v-col cols="12">
         <v-card>
-          <!-- <v-card-title class="cart-table-title">
-                      <h3>我的購物車</h3>
-                    </v-card-title> -->
           <v-card-text>
             <v-table>
               <thead>
@@ -188,7 +199,10 @@ const handleCheckout = async () => {
     </v-row>
   </div>
 
-  <v-card class="cart-total-price-card">
+  <v-card
+    v-if="cartStore.cartItems.length > 0"
+    class="cart-total-price-card"
+  >
     <v-card-text>
       <v-row>
         <v-spacer />
@@ -266,6 +280,14 @@ const handleCheckout = async () => {
 .cart-card {
   height: 100%;
   border-radius: 20px;
+}
+
+.cart-empty-title {
+  font-size: 24px;
+  a {
+    color: #FA5015;
+    text-decoration: underline;
+  }
 }
 
 .cart-list {

@@ -39,8 +39,9 @@ import lj002 from '@/assets/images/cards/lj002.webp'
 import lj003 from '@/assets/images/cards/lj003.webp'
 import lj004 from '@/assets/images/cards/lj004.webp'
 import lj005 from '@/assets/images/cards/lj005.webp'
+import { useRouter } from 'vue-router'
 
-
+const router = useRouter()
 const cartStore = useCartStore()
 const selectedCard = ref('goal')
 const quantity = ref(1)
@@ -140,6 +141,25 @@ const handleAddToCart = () => {
     text: '加入購物車成功'
   })
 }
+
+const handleBuyCard = () => {
+  cartStore.addItem(
+    selectedCard.value,
+    quantity.value,
+    optionsCardSet.find((item) => item.value === selectedCard.value)?.price, 
+  )
+  cartStore.butImmediate(selectedCard.value)
+  handleAlert({
+    auction: 'success',
+    text: '加入購物車成功，轉向付款頁面'
+  })
+  router.push('/cart')
+}
+
+const clickCardCase = (value) => {
+  selectedCard.value = value
+  selectedSubCard.value = null
+}
 </script>
 
 <template>
@@ -221,6 +241,7 @@ const handleAddToCart = () => {
                 v-for="(item, idx) in optionsCardSet"
                 :key="idx"
                 cols="2"
+                @click="clickCardCase(item.value)"
               >
                 <img
                   :src="item.image"
@@ -304,6 +325,7 @@ const handleAddToCart = () => {
               <v-btn
                 block
                 class="buy-card-btn buy-card-btn-primary"
+                @click="handleBuyCard"
               >
                 立即購買
               </v-btn>

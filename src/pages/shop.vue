@@ -9,7 +9,9 @@ import caseCj from '@/assets/images/case/case_cj.webp'
 import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const cartStore = useCartStore()
 const quantity_set1 = ref(0)
 const quantity_set2 = ref(0)
@@ -85,14 +87,66 @@ const handleAddToCart = (target) => {
   })
   
 }
+
+const handleBuyCard = (target) => {
+  switch (target) {
+    case 'set1':
+      cartStore.addItem('set_j', 1, 2800)
+      cartStore.butImmediate('set_j')
+      break;
+    case 'set2':
+      cartStore.addItem('set_e', 1, 2800)
+      cartStore.butImmediate('set_e')
+      break;
+    case 'goal':
+      cartStore.addItem(target, 1, 790)
+      cartStore.butImmediate(target)
+      break;
+    case 'care':
+      cartStore.addItem(target, 1, 790)
+      cartStore.butImmediate(target)
+      break;
+    case 'ce':
+      cartStore.addItem(target, 1, 790)
+      cartStore.butImmediate(target)
+      break;
+    case 'cj':
+      cartStore.addItem(target, 1, 790)
+      cartStore.butImmediate(target)
+      break;
+    case 'le':
+      cartStore.addItem(target, 1, 790)
+      cartStore.butImmediate(target)
+      break;
+    case 'lj':
+      cartStore.addItem(target, 1, 790)
+      cartStore.butImmediate(target)
+      break;
+  }
+  handleAlert({
+    auction: 'success',
+    text: '加入購物車成功，轉向付款頁面'
+  })
+  router.push('/cart')
+}
 </script>
 
 <template>
   <div class="shop-page">
-    <h1 class="shop-title">
-      購買卡牌
-    </h1>
+    <v-btn
+      class="back-button"
+      text="回到首頁"
+      size="large"
+      variant="tonal"
+      prepend-icon="mdi-arrow-left"
+      @click="router.push('/')"
+    />
     <v-row class="shop-page-row pb-10">
+      <v-col cols="12">
+        <h1 class="page-title">
+          購買卡牌
+        </h1>
+      </v-col>
       <!-- 無限可能卡 - 社青版 -->
       <v-col cols="12">
         <v-card
@@ -178,6 +232,7 @@ const handleAddToCart = (target) => {
                   text="立即購買"
                   block
                   density="compact"
+                  @click="handleBuyCard('set1')"
                 />
               </v-col>
               <v-spacer />
@@ -271,6 +326,7 @@ const handleAddToCart = (target) => {
                   text="立即購買"
                   block
                   density="compact"
+                  @click="handleBuyCard('set2')"
                 />
               </v-col>
               <v-spacer />
@@ -349,6 +405,7 @@ const handleAddToCart = (target) => {
                           block
                           density="compact"
                           class="goal-btn"
+                          @click="handleBuyCard('goal')"
                         />
                       </v-col>
                       <v-spacer />
@@ -422,6 +479,7 @@ const handleAddToCart = (target) => {
                           block
                           density="compact"
                           class="care-btn"
+                          @click="handleBuyCard('care')"
                         />
                       </v-col>
                       <v-spacer />
@@ -495,6 +553,7 @@ const handleAddToCart = (target) => {
                           block
                           density="compact"
                           class="lj-btn"
+                          @click="handleBuyCard('lj')"
                         />
                       </v-col>
                       <v-spacer />
@@ -568,6 +627,7 @@ const handleAddToCart = (target) => {
                           block
                           density="compact"
                           class="le-btn"
+                          @click="handleBuyCard('le')"
                         />
                       </v-col>
                       <v-spacer />
@@ -641,6 +701,7 @@ const handleAddToCart = (target) => {
                           block
                           density="compact"
                           class="cj-btn"
+                          @click="handleBuyCard('cj')"
                         />
                       </v-col>
                       <v-spacer />
@@ -714,6 +775,7 @@ const handleAddToCart = (target) => {
                           block
                           density="compact"
                           class="ce-btn"
+                          @click="handleBuyCard('ce')"
                         />
                       </v-col>
                       <v-spacer />
@@ -738,9 +800,16 @@ const handleAddToCart = (target) => {
   max-width: 1200px;
   margin: 0 auto;
 
-  .shop-title {
+  .page-title {
+    text-align: center;
+    font-size: 36px;
     font-weight: bold;
-    margin-right: 80px;
+  }
+
+  .back-button {
+    position: absolute;
+    left: 220px;
+    top: 70px;
   }
 
   .shop-page-row {

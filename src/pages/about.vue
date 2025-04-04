@@ -55,7 +55,6 @@ const router = useRouter()
     text-align: center;
     font-size: 36px;
     font-weight: bold;
-    margin-left: -37px;
   }
 
   p {

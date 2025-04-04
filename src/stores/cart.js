@@ -16,6 +16,9 @@ export const useCartStore = defineStore('cart', {
       }
       console.log(this.cartItems)
     },
+    butImmediate(item_id) {
+      this.cartItems.forEach(item => item.checked = item.item_id === item_id)
+    },
     removeItem(item_id) {
       this.cartItems = this.cartItems.filter((item) => item.item_id !== item_id)
     },
