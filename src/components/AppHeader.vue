@@ -44,7 +44,10 @@ const cartStore = useCartStore()
       關於我們
     </span>
 
-    <div class="header-title">
+    <div
+      class="header-title"
+      @click="router.push('/')"
+    >
       <span class="header-main-title">無限可能卡</span>
       <span class="header-sub-title">Infinity Card</span>
     </div>

@@ -12,6 +12,7 @@ const examProcessStore = useExamProcessStore()
 const pid = decrypt(route.params.token)
 
 onMounted(async () => {
+  console.log('pid:', pid)
   await examProcessStore.getReportBackend(pid)
 })
 
@@ -21,10 +22,6 @@ const stage = (target) => {
   } else {
     return 0
   }
-}
-
-const viewReport = () => {
-  console.log('viewReport')
 }
 </script>
 

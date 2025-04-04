@@ -1,7 +1,6 @@
 // Utilities
 import { defineStore } from 'pinia'
 import { authAPI, verifyTokenAPI } from '@/plugins/utils/requests/api/backend.js'
-
 export const useAppStore = defineStore('app', {
   state: () => ({
     isDrawerOpen: false,
@@ -47,6 +46,7 @@ export const useAppStore = defineStore('app', {
         this.refreshToken = null
         this.user_id = null
       })
+      window.location.href = '/login'
     }
   },
   getters: {

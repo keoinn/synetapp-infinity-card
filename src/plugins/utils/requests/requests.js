@@ -32,8 +32,12 @@ requestInstance.interceptors.response.use(
     return response.data
   },
   (event) => {
+    const appStore = useAppStore()
     switch(event.response.status) {
       case 300:
+        return event.response.data
+      case 401:
+        appStore.logout()
         return event.response.data
       default:
         return Promise.reject(event)

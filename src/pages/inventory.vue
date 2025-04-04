@@ -134,7 +134,9 @@ const dropItemToArray = computed(() => {
 
 <template>
   <div class="inventory-page">
-    <h1 style="text-decoration: underline;">建立測驗</h1>
+    <h1 style="text-decoration: underline;">
+      建立測驗
+    </h1>
     <v-row class="inventory-row">
       <v-col
         v-for="(value, key) in inventory"
@@ -154,7 +156,10 @@ const dropItemToArray = computed(() => {
     <v-row>
       <div class="pt-5 pl-4">
         拖曳卡組到這裡建立測驗
-        <v-btn color="primary" @click="handleCreateReport">
+        <v-btn
+          color="primary"
+          @click="handleCreateReport"
+        >
           建立測驗
         </v-btn>
       </div>

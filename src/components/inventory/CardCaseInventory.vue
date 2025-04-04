@@ -84,7 +84,9 @@ const handleBuyCard = () => {
           購買卡牌
         </v-btn>
         <v-spacer />
-        <v-chip v-if="!inDropArea"> 庫存 {{ inventory }} </v-chip>
+        <v-chip v-if="!inDropArea">
+          庫存 {{ inventory }}
+        </v-chip>
         <v-btn
           v-if="inDropArea"
           color="error"
