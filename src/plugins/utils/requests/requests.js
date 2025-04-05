@@ -38,6 +38,11 @@ requestInstance.interceptors.response.use(
         return event.response.data
       case 401:
         appStore.logout()
+        if(window.location.origin === 'https://keoinn.github.io'){
+          window.location.href = 'https://keoinn.github.io/synetapp-infinity-card/'
+        } else {
+          window.location.href = '/login'
+        }
         return event.response.data
       default:
         return Promise.reject(event)

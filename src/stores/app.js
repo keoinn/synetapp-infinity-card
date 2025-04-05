@@ -46,7 +46,6 @@ export const useAppStore = defineStore('app', {
         this.refreshToken = null
         this.user_id = null
       })
-      window.location.href = '/login'
     }
   },
   getters: {
