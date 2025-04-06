@@ -320,6 +320,7 @@ export const useExamProcessStore = defineStore('examProcess', {
       this.resetStore()
       const res = await getReportDetailAPI(rep_id)
       const report_detail = res.data.attributes.report_detail
+      console.log('report_detail:', report_detail)
       if (report_detail.length == 0) {
         return
       }
@@ -854,7 +855,13 @@ export const useExamProcessStore = defineStore('examProcess', {
 
       state.cards_set.map((set) => {
         let analysisCardSet = set === 'goal' ? state.pick_goal.stage1.keep_cards : state[`pick_${set}`].keep_cards
-        let targetRef = set === 'goal' ? 'goal' : set === 'care' ? 'care' : set === 'cj' ? 'can' : set === 'ce' ? 'can' : set === 'lj' ? 'like' : null
+        let targetRef = 
+            set === 'goal' ? 'goal' : 
+            set === 'care' ? 'care' : 
+            set === 'cj' ? 'can' : 
+            set === 'ce' ? 'can' : 
+            set === 'lj' ? 'like' : 
+            set === 'le' ? 'like' : null
         let type_num = 0
         analysisCardSet.map((card) => {
           let card_type = null
@@ -986,13 +993,13 @@ export const useExamProcessStore = defineStore('examProcess', {
         let h_code = ""
   
         if(high_sign == 1) {
-          // 找出最大值並返回其 key（大寫）
-          h_code = Object.entries(h_code_analysis).reduce((max, entry) => {
+            // 找出最大值並返回其 key（大寫）
+            h_code = Object.entries(h_code_analysis).reduce((max, entry) => {
             return entry[1] > max[1] ? entry : max;
           }, ['initial', 0])[0].toUpperCase();
         } else if(high_sign == 2) {
           let high_values = Object.entries(h_code_analysis)
-            .filter(( value) => value > 66) // 篩選出大於 66 的元素
+            .filter((value) => value[1] > 66) // 篩選出大於 66 的元素
             .sort((a, b) => b[1] - a[1]); // 由大至小排
           let difference = Math.abs(high_values[0][1] - high_values[1][1]);
           if (difference >= 12) {
@@ -1002,7 +1009,7 @@ export const useExamProcessStore = defineStore('examProcess', {
           }
         } else if(high_sign == 3) {
           let high_values = Object.entries(h_code_analysis)
-            .filter((value) => value > 66) // 篩選出大於 66 的元素
+            .filter((value) => value[1] > 66) // 篩選出大於 66 的元素
             .sort((a, b) => b[1] - a[1]); // 由大至小排
           let differences = high_values.map(value => value[1] - high_values[2][1]);
           if (differences[0] >= 12 && differences[1] < 12) {
@@ -1016,7 +1023,7 @@ export const useExamProcessStore = defineStore('examProcess', {
           }, ['initial', 0])[0].toUpperCase();
         } else if(high_sign == 0 && medium_high_sign == 2) {
           let medium_high_values = Object.entries(h_code_analysis)
-          .filter((value) => value > 50 && value <= 66) // 篩選出大於 50 小於 66 的元素
+          .filter((value) => value[1] > 50 && value[1] <= 66) // 篩選出大於 50 小於 66 的元素
           .sort((a, b) => b[1] - a[1]); // 由大至小排
           let difference = Math.abs(medium_high_values[0][1] - medium_high_values[1][1]);
           if (difference >= 12) {
@@ -1029,6 +1036,7 @@ export const useExamProcessStore = defineStore('examProcess', {
         } else { // high_sign == 0 && medium_high_sign == 0
           h_code = '職業傾向不明';
         }
+
         state.calculate_pick[exam].h_code = h_code
       });
 
