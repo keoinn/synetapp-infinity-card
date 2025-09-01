@@ -3,6 +3,11 @@ import { jsonapiEnc, JSONAPI_HEADER } from '@/plugins/utils/requests/commu_enc.j
 import { hashpwd } from '@/plugins/utils/encryption.js'
 
 export const authAPI = ({identification, password}) => {
+    // 驗證參數
+    if (!identification || !password) {
+        throw new Error('Identification and password are required')
+    }
+    
     const data = jsonapiEnc('auth', Date.now(), {identification, password: hashpwd(password), platform: 'PsyCard'})
     const request = requestInstance.post('/auth', data, JSONAPI_HEADER)
     return request
@@ -14,6 +19,11 @@ export const verifyTokenAPI = () => {
 }
 
 export const registerAPI = ({email, password}) => {
+  // 驗證參數
+  if (!email || !password) {
+      throw new Error('Email and password are required')
+  }
+  
   const data = jsonapiEnc('users', Date.now(), {email: email, password: hashpwd(password), platform: 'PsyCard'})
   const request = requestInstance.post('/register', data, JSONAPI_HEADER)
   return request

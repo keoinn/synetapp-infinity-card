@@ -37,8 +37,10 @@ requestInstance.interceptors.response.use(
       case 300:
         return event.response.data
       case 401:
-        // 檢查是否在登入頁面，如果是則不觸發重定向
-        if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {
+        // 檢查是否在登入頁面或 exam 相關頁面，如果是則不觸發重定向
+        if (window.location.pathname === '/login' || 
+            window.location.pathname.includes('/login') ||
+            window.location.pathname.includes('/exam/')) {
           return Promise.reject(event)
         }
         appStore.logout()

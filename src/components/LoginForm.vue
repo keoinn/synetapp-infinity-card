@@ -17,6 +17,16 @@ const error_detail = ref(null)
 const testing_status = ref(false)
 
 const login = async () => {
+  // 驗證輸入
+  if (!account.value || !account.value.trim()) {
+    error_detail.value = '請輸入帳號或信箱'
+    return
+  }
+  if (!password.value || !password.value.trim()) {
+    error_detail.value = '請輸入密碼'
+    return
+  }
+
   try{
     const response = await appStore.login(account.value, password.value)
     
@@ -41,6 +51,19 @@ const login = async () => {
 }
 
 const register = async () => {
+  // 驗證輸入
+  if (!account.value || !account.value.trim()) {
+    error_detail.value = '請輸入電子信箱'
+    return
+  }
+  if (!password.value || !password.value.trim()) {
+    error_detail.value = '請輸入密碼'
+    return
+  }
+  if (!password_confirm.value || !password_confirm.value.trim()) {
+    error_detail.value = '請確認密碼'
+    return
+  }
   if (password.value !== password_confirm.value) {
     error_detail.value = '密碼不一致'
     return

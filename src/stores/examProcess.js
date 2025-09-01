@@ -471,7 +471,11 @@ export const useExamProcessStore = defineStore('examProcess', {
           state[targetRef].isFinished = data.isFinished
         }
       })
-      await this.saveReportBackend()
+      
+      // 只有在已登入狀態下才調用 API 請求
+      if (this.own_id) {
+        await this.saveReportBackend()
+      }
     },
     async setPairRecord(cardType, data) {
       const targetRef =
@@ -491,7 +495,11 @@ export const useExamProcessStore = defineStore('examProcess', {
         state[targetRef].logs = data.logs
         state[targetRef].isFinished = data.isFinished
       })
-      await this.saveReportBackend()
+      
+      // 只有在已登入狀態下才調用 API 請求
+      if (this.own_id) {
+        await this.saveReportBackend()
+      }
     }
   },
   getters: {

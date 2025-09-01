@@ -31,5 +31,8 @@ export const decrypt = (hexCiphertext) => {
 }; 
 
 export const hashpwd = (pwd) => {
-    return  CryptoJS.SHA256(pwd).toString(CryptoJS.enc.Hex)
+    if (!pwd || typeof pwd !== 'string') {
+        throw new Error('Password must be a non-empty string');
+    }
+    return CryptoJS.SHA256(pwd).toString(CryptoJS.enc.Hex)
 }

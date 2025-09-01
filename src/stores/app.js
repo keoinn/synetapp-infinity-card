@@ -21,6 +21,11 @@ export const useAppStore = defineStore('app', {
       }
     },
     async login(account, password) {
+      // 驗證參數
+      if (!account || !password) {
+        throw new Error('Account and password are required')
+      }
+      
       const response = await authAPI({identification: account, password: password})
       console.log(response)
       if (response.meta.code === '2000') {
