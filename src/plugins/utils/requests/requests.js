@@ -37,6 +37,10 @@ requestInstance.interceptors.response.use(
       case 300:
         return event.response.data
       case 401:
+        // 檢查是否在登入頁面，如果是則不觸發重定向
+        if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {
+          return Promise.reject(event)
+        }
         appStore.logout()
         if(window.location.origin === 'https://keoinn.github.io'){
           window.location.href = 'https://keoinn.github.io/synetapp-infinity-card/'

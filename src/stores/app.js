@@ -30,7 +30,8 @@ export const useAppStore = defineStore('app', {
         this.isLogin = true
         return response
       } else {
-        return response
+        // 登入失敗時拋出錯誤，讓組件能夠捕獲並處理
+        throw { response }
       }
     },
     async verifyToken() {
