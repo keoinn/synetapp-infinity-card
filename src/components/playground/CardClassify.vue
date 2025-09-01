@@ -59,7 +59,7 @@ const props = defineProps({
    */
   countdownSeconds: {
     type: Number,
-    default: 300
+    default: 480
   },
 
   /**

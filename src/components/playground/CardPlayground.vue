@@ -62,7 +62,7 @@ const props = defineProps({
   },
   countdownSeconds: {
     type: Number,
-    default: 300 // 預設值
+    default: 480 // 預設值
   }
 })
 

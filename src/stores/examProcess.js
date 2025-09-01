@@ -473,9 +473,12 @@ export const useExamProcessStore = defineStore('examProcess', {
       })
       
       // 只有在已登入狀態下才調用 API 請求
-      if (this.own_id) {
-        await this.saveReportBackend()
+      // TODO: 都要儲存至後端
+      if (!this.own_id) {
+        this.own_id = 'guest'
+        console.log('own_id:', this.own_id, 'setRecord')
       }
+      await this.saveReportBackend()
     },
     async setPairRecord(cardType, data) {
       const targetRef =
@@ -497,9 +500,11 @@ export const useExamProcessStore = defineStore('examProcess', {
       })
       
       // 只有在已登入狀態下才調用 API 請求
-      if (this.own_id) {
-        await this.saveReportBackend()
+      if (!this.own_id) {
+        this.own_id = 'guest'
+        console.log('own_id:', this.own_id, 'saveReportBackend')
       }
+      await this.saveReportBackend()
     }
   },
   getters: {
