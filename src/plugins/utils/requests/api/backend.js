@@ -57,3 +57,9 @@ export const createReportAPI = (uid, card_res) => {
   const request = requestInstance.post(`/psycard/exam/new`, data, JSONAPI_HEADER)
   return request
 }
+
+export const updateReportNameAPI = (report_id, new_name) => {
+  const data = jsonapiEnc('report', Date.now(), {crd_id: report_id, report_name: new_name})
+  const request = requestInstance.post(`/psycard/report/edit/name/${report_id}`, data, JSONAPI_HEADER)
+  return request
+}

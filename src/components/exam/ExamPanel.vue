@@ -1,6 +1,6 @@
 <script setup>
 /* eslint-disable vue/no-v-html */
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { encrypt } from '@/plugins/utils/encryption'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useRouter } from 'vue-router'
@@ -11,8 +11,34 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['update-report-name'])
+
 const examProcessStore = useExamProcessStore()
 const router = useRouter()
+
+// 編輯報告名稱相關狀態
+const showEditDialog = ref(false)
+const editingReportName = ref('')
+
+const openEditDialog = () => {
+  editingReportName.value = props.report.report_name || ''
+  showEditDialog.value = true
+}
+
+const saveReportName = () => {
+  if (editingReportName.value.trim()) {
+    emit('update-report-name', {
+      reportId: props.report.crd_id,
+      newName: editingReportName.value.trim()
+    })
+    showEditDialog.value = false
+  }
+}
+
+const closeEditDialog = () => {
+  showEditDialog.value = false
+  editingReportName.value = ''
+}
 
 const startExam = () => {
   examProcessStore.$reset()
@@ -62,6 +88,8 @@ const statusString = computed(() => {
       <v-icon
         size="xsmall"
         icon="mdi-pencil"
+        @click="openEditDialog"
+        style="cursor: pointer; margin-right: 8px;"
       />
       {{
         report.report_name === null || report.report_name === ''
@@ -105,6 +133,40 @@ const statusString = computed(() => {
         進行測驗
       </v-btn>
     </v-card-actions>
+
+    <!-- 編輯報告名稱對話視窗 -->
+    <v-dialog v-model="showEditDialog" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">
+          編輯報告名稱
+        </v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="editingReportName"
+            label="報告名稱"
+            placeholder="請輸入報告名稱"
+            variant="outlined"
+            @keyup.enter="saveReportName"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="text"
+            @click="closeEditDialog"
+          >
+            取消
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="tonal"
+            @click="saveReportName"
+          >
+            儲存
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 

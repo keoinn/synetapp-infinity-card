@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 // import { encrypt, decrypt } from '@/plugins/utils/encryption'
 import ExamPanel from '@/components/exam/ExamPanel.vue'
-import { getReportListAPI } from '@/plugins/utils/requests/api/backend'
+import { getReportListAPI, updateReportNameAPI } from '@/plugins/utils/requests/api/backend'
 // import { getReportList } from '@/plugins/utils/requests/mock/backend'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useAppStore } from '@/stores/app'
@@ -12,10 +12,54 @@ const appStore = useAppStore()
 const examProcessStore = useExamProcessStore()
 
 onMounted(async () => {
-  examProcessStore.resetStore()
-  const res = await getReportListAPI(appStore.user_id)
-  reportList.value = res.data.attributes.report_list
+  try {
+    examProcessStore.resetStore()
+    const res = await getReportListAPI(appStore.user_id)
+    
+    if (res && res.data && res.data.attributes && res.data.attributes.report_list) {
+      reportList.value = res.data.attributes.report_list
+    } else {
+      console.error('API 回應格式不正確:', res)
+      reportList.value = []
+    }
+  } catch (error) {
+    console.error('載入報告列表時發生錯誤:', error)
+    reportList.value = []
+  }
 })
+
+const handleUpdateReportName = (data) => {  
+  // 檢查資料結構
+  if (!data || typeof data !== 'object') {
+    console.error('收到的資料格式不正確:', data)
+    return
+  }
+  
+  const { reportId, newName } = data
+  
+  // 驗證必要欄位
+  if (!reportId || !newName) {
+    console.error('缺少必要欄位:', { reportId, newName })
+    return
+  }
+  
+  // 尋找對應的報告並更新名稱
+  const reportIndex = reportList.value.findIndex(report => report.crd_id === reportId)
+  
+  if (reportIndex !== -1) {
+    // 使用 Vue 的響應式更新方式
+    reportList.value[reportIndex] = {
+      ...reportList.value[reportIndex],
+      report_name: newName
+    }
+
+    // 更新報告名稱 API
+    updateReportNameAPI(reportId, newName)
+  } else {
+    console.error('找不到對應的報告，reportId:', reportId)
+    console.log('可用的報告 ID:', reportList.value.map(r => r.crd_id))
+  }
+}
 </script>
 
 <template>
@@ -38,7 +82,10 @@ onMounted(async () => {
         md="6"
         lg="4"
       >
-        <ExamPanel :report="report" />
+        <ExamPanel
+          :report="report" 
+          @update-report-name="handleUpdateReportName"
+        />
       </v-col>
     </v-row>
   </div>
