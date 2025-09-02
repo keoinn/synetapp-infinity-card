@@ -106,6 +106,7 @@ const statusString = computed(() => {
           <li>測驗狀態: {{ statusString }}</li>
           <li>建立時間: {{ NULLstringFilter(report.created_at) }}</li>
           <li>更新時間: {{ NULLstringFilter(report.updated_at) }}</li>
+          <li>發送測驗信箱: {{ NULLstringFilter(report.target_email) }}</li>
         </ul>
       </div>
     </v-card-text>

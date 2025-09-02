@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 // import { encrypt, decrypt } from '@/plugins/utils/encryption'
 import ExamPanel from '@/components/exam/ExamPanel.vue'
-import { getReportListAPI, updateReportNameAPI } from '@/plugins/utils/requests/api/backend'
+import { getReportListAPI, updateReportInfoAPI } from '@/plugins/utils/requests/api/backend'
 // import { getReportList } from '@/plugins/utils/requests/mock/backend'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useAppStore } from '@/stores/app'
@@ -54,7 +54,7 @@ const handleUpdateReportName = (data) => {
     }
 
     // 更新報告名稱 API
-    updateReportNameAPI(reportId, newName)
+    updateReportInfoAPI(reportId, 'report_name', newName)
   } else {
     console.error('找不到對應的報告，reportId:', reportId)
     console.log('可用的報告 ID:', reportList.value.map(r => r.crd_id))
