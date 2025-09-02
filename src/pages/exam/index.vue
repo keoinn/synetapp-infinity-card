@@ -60,6 +60,40 @@ const handleUpdateReportName = (data) => {
     console.log('可用的報告 ID:', reportList.value.map(r => r.crd_id))
   }
 }
+
+const handleUpdateReportEmail = (data) => {
+  // 檢查資料結構
+  if (!data || typeof data !== 'object') {
+    console.error('收到的資料格式不正確:', data)
+    return
+  }
+  
+  const { reportId, newEmail } = data
+  
+  // 驗證必要欄位
+  if (!reportId || !newEmail) {
+    console.error('缺少必要欄位:', { reportId, newEmail })
+    return
+  }
+  
+  // 尋找對應的報告並更新信箱
+  const reportIndex = reportList.value.findIndex(report => report.crd_id === reportId)
+  
+  if (reportIndex !== -1) {
+    // 使用 Vue 的響應式更新方式
+    reportList.value[reportIndex] = {
+      ...reportList.value[reportIndex],
+      target_email: newEmail
+    }
+
+    // 更新報告信箱 API
+    updateReportInfoAPI(reportId, 'target_email', newEmail)
+    console.log('信箱已成功更新:', newEmail)
+  } else {
+    console.error('找不到對應的報告，reportId:', reportId)
+    console.log('可用的報告 ID:', reportList.value.map(r => r.crd_id))
+  }
+}
 </script>
 
 <template>
@@ -85,6 +119,7 @@ const handleUpdateReportName = (data) => {
         <ExamPanel
           :report="report" 
           @update-report-name="handleUpdateReportName"
+          @update-report-email="handleUpdateReportEmail"
         />
       </v-col>
     </v-row>

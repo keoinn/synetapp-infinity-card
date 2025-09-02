@@ -63,3 +63,9 @@ export const updateReportInfoAPI = (report_id, field, new_value) => {
   const request = requestInstance.post(`/psycard/report/metadata/${field}/${report_id}`, data, JSONAPI_HEADER)
   return request
 }
+
+export const sendEmailAPI = (report_id, email, link) => {
+  const data = jsonapiEnc('report', Date.now(), {crd_id: report_id, email: email, link: link})
+  const request = requestInstance.post('/psycard/report/mail/link', data, JSONAPI_HEADER)
+  return request
+}

@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { encrypt } from '@/plugins/utils/encryption'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useRouter } from 'vue-router'
+import { sendEmailAPI } from '@/plugins/utils/requests/api/backend'
 const props = defineProps({
   report: {
     type: Object,
@@ -11,7 +12,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update-report-name'])
+const emit = defineEmits(['update-report-name', 'update-report-email'])
 
 const examProcessStore = useExamProcessStore()
 const router = useRouter()
@@ -19,6 +20,11 @@ const router = useRouter()
 // 編輯報告名稱相關狀態
 const showEditDialog = ref(false)
 const editingReportName = ref('')
+
+// 編輯信箱相關狀態
+const showEmailDialog = ref(false)
+const editingEmail = ref('')
+const emailError = ref('')
 
 const openEditDialog = () => {
   editingReportName.value = props.report.report_name || ''
@@ -38,6 +44,84 @@ const saveReportName = () => {
 const closeEditDialog = () => {
   showEditDialog.value = false
   editingReportName.value = ''
+}
+
+// 信箱相關方法
+const openEmailDialog = () => {
+  editingEmail.value = props.report.target_email || ''
+  emailError.value = ''
+  showEmailDialog.value = true
+}
+
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+const saveEmail = () => {
+  emailError.value = ''
+  
+  if (!editingEmail.value.trim()) {
+    emailError.value = '請輸入信箱地址'
+    return
+  }
+  
+  if (!validateEmail(editingEmail.value.trim())) {
+    emailError.value = '請輸入有效的信箱格式'
+    return
+  }
+  
+  emit('update-report-email', {
+    reportId: props.report.crd_id,
+    newEmail: editingEmail.value.trim()
+  })
+  showEmailDialog.value = false
+}
+
+const closeEmailDialog = () => {
+  showEmailDialog.value = false
+  editingEmail.value = ''
+  emailError.value = ''
+}
+
+const sendEmail = async () => {
+  emailError.value = ''
+  
+  if (!editingEmail.value.trim()) {
+    emailError.value = '請輸入信箱地址'
+    return
+  }
+  
+  if (!validateEmail(editingEmail.value.trim())) {
+    emailError.value = '請輸入有效的信箱格式'
+    return
+  }
+  
+  try {
+    // 先更新信箱到報告中
+    emit('update-report-email', {
+      reportId: props.report.crd_id,
+      newEmail: editingEmail.value.trim()
+    })
+    
+    // 發送測驗連結到信箱
+    const baseURL = window.location.origin + (import.meta.env.BASE_URL || '')
+    const examLink = baseURL + `exam/${encrypt(props.report.report_id.toString())}`
+    
+    const res = await sendEmailAPI(
+      props.report.crd_id,
+      editingEmail.value.trim(),
+      examLink
+    )
+    console.log(res)
+    
+    // 發送成功後關閉對話視窗
+    showEmailDialog.value = false
+    console.log('測驗連結已成功發送到:', editingEmail.value.trim())
+  } catch (error) {
+    console.error('發送測驗連結失敗:', error)
+    emailError.value = '發送失敗，請稍後再試'
+  }
 }
 
 const startExam = () => {
@@ -88,8 +172,8 @@ const statusString = computed(() => {
       <v-icon
         size="xsmall"
         icon="mdi-pencil"
-        @click="openEditDialog"
         style="cursor: pointer; margin-right: 8px;"
+        @click="openEditDialog"
       />
       {{
         report.report_name === null || report.report_name === ''
@@ -122,6 +206,17 @@ const statusString = computed(() => {
         查看
       </v-btn>
 
+      <v-btn
+        variant="tonal"
+        color="#1976D2"
+        size="large"
+        rounded="xl"
+        @click="openEmailDialog"
+      >
+        <v-icon>mdi-email</v-icon>
+        登錄信箱
+      </v-btn>
+
       <v-spacer />
       <v-btn
         variant="tonal"
@@ -136,7 +231,10 @@ const statusString = computed(() => {
     </v-card-actions>
 
     <!-- 編輯報告名稱對話視窗 -->
-    <v-dialog v-model="showEditDialog" max-width="400">
+    <v-dialog
+      v-model="showEditDialog"
+      max-width="400"
+    >
       <v-card>
         <v-card-title class="text-h6">
           編輯報告名稱
@@ -168,6 +266,64 @@ const statusString = computed(() => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- 編輯信箱對話視窗 -->
+    <v-dialog
+      v-model="showEmailDialog"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title class="text-h6">
+          登錄信箱
+        </v-card-title>
+        <v-card-text>
+          <div class="email-input-container">
+            <v-text-field
+              v-model="editingEmail"
+              label="信箱地址"
+              placeholder="請輸入信箱地址"
+              variant="outlined"
+              type="email"
+              :error-messages="emailError"
+              prepend-inner-icon="mdi-email"
+              class="email-input"
+              @keyup.enter="saveEmail"
+            />
+            <v-btn
+              color="primary"
+              variant="tonal"
+              :disabled="!editingEmail.trim() || !!emailError"
+              class="save-email-btn"
+              @click="saveEmail"
+            >
+              <v-icon>mdi-content-save</v-icon>
+              存儲
+            </v-btn>
+          </div>
+          <div class="text-caption text-grey mt-2">
+            此信箱將用於發送測驗連結
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="text"
+            @click="closeEmailDialog"
+          >
+            取消
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="tonal"
+            :disabled="!editingEmail.trim() || !!emailError"
+            @click="sendEmail"
+          >
+            <v-icon>mdi-send</v-icon>
+            發送
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -186,6 +342,21 @@ const statusString = computed(() => {
     li {
       text-indent: 10px;
     }
+  }
+}
+
+.email-input-container {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  .email-input {
+    flex: 1;
+  }
+
+  .save-email-btn {
+    margin-top: 8px;
+    min-width: 80px;
   }
 }
 </style>
