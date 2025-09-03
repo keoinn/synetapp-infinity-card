@@ -5,6 +5,7 @@ import { encrypt } from '@/plugins/utils/encryption'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useRouter } from 'vue-router'
 import { sendEmailAPI } from '@/plugins/utils/requests/api/backend'
+import { handleAlert } from '@/plugins/utils/alert'
 const props = defineProps({
   report: {
     type: Object,
@@ -114,11 +115,20 @@ const sendEmail = async () => {
       examLink
     )
     console.log(res)
-    
     // 發送成功後關閉對話視窗
     showEmailDialog.value = false
+    handleAlert({
+      auction: 'success',
+      text: '測驗連結已成功發送到:' + editingEmail.value.trim()
+    })
+    
     console.log('測驗連結已成功發送到:', editingEmail.value.trim())
+    
   } catch (error) {
+    handleAlert({
+      auction: 'error',
+      text: '發送測驗連結失敗:' + error
+    })
     console.error('發送測驗連結失敗:', error)
     emailError.value = '發送失敗，請稍後再試'
   }
