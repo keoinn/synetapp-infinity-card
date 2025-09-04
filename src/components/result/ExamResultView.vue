@@ -9,7 +9,7 @@ Chart.register(...registerables);
 const examProcess = useExamProcessStore()
 const pickResult = ref(null)
 const pairResult = ref(null)
-const radarChartRef = ref(null);
+const radarChartRef = ref(null)
 
 const stringOfType = (type) => {
   switch (type) {
@@ -227,7 +227,7 @@ const findMaxValueInJobs = computed(() => {
         color="primary"
         rounded="xl"
         class="mb-1"
-        text="檢視報告"
+        text="統計結果"
       />
     </template>
 
@@ -240,7 +240,7 @@ const findMaxValueInJobs = computed(() => {
             @click="dialogIsActive = false"
           />
 
-          <v-toolbar-title>測驗結果</v-toolbar-title>
+          <v-toolbar-title>統計結果</v-toolbar-title>
 
           <v-spacer />
 

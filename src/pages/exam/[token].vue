@@ -30,24 +30,25 @@ const stage = (target) => {
     <div class="exam-landing">
       <v-row>
         <v-col cols="12">
-          <v-row>
+          <v-row class="align-center header-row">
             <v-col
-              class="text-h6"
+              class="text-h6 d-flex align-center"
               cols="8"
             >
-              進行測驗
-              <ExamResultView />
+              <span class="mr-2">進行測驗</span>
+              <div class="button-group">
+                <ExamResultView />
+                <ExamResultTextView />
+              </div>
             </v-col>
-            <v-spacer />
             <v-col
-              class="text-h6"
-              align="right"
+              class="text-h6 d-flex justify-end align-center"
               cols="4"
             >
               測驗編號：{{ pid }}
             </v-col>
           </v-row>
-          <v-divider class="border-opacity-100" />
+          <v-divider class="border-opacity-100 mt-3" />
         </v-col>
       </v-row>
       <v-row>
@@ -132,6 +133,22 @@ const stage = (target) => {
     width: 100%;
     height: 100%;
     padding: 20px;
+  }
+}
+
+.header-row {
+  .v-col {
+    padding: 0 8px;
+  }
+  
+  .button-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    :deep(.v-btn) {
+      margin: 0 !important;
+    }
   }
 }
 </style>
