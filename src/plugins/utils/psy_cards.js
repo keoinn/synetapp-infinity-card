@@ -1023,7 +1023,7 @@ function getFinalResult(type = "NONE") {
     },
   }
 
-  return finalResult[type.toUpperCase()];
+  return finalResult[type.toUpperCase()] || finalResult["NONE"];
 }
 
 export {

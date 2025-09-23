@@ -21,16 +21,37 @@ watch(dialogIsActive, async (newVal) => {
   }
 })
 
+// 監聽 h_code 的變化，確保文字結果能及時更新
+watch(() => examProcess.calculate_pick.total.h_code, (newHCode) => {
+  if (newHCode && newHCode !== null && newHCode !== undefined) {
+    const result = getFinalResult(newHCode)
+    if (result) {
+      finalResultObj.value = result
+    }
+  }
+}, { immediate: true })
+
 const finalResult = (attrName) => {
-  return finalResultObj.value[attrName]
+  if (!finalResultObj.value) {
+    return ''
+  }
+  return finalResultObj.value[attrName] || ''
 }
 
 
 
 onMounted(() => {
-  console.log(examProcess.calculate_pick.total.h_code)
-  console.log(getFinalResult(examProcess.calculate_pick.total.h_code))
-  finalResultObj.value = getFinalResult(examProcess.calculate_pick.total.h_code)
+  // 初始化時嘗試載入結果
+  const hCode = examProcess.calculate_pick.total.h_code
+  console.log('onMounted h_code:', hCode)
+  
+  if (hCode && hCode !== null && hCode !== undefined) {
+    const result = getFinalResult(hCode)
+    console.log('onMounted final result:', result)
+    if (result) {
+      finalResultObj.value = result
+    }
+  }
 })
 
 const drawRadarChart = () => {

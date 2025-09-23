@@ -11,12 +11,8 @@
         md="4"
         sm="12"
       >
-        <div class="footer-label-title">
-          無限可能卡
-        </div>
-        <div class="footer-label-sub-title">
-          Infinity Card
-        </div>
+        <div class="footer-label-title">無限可能卡</div>
+        <div class="footer-label-sub-title">Infinity Card</div>
         <div class="footer-label-social-icon">
           <v-icon
             size="32"
@@ -52,9 +48,21 @@
       >
         <ul class="footer-item-list">
           <li>目錄</li>
-          <li><a href="#">最新消息</a></li>
-          <li><a href="#">購買卡牌</a></li>
-          <li><a href="#">關於我們</a></li>
+          <li>
+            <router-link to="/news">
+              最新消息
+            </router-link>
+          </li>
+          <li>
+            <router-link to="/shop">
+              購買卡牌
+            </router-link>
+          </li>
+          <li>
+            <router-link to="/about">
+              關於我們
+            </router-link>
+          </li>
         </ul>
       </v-col>
 
@@ -80,7 +88,7 @@
           <img
             :src="weproLogo"
             alt="Wepro Logo"
-          >
+          />
         </div>
       </v-col>
     </v-row>
@@ -90,7 +98,6 @@
 <script setup>
 import { computed } from 'vue'
 import weproLogo from '@/assets/wepro-logo.webp'
-
 const footerHeight = computed(() => {
   //   console.log(window.innerHeight)
   //   console.log(Math.floor(window.innerHeight * (314 / 1338)))
