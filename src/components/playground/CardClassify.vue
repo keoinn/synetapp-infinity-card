@@ -225,16 +225,65 @@ const handleRollback = () => {
  *       - 3. 更新卡片狀態 -> 下一張卡片以正面顯示
  *       - 4. 移除當前被拖曳的卡片的響應式變數
  */
-const handleDrop = async (event, professionIndex) => {
-  event.preventDefault()
+/**
+ * 核心拖曳邏輯 - 將卡片放置到指定職業分類
+ * @param {number} professionIndex - 職業分類索引
+ * @param {string} actionType - 動作類型 ('drag' 或 'click')
+ */
+const performCardDrop = async (professionIndex, actionType = 'drag') => {
   if (draggedCard.value) {
     professions.value[professionIndex].cards.push(draggedCard.value)
     classifyList.value[currentSequence.value] = professionIndex
 
     // 使用新的日誌管理功能
     addLog({
-      action: 'drag',
+      action: actionType,
       card: draggedCard.value,
+      remainingSeconds: remainingSeconds.value,
+      additional: {
+        professionIndex: professionIndex,
+        profession: professions.value[professionIndex].title
+      }
+    })
+
+    const actionText = actionType === 'drag' ? '拖曳' : '點擊'
+    handleAlert({
+      auction: 'success',
+      text: `你已經成功${actionText} ${getCardImageName(draggedCard.value)} 到 ${
+        professions.value[professionIndex].title
+      }`
+    })
+    currentSequence.value++
+    cards_status.value[currentSequence.value] = false
+    draggedCard.value = null
+  }
+}
+
+/**
+ * 處理拖曳放置事件
+ * @param {Event} event - 拖曳事件
+ * @param {number} professionIndex - 職業分類索引
+ */
+const handleDrop = async (event, professionIndex) => {
+  event.preventDefault()
+  await performCardDrop(professionIndex, 'drag')
+}
+
+/**
+ * 處理點擊放置事件
+ * @param {number} professionIndex - 職業分類索引
+ */
+const handleClickDrop = async (professionIndex) => {
+  // 直接使用當前卡片，不需要依賴 draggedCard.value
+  const currentCard = currentCardPool.value[currentSequence.value]
+  if (currentCard) {
+    professions.value[professionIndex].cards.push(currentCard)
+    classifyList.value[currentSequence.value] = professionIndex
+
+    // 使用新的日誌管理功能
+    addLog({
+      action: 'click',
+      card: currentCard,
       remainingSeconds: remainingSeconds.value,
       additional: {
         professionIndex: professionIndex,
@@ -244,13 +293,12 @@ const handleDrop = async (event, professionIndex) => {
 
     handleAlert({
       auction: 'success',
-      text: `你已經成功拖曳 ${getCardImageName(draggedCard.value)} 到 ${
+      text: `你已經成功點擊 ${getCardImageName(currentCard)} 到 ${
         professions.value[professionIndex].title
       }`
     })
     currentSequence.value++
     cards_status.value[currentSequence.value] = false
-    draggedCard.value = null
   }
 }
 // 監聽倒數結束
@@ -316,6 +364,7 @@ onMounted(() => {
             class="drop-area"
             @drop.prevent="handleDrop($event, index)"
             @dragover.prevent
+            @click="handleClickDrop(index)"
           >
             {{ profession.title }} ({{ profession.cards.length }})
             <v-img
@@ -403,7 +452,22 @@ onMounted(() => {
   text-align: center;
   border: 2px dashed #ccc;
   background-color: rgba(255, 255, 255, 0.8);
-  z-index: 1000;
+  z-index: 2000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: #1976d2;
+    background-color: rgba(25, 118, 210, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
   .profession-img {
     padding-bottom: 10px;
   }
