@@ -33,7 +33,9 @@ import {
   cjImages,
   goalImages,
   getGuidanceContent,
-  combineAndShuffle
+  combineAndShuffle,
+  getCardImageName,
+  getCardImagePath
 } from '@/plugins/utils/psy_cards.js'
 import emptyCard from '@/assets/images/covers/empty.webp'
 import { addLog, getLogs, clearLogs, setProcessType } from '@/plugins/utils/process_logger.js'
@@ -121,7 +123,7 @@ const isFinish = ref(false)
 const guideInfo = ref(getGuidanceContent(props.type, examProcessStore.computedPickGoalStage, cards_pool.value.length))
 
 
-// 建立計算屬性 filterKeepCards
+// 建立計算屬性 filterKeepCards - 已保留的卡片（翻開的卡片）
 const filterKeepCards = computed(() => {
   return cards_pool.value.filter((card, index) => !cards_status.value[index]);
 });
@@ -155,28 +157,44 @@ watch(isStart, (newValue) => {
 
 // 取得初始卡片集合
 function getInitialCards(type) {
+  let imageArray = []
+  
   switch (type) {
     case 'care':
-      return careImages
+      imageArray = careImages
+      break
     case 'le':
-      return leImages
+      imageArray = leImages
+      break
     case 'lj':
-      return ljImages
+      imageArray = ljImages
+      break
     case 'ce':
-      return ceImages
+      imageArray = ceImages
+      break
     case 'cj':
-      return cjImages
+      imageArray = cjImages
+      break
     case 'goal':
-      return goalImages
+      imageArray = goalImages
+      break
     default:
       return []
   }
+  
+  // 將圖片路徑轉換為卡片代號
+  return imageArray.map(imagePath => getCardImageName(imagePath))
 }
 
 // 計算當前卡片池
 const currentCardPool = computed(() => {
   const start = CurrentPage.value * props.cardsPerPage
   return cards_pool.value.slice(start, start + props.cardsPerPage)
+})
+
+// 將卡片代號轉換為圖片路徑
+const currentCardPoolWithPaths = computed(() => {
+  return currentCardPool.value.map(cardCode => getCardImagePath(cardCode))
 })
 
 // 檢查是否為最後一頁 -> 限制瀏覽頁數在卡片池的範圍內
@@ -232,7 +250,7 @@ watch(CurrentPage, (newValue) => {
 })
 
 // 處理卡片翻轉事件 -> 更新卡片狀態並加入日誌
-const handleCardFlip = ({ cardName, isFold, imagePath }) => {
+const handleCardFlip = ({ cardName, isFold, imagePath }, cardIndex) => {
   // 使用新的日誌管理功能
   addLog({
     action: 'flip',
@@ -244,10 +262,10 @@ const handleCardFlip = ({ cardName, isFold, imagePath }) => {
     }
   });
 
-  // 根據 cardName 更新 cards_status
-  const cardIndex = cards_pool.value.findIndex((card) => card === imagePath);
-  if (cardIndex !== -1) {
-    cards_status.value[cardIndex] = isFold; // 更新對應的狀態
+  // 根據當前頁面和卡片索引更新 cards_status
+  const globalCardIndex = CurrentPage.value * props.cardsPerPage + cardIndex;
+  if (globalCardIndex < cards_status.value.length) {
+    cards_status.value[globalCardIndex] = isFold; // 更新對應的狀態
   }
 
   // 更新 store 狀態
@@ -341,8 +359,8 @@ onBeforeUnmount(() => {
       />
       <v-row>
         <v-col
-          v-for="(image, index) in currentCardPool"
-          :key="image"
+          v-for="(image, index) in currentCardPoolWithPaths"
+          :key="currentCardPool[index]"
           cols="3"
           md="3"
           lg="3"
@@ -350,10 +368,10 @@ onBeforeUnmount(() => {
         >
           <CardView
             :image="image"
-            :is-fold="cards_status[cardsPerPage * CurrentPage + index]"
+            :is-fold="cards_status[props.cardsPerPage * CurrentPage + index]"
             :card-draggable="false"
             :freeze="isFinish"
-            @card-flipped="handleCardFlip"
+            @card-flipped="(event) => handleCardFlip(event, index)"
           />
         </v-col>
 

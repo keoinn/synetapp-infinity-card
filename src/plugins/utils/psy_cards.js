@@ -76,6 +76,26 @@ const getCardImageName = (imageUrl) => {
   return cardName
 }
 
+/**
+ * 根據卡片代號獲取圖片路徑
+ * @param {string} cardCode - 卡片代號 (如: 'goal001', 'care001')
+ * @returns {string} 圖片路徑
+ */
+const getCardImagePath = (cardCode) => {
+  if (!cardCode) return ''
+  
+  // 從所有圖片陣列中尋找匹配的卡片
+  const allImages = [...careImages, ...leImages, ...ljImages, ...ceImages, ...cjImages, ...goalImages]
+  
+  // 尋找匹配的圖片路徑
+  const matchedImage = allImages.find(imagePath => {
+    const imageName = getCardImageName(imagePath)
+    return imageName === cardCode
+  })
+  
+  return matchedImage || ''
+}
+
 // 根據卡片名稱返回對應的封面圖片
 const getCardCoverImage = (cardName) => {
   // 使用正則表達式提取前綴和序號
@@ -1035,6 +1055,7 @@ export {
   goalImages,
   combineAndShuffle,
   getCardImageName,
+  getCardImagePath,
   getCardCoverImage,
   getGoalCardData,
   getGuidanceContent,

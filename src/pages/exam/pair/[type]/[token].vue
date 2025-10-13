@@ -9,6 +9,7 @@ import {
   cjImages,
   goalImages,
   getCardImageName,
+  getCardImagePath,
   getGoalCardData,
 } from '@/plugins/utils/psy_cards.js'
 import { useExamProcessStore } from '@/stores/examProcess'
@@ -22,7 +23,7 @@ const professions_data= examProcessStore.pick_goal.final_cards.map(card => {
   return {
     title: getGoalCardData(getCardImageName(card)).title,
     cards: [],
-    class_img: card
+    class_img: getCardImagePath(card)
   }
 })
 const professions = ref([...professions_data])

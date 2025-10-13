@@ -21,8 +21,8 @@
     </v-row>
     <v-row>
       <v-col
-        v-for="image in currentCardPool"
-        :key="image"
+        v-for="(image, index) in currentCardPoolWithPaths"
+        :key="currentCardPool[index]"
         cols="3"
         md="3"
         lg="3"
@@ -73,8 +73,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
-import { careImages, combineAndShuffle } from '@/plugins/utils/psy_cards.js'
+import { ref, onMounted, watch, onBeforeUnmount, computed } from 'vue'
+
+// Props
+const props = defineProps({
+  cardType: {
+    type: String,
+    default: 'care'
+  }
+})
+import { 
+  careImages, 
+  leImages, 
+  ljImages, 
+  ceImages, 
+  cjImages, 
+  goalImages, 
+  combineAndShuffle, 
+  getCardImagePath, 
+  getCardImageName 
+} from '@/plugins/utils/psy_cards.js'
 import {
   remainingSeconds,
   formattedTime,
@@ -89,11 +107,43 @@ import { handleAlert } from '@/plugins/utils/alert.js'
 const CARDS_PER_PAGE = 8
 const COUNTDOWN_SECONDS = 300 // 5分鐘
 
+// 取得初始卡片集合（返回卡片代號）
+function getInitialCards(type) {
+  let imageArray = []
+  
+  switch (type) {
+    case 'care':
+      imageArray = careImages
+      break
+    case 'le':
+      imageArray = leImages
+      break
+    case 'lj':
+      imageArray = ljImages
+      break
+    case 'ce':
+      imageArray = ceImages
+      break
+    case 'cj':
+      imageArray = cjImages
+      break
+    case 'goal':
+      imageArray = goalImages
+      break
+    default:
+      return []
+  }
+  
+  // 將圖片路徑轉換為卡片代號
+  let cardArray = imageArray.map(imagePath => getCardImageName(imagePath))
+  return cardArray
+}
+
 // 狀態
 const currentCardPool = ref([])
 const CurrentPage = ref(0)
-const PageSize = ref(Math.ceil(careImages.length / CARDS_PER_PAGE))
-const cardImages = combineAndShuffle(careImages) // TODO: 動態計算
+const cardImages = combineAndShuffle(getInitialCards(props.cardType)) // 使用 props 中的卡片類型
+const PageSize = ref(Math.ceil(cardImages.length / CARDS_PER_PAGE))
 
 // 倒數計時相關
 setTimer(COUNTDOWN_SECONDS)
@@ -126,6 +176,11 @@ const updateCardPool = () => {
     (CurrentPage.value + 1) * PageSize.value
   )
 }
+
+// 將卡片代號轉換為圖片路徑
+const currentCardPoolWithPaths = computed(() => {
+  return currentCardPool.value.map(cardCode => getCardImagePath(cardCode))
+})
 
 // 監聽頁碼變化
 watch(CurrentPage, () => {

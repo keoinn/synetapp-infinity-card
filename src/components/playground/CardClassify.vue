@@ -4,7 +4,7 @@
 
 import { ref, onMounted, computed, watch } from 'vue'
 import { handleAlert } from '@/plugins/utils/alert.js'
-import { getCardImageName } from '@/plugins/utils/psy_cards.js'
+import { getCardImageName, getCardImagePath } from '@/plugins/utils/psy_cards.js'
 import { remainingSeconds, startTimer, stopTimer, setTimer } from '@/plugins/utils/countdown.js'
 import { addLog, clearLogs, getLogs, setProcessType } from '@/plugins/utils/process_logger.js'
 
@@ -134,6 +134,14 @@ const cards_status = ref(
  */
 const remainingCards = computed(() => {
   return currentCardPool.value.length - currentSequence.value
+})
+
+/**
+ * 將卡片代碼轉換為圖片路徑的卡片池
+ * @type {ComputedRef<Array>}
+ */
+const currentCardPoolWithPaths = computed(() => {
+  return currentCardPool.value.map(cardCode => getCardImagePath(cardCode))
 })
 
 // Event Handler
@@ -379,10 +387,10 @@ onMounted(() => {
           class="card-container"
         >
           <CardView
-            v-for="(card, index) in currentCardPool"
+            v-for="(image, index) in currentCardPoolWithPaths"
             v-show="index >= currentSequence"
-            :key="index"
-            :image="card"
+            :key="currentCardPool[index]"
+            :image="image"
             class="card"
             :is-fold="cards_status[index]"
             :card-draggable="true"
@@ -390,7 +398,7 @@ onMounted(() => {
             :style="{
               zIndex: 1000 - index,
               transform: `translate(${index * 0.9}px, ${index * 0.5}px)` }"
-            @dragstart="handleDragStart(card)"
+            @dragstart="handleDragStart(currentCardPool[index])"
           />
           <v-btn
             v-if="remainingCards === 0"
