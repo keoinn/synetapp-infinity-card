@@ -135,7 +135,7 @@ const handleBuyCard = (target) => {
   <div class="shop-page">
     <v-btn
       class="back-button"
-      text="回到首頁"
+      :text="t('common.backToHome')"
       size="large"
       variant="tonal"
       prepend-icon="mdi-arrow-left"
@@ -144,7 +144,7 @@ const handleBuyCard = (target) => {
     <v-row class="shop-page-row pb-10">
       <v-col cols="12">
         <h1 class="page-title">
-          購買卡牌
+          {{ t('common.shop') }}
         </h1>
       </v-col>
       <!-- 無限可能卡 - 社青版 -->

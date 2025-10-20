@@ -1,0 +1,45 @@
+{
+  "common": {
+    "news": "Latest News",
+    "shop": "Buy Cards",
+    "about": "About Us",
+    "cart": "Cart",
+    "email": "Email",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "language": "Language",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "enterPassword": "Enter Your Password",
+    "enterAccountOrEmail": "Enter Your Account or Email",
+    "forgotPassword": "Forgot Password?",
+    "orRegister": "Or Register?",
+    "backToLogin": "Back to Login",
+    "infinityCard": "Infinity Card",
+    "infinityCardEn": "Infinity Card",
+    "backToHome": "Back to Home"
+  },
+  "navigation": {
+    "exam": "Card Quiz",
+    "createExam": "Create Quiz",
+    "editProfile": "Edit Profile",
+    "buyCards": "Buy Cards",
+    "cart": "Cart",
+    "logout": "Logout",
+    "sitemap": "Sitemap",
+    "contactUs": "Contact Us",
+    "serviceHotLine": "Service Hot Line",
+    "serviceMail": "Service Mailbox",
+    "serviceTime": "Service Time"
+  },
+  "customString":{
+    "serviceHotLine": "886-2-22222222",
+    "serviceTime": "Mon. to Fri. 09:00-18:00 UTC+8"
+  },
+  "languages": {
+    "zh-TW": "繁體中文",
+    "zh-CN": "简体中文",
+    "en": "English"
+  }
+}

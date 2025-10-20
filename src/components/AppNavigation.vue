@@ -44,12 +44,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
 const router = useRouter()
 const { mdAndDown } = useDisplay()
+const { t } = useI18n()
 
 // 監控螢幕斷點變化
 /*
@@ -92,46 +95,46 @@ watchEffect(() => {
 
 const appStore = useAppStore()
 
-const navItems = ref([
+const navItems = computed(() => [
   {
     value: 'exam',
     icon: 'mdi-cards-playing',
-    text: '卡牌測驗',
+    text: t('navigation.exam'),
     path: '/exam',
     show: true
   },
   {
     value: 'inventory',
     icon: 'mdi-account',
-    text: '建立測驗',
+    text: t('navigation.createExam'),
     path: '/inventory',
     show: true
   },
   {
     value: 'user',
     icon: 'mdi-text-box-edit-outline',
-    text: '修改資料',
+    text: t('navigation.editProfile'),
     path: '/user',
     show: true
   },
   {
     value: 'shop',
     icon: 'mdi-shopping-outline',
-    text: '購買卡牌',
+    text: t('navigation.buyCards'),
     path: '/shop',
     show: true
   },
   {
     value: 'cart',
     icon: 'mdi-cart-outline',
-    text: '購物車',
+    text: t('navigation.cart'),
     path: '/cart',
     show: true
   },
   {
     value: 'logout',
     icon: 'mdi-logout',
-    text: '登出',
+    text: t('navigation.logout'),
     path: '/logout',
     show: true
   }

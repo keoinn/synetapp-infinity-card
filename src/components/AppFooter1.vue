@@ -1,3 +1,17 @@
+<script setup>
+import { computed } from 'vue'
+import weproLogo from '@/assets/wepro-logo.webp'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+const footerHeight = computed(() => {
+  //   console.log(window.innerHeight)
+  //   console.log(Math.floor(window.innerHeight * (314 / 1338)))
+  //   return Math.floor(window.innerHeight * (314 / 1338))
+  return 150
+})
+</script>
+
 <template>
   <v-footer
     :height="footerHeight"
@@ -47,20 +61,20 @@
         class="d-none d-lg-flex"
       >
         <ul class="footer-item-list">
-          <li>目錄</li>
+          <li> {{ t('navigation.sitemap') }} </li>
           <li>
             <router-link to="/news">
-              最新消息
+              {{ t('common.news') }}
             </router-link>
           </li>
           <li>
             <router-link to="/shop">
-              購買卡牌
+              {{ t('common.shop') }}
             </router-link>
           </li>
           <li>
             <router-link to="/about">
-              關於我們
+              {{ t('common.about') }}
             </router-link>
           </li>
         </ul>
@@ -73,10 +87,10 @@
         class="d-none d-md-flex"
       >
         <ul class="footer-item-list">
-          <li>聯絡我們</li>
-          <li>客服專線：02-22222222</li>
-          <li>客服信箱：service@infinitycard.com.tw</li>
-          <li>客服時間：週一至週五 09:00-18:00</li>
+          <li>{{ t('navigation.contactUs') }}</li>
+          <li>{{ t('navigation.serviceHotLine') }}: {{ t('customString.serviceHotLine') }}</li>
+          <li>{{ t('navigation.serviceMail') }}: service@infinitycard.com.tw</li>
+          <li>{{ t('navigation.serviceTime') }}: {{ t('customString.serviceTime') }}</li>
         </ul>
       </v-col>
 
@@ -94,17 +108,6 @@
     </v-row>
   </v-footer>
 </template>
-
-<script setup>
-import { computed } from 'vue'
-import weproLogo from '@/assets/wepro-logo.webp'
-const footerHeight = computed(() => {
-  //   console.log(window.innerHeight)
-  //   console.log(Math.floor(window.innerHeight * (314 / 1338)))
-  //   return Math.floor(window.innerHeight * (314 / 1338))
-  return 150
-})
-</script>
 
 <style scoped lang="scss">
 .footer {

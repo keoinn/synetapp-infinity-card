@@ -9,36 +9,7 @@ import caseCj from '@/assets/images/case/case_cj.webp'
 import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
-import goal001 from '@/assets/images/cards/goal001.webp'
-import goal002 from '@/assets/images/cards/goal002.webp'
-import goal003 from '@/assets/images/cards/goal003.webp'
-import goal004 from '@/assets/images/cards/goal004.webp'
-import goal005 from '@/assets/images/cards/goal005.webp'
-import care001 from '@/assets/images/cards/care001.webp'
-import care002 from '@/assets/images/cards/care002.webp'
-import care003 from '@/assets/images/cards/care003.webp'
-import care004 from '@/assets/images/cards/care004.webp'
-import care005 from '@/assets/images/cards/care005.webp'
-import ce001 from '@/assets/images/cards/ce001.webp'
-import ce002 from '@/assets/images/cards/ce002.webp'
-import ce003 from '@/assets/images/cards/ce003.webp'
-import ce004 from '@/assets/images/cards/ce004.webp'
-import ce005 from '@/assets/images/cards/ce005.webp'
-import cj001 from '@/assets/images/cards/cj001.webp'
-import cj002 from '@/assets/images/cards/cj002.webp'
-import cj003 from '@/assets/images/cards/cj003.webp'
-import cj004 from '@/assets/images/cards/cj004.webp'
-import cj005 from '@/assets/images/cards/cj005.webp'
-import le001 from '@/assets/images/cards/le001.webp'
-import le002 from '@/assets/images/cards/le002.webp'
-import le003 from '@/assets/images/cards/le003.webp'
-import le004 from '@/assets/images/cards/le004.webp'
-import le005 from '@/assets/images/cards/le005.webp'
-import lj001 from '@/assets/images/cards/lj001.webp'
-import lj002 from '@/assets/images/cards/lj002.webp'
-import lj003 from '@/assets/images/cards/lj003.webp'
-import lj004 from '@/assets/images/cards/lj004.webp'
-import lj005 from '@/assets/images/cards/lj005.webp'
+import { getCardImagePath } from '@/utils/imageUtils'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -54,42 +25,42 @@ const optionsCardSet = [
     value: 'goal',
     image: caseGoal,
     price: 790,
-    subCardImage: [goal001, goal002, goal003, goal004, goal005]
+    subCardImage: ['goal001.webp', 'goal002.webp', 'goal003.webp', 'goal004.webp', 'goal005.webp']
   },
   {
     title: '我在乎: I care - $790',
     value: 'care',
     image: caseCare,
     price: 790,
-    subCardImage: [care001, care002, care003, care004, care005]
+    subCardImage: ['care001.webp', 'care002.webp', 'care003.webp', 'care004.webp', 'care005.webp']
   },
   {
     title: '我可以 (社青版): I can - $790',
     value: 'cj',
     image: caseCj,
     price: 790,
-    subCardImage: [cj001, cj002, cj003, cj004, cj005]
+    subCardImage: ['cj001.webp', 'cj002.webp', 'cj003.webp', 'cj004.webp', 'cj005.webp']
   },
   {
     title: '我可以 (國小版): I can - $790',
     value: 'ce',
     image: caseCe,
     price: 790,
-    subCardImage: [ce001, ce002, ce003, ce004, ce005]
+    subCardImage: ['ce001.webp', 'ce002.webp', 'ce003.webp', 'ce004.webp', 'ce005.webp']
   },
   {
     title: '我喜歡 (社青版): I like - $790',
     value: 'lj',
     image: caseLj,
     price: 790,
-    subCardImage: [lj001, lj002, lj003, lj004, lj005]
+    subCardImage: ['lj001.webp', 'lj002.webp', 'lj003.webp', 'lj004.webp', 'lj005.webp']
   },
   {
     title: '我喜歡 (國小版): I like - $790',
     value: 'le',
     image: caseLe,
     price: 790,
-    subCardImage: [le001, le002, le003, le004, le005]
+    subCardImage: ['le001.webp', 'le002.webp', 'le003.webp', 'le004.webp', 'le005.webp']
   }
 ]
 
@@ -110,6 +81,7 @@ const getSubCardImage = computed(() => {
   return optionsCardSet
     .find((item) => item.value === selectedCard.value)
     ?.subCardImage.slice(pageSubCard.value * 3, (pageSubCard.value + 1) * 3)
+    .map(imageName => getCardImagePath(imageName))
 })
 
 const handleSubCardChange = (direction) => {

@@ -4,8 +4,10 @@ import { useAppStore } from '@/stores/app'
 import { registerAPI } from '@/plugins/utils/requests/api/backend'
 import { handleAlert } from '@/plugins/utils/alert'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
+const { t } = useI18n()
 const visible_pwd = ref(false)
 const visible_pwd_confirm = ref(false)
 const appStore = useAppStore()
@@ -141,7 +143,7 @@ const errorHandler = (error_response) => {
 }
 
 const inputAccountLabel = computed(() => {
-  return newAccount.value ? '電子信箱' : '登入'
+  return newAccount.value ? t('common.email') : t('common.login')
 })
 </script>
 
@@ -161,7 +163,7 @@ const inputAccountLabel = computed(() => {
               class="text-caption text-decoration-none text-blue"
               href="#"
               rel="noopener noreferrer"
-              :text="newAccount ? '返回登入介面' : '或者進行註冊?'"
+              :text="newAccount ? t('common.backToLogin') : t('common.orRegister')"
               @click="newAccount = !newAccount"
             />
           </div>
@@ -169,14 +171,14 @@ const inputAccountLabel = computed(() => {
           <v-text-field
             v-model="account"
             density="compact"
-            placeholder="輸入你的帳號或信箱"
+            :placeholder="t('common.enterAccountOrEmail')"
             :prepend-inner-icon="newAccount ? 'mdi-email-outline' : 'mdi-account-outline'"
             variant="outlined"
             :autocomplete="newAccount ? 'email' : 'username'"
           />
 
           <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
-            密碼
+            {{ t('common.password') }}
             <a
               v-if="newAccount === false"
               class="text-caption text-decoration-none text-blue"
@@ -184,7 +186,7 @@ const inputAccountLabel = computed(() => {
               rel="noopener noreferrer"
             >
               <!-- TODO: Password Reset -->
-              忘記密碼?
+              {{ t('common.forgotPassword') }}
             </a>
           </div>
           <v-text-field
@@ -192,7 +194,7 @@ const inputAccountLabel = computed(() => {
             :append-inner-icon="visible_pwd ? 'mdi-eye-off' : 'mdi-eye'"
             :type="visible_pwd ? 'text' : 'password'"
             density="compact"
-            placeholder="輸入你的密碼"
+            :placeholder="t('common.enterPassword')"
             prepend-inner-icon="mdi-lock-outline"
             variant="outlined"
             :autocomplete="newAccount ? 'new-password' : 'current-password'"
@@ -203,7 +205,7 @@ const inputAccountLabel = computed(() => {
             v-if="newAccount"
             class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between"
           >
-            確認密碼
+            {{ t('common.confirmPassword') }}
           </div>
           <v-text-field
             v-if="newAccount"
@@ -211,7 +213,7 @@ const inputAccountLabel = computed(() => {
             :append-inner-icon="visible_pwd_confirm ? 'mdi-eye-off' : 'mdi-eye'"
             :type="visible_pwd_confirm ? 'text' : 'password'"
             density="compact"
-            placeholder="輸入你的密碼"
+            :placeholder="t('common.enterPassword')"
             prepend-inner-icon="mdi-lock-outline"
             variant="outlined"
             autocomplete="new-password"
@@ -247,7 +249,7 @@ const inputAccountLabel = computed(() => {
             variant="tonal"
             block
             type="submit"
-            :text="newAccount ? '註冊' : '登入'"
+            :text="newAccount ? t('common.register') : t('common.login')"
           />
         </form>
       </v-card>

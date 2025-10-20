@@ -8,6 +8,7 @@ export const useAppStore = defineStore('app', {
     token: null,
     refreshToken: null,
     user_id: null,
+    locale: 'zh-TW',
   }),
   actions: {
     toggleDrawer() {
@@ -42,6 +43,9 @@ export const useAppStore = defineStore('app', {
     async verifyToken() {
       const response = await verifyTokenAPI()
       console.log(response)
+    },
+    setLocale(locale) {
+      this.locale = locale
     },
     logout() {
       this.isLogin = false

@@ -1,5 +1,5 @@
 // 使用 Vite 的 glob 匯入功能批次匯入圖片
-const imageModules = import.meta.glob('@/assets/images/cards/*.webp', { eager: true })
+const imageModules = import.meta.glob('@/assets/images/cards/zh_cn/*.webp', { eager: true })
 import caseGoal from '@/assets/images/case/case_goal.webp'
 import caseCare from '@/assets/images/case/case_care.webp'
 import caseLe from '@/assets/images/case/case_le.webp'

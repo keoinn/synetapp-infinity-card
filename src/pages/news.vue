@@ -2,7 +2,7 @@
   <div class="news-page">
     <v-btn
       class="back-button"
-      text="回到首頁"
+      :text="t('common.backToHome')"
       size="large"
       variant="tonal"
       prepend-icon="mdi-arrow-left"
@@ -11,7 +11,7 @@
     <v-row>
       <v-col cols="12">
         <h1 class="page-title">
-          最新消息
+          {{ t('common.news') }}
         </h1>
       </v-col>
     </v-row>
@@ -20,8 +20,10 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
+const { t } = useI18n()
 </script>
 
 <style lang="scss" scoped>

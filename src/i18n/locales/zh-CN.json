@@ -1,0 +1,45 @@
+{
+  "common": {
+    "news": "最新消息",
+    "shop": "购买卡牌",
+    "about": "关于我们",
+    "cart": "购物车",
+    "email": "电子邮箱",
+    "login": "登录",
+    "logout": "登出",
+    "register": "注册",
+    "language": "语言",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "enterPassword": "输入你的密码",
+    "enterAccountOrEmail": "输入你的账号或邮箱",
+    "forgotPassword": "忘记密码?",
+    "orRegister": "或者注册?",
+    "backToLogin": "返回登录界面",
+    "infinityCard": "无限可能卡",
+    "infinityCardEn": "Infinity Card",
+    "backToHome": "回到首頁"
+  },
+  "navigation": {
+    "exam": "卡牌测验",
+    "createExam": "建立测验",
+    "editProfile": "修改资料",
+    "buyCards": "购买卡牌",
+    "cart": "购物车",
+    "logout": "登出",
+    "sitemap": "网站地图",
+    "contactUs": "联络我们",
+    "serviceHotLine": "客户专线",
+    "serviceMail": "客户信箱",
+    "serviceTime": "服务时间"
+  },
+  "customString":{
+    "serviceHotLine": "886-2-22222222",
+    "serviceTime": "週一至週五 09:00-18:00"
+  },
+  "languages": {
+    "zh-TW": "繁體中文",
+    "zh-CN": "简体中文",
+    "en": "English"
+  }
+}

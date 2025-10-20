@@ -2,9 +2,13 @@
 import { useAppStore } from '@/stores/app'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from './LanguageSwitcher.vue'
+
 const appStore = useAppStore()
 const router = useRouter()
 const cartStore = useCartStore()
+const { t } = useI18n()
 </script>
 <template>
   <v-app-bar
@@ -27,32 +31,34 @@ const cartStore = useCartStore()
       class="header-link d-none d-md-flex"
       @click="router.push('/news')"
     >
-      最新消息
+      {{ t('common.news') }}
     </span>
 
     <span
       class="header-link d-none d-md-flex"
       @click="router.push('/shop')"
     >
-      購買卡牌
+      {{ t('common.shop') }}
     </span>
 
     <span
       class="header-link d-none d-md-flex"
       @click="router.push('/about')"
     >
-      關於我們
+      {{ t('common.about') }}
     </span>
 
     <div
       class="header-title"
       @click="router.push('/')"
     >
-      <span class="header-main-title">無限可能卡</span>
-      <span class="header-sub-title">Infinity Card</span>
+      <span class="header-main-title">{{ t('common.infinityCard') }}</span>
+      <span class="header-sub-title">{{ t('common.infinityCardEn') }}</span>
     </div>
 
     <v-spacer />
+
+    <LanguageSwitcher />
     <div
       v-show="!appStore.isLogin"
       class="header-start-icon pr-6"
@@ -64,18 +70,20 @@ const cartStore = useCartStore()
       />
     </div>
 
-    <div class="header-end-icon">
-      <v-badge
-        v-if="cartStore.totalItems > 0"
-        color="error"
-        :content="cartStore.totalItems"
-      >
-        <v-icon
-          size="32"
-          icon="mdi-cart-outline"
-          @click="router.push('/cart')"
-        />
-      </v-badge>
+    <div class="header-end-icons">
+      <div class="header-end-icon">
+        <v-badge
+          v-if="cartStore.totalItems > 0"
+          color="error"
+          :content="cartStore.totalItems"
+        >
+          <v-icon
+            size="32"
+            icon="mdi-cart-outline"
+            @click="router.push('/cart')"
+          />
+        </v-badge>
+      </div>
     </div>
   </v-app-bar>
 </template>
@@ -118,8 +126,13 @@ const cartStore = useCartStore()
   cursor: pointer;
 }
 
-.header-end-icon {
+.header-end-icons {
+  display: flex;
+  align-items: center;
   margin-right: 20px;
+}
+
+.header-end-icon {
   color: rgba(0, 0, 0, 0.87);
   opacity: 0.8;
 }
