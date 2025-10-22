@@ -34,9 +34,9 @@ import {
   goalImages,
   getGuidanceContent,
   combineAndShuffle,
-  getCardImageName,
-  getCardImagePath
+  getCardImageName
 } from '@/plugins/utils/psy_cards.js'
+import { getCardImagePath } from '@/utils/imageUtils'
 import emptyCard from '@/assets/images/covers/empty.webp'
 import { addLog, getLogs, clearLogs, setProcessType } from '@/plugins/utils/process_logger.js'
 import { useExamProcessStore } from '@/stores/examProcess'

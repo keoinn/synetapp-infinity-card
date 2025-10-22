@@ -4,7 +4,8 @@
 
 import { ref, onMounted, computed, watch } from 'vue'
 import { handleAlert } from '@/plugins/utils/alert.js'
-import { getCardImageName, getCardImagePath } from '@/plugins/utils/psy_cards.js'
+import { getCardImageName } from '@/plugins/utils/psy_cards.js'
+import { getCardImagePath } from '@/utils/imageUtils'
 import { remainingSeconds, startTimer, stopTimer, setTimer } from '@/plugins/utils/countdown.js'
 import { addLog, clearLogs, getLogs, setProcessType } from '@/plugins/utils/process_logger.js'
 

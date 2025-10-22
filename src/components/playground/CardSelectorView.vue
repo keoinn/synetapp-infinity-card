@@ -90,9 +90,9 @@ import {
   cjImages, 
   goalImages, 
   combineAndShuffle, 
-  getCardImagePath, 
   getCardImageName 
 } from '@/plugins/utils/psy_cards.js'
+import { getCardImagePath } from '@/utils/imageUtils'
 import {
   remainingSeconds,
   formattedTime,

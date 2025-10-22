@@ -9,9 +9,9 @@ import {
   cjImages,
   goalImages,
   getCardImageName,
-  getCardImagePath,
   getGoalCardData,
 } from '@/plugins/utils/psy_cards.js'
+import { getCardImagePath } from '@/utils/imageUtils'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
