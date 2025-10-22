@@ -20,7 +20,14 @@ export function getCardImagePath(imageName) {
     folder = 'en' // 英文使用 en 資料夾
   }
   
-  return `/src/assets/images/cards/${folder}/${fileName}`
+  // 獲取部署 URL（如果有的話）
+  const deployUrl = import.meta.env.VITE_DEPLOY_URL || ''
+  
+  // 在開發環境使用 /src/assets/，在生產環境使用 /assets/
+  const isDev = import.meta.env.DEV
+  const assetsPath = isDev ? '/src/assets' : '/assets'
+  
+  return `${deployUrl}${assetsPath}/images/cards/${folder}/${fileName}`
 }
 
 /**
@@ -32,9 +39,16 @@ export function getAllCardImagePaths(imageName) {
   // 確保檔案名稱包含 .webp 副檔名
   const fileName = imageName.endsWith('.webp') ? imageName : `${imageName}.webp`
   
+  // 獲取部署 URL（如果有的話）
+  const deployUrl = import.meta.env.VITE_DEPLOY_URL || ''
+  
+  // 在開發環境使用 /src/assets/，在生產環境使用 /assets/
+  const isDev = import.meta.env.DEV
+  const assetsPath = isDev ? '/src/assets' : '/assets'
+  
   return {
-    'zh-TW': `/src/assets/images/cards/zh_cn/${fileName}`,
-    'zh-CN': `/src/assets/images/cards/zh_cn/${fileName}`,
-    'en': `/src/assets/images/cards/en/${fileName}`
+    'zh-TW': `${deployUrl}${assetsPath}/images/cards/zh_cn/${fileName}`,
+    'zh-CN': `${deployUrl}${assetsPath}/images/cards/zh_cn/${fileName}`,
+    'en': `${deployUrl}${assetsPath}/images/cards/en/${fileName}`
   }
 }
