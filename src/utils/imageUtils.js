@@ -13,7 +13,7 @@ export function getCardImagePath(imageName) {
   const fileName = imageName.endsWith('.webp') ? imageName : `${imageName}.webp`
   
   // 根據語言選擇對應的資料夾
-  let folder = 'zh_cn' // 預設為繁體中文（使用 zh_cn 資料夾）
+  let folder = 'zh_tw' // 預設為繁體中文（使用 zh_cn 資料夾）
   if (currentLocale === 'zh-CN') {
     folder = 'zh_cn' // 簡體中文使用 zh_cn 資料夾
   } else if (currentLocale === 'en') {

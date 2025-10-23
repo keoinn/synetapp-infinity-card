@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { VNumberInput } from 'vuetify/labs/VNumberInput'
 import { useCartStore } from '@/stores/cart'
 import { handleAlert } from '@/plugins/utils/alert'
+import { useI18n } from 'vue-i18n'
 import caseCare from '@/assets/images/case/case_care.webp'
 import caseCe from '@/assets/images/case/case_ce.webp'
 import caseCj from '@/assets/images/case/case_cj.webp'
@@ -13,6 +14,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const { t } = useI18n()
 const quantity_set1 = ref(0)
 const quantity_set2 = ref(0)
 const quantity_goal = ref(0)
