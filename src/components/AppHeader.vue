@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
@@ -9,6 +10,44 @@ const appStore = useAppStore()
 const router = useRouter()
 const cartStore = useCartStore()
 const { t } = useI18n()
+
+// 當前身份
+const currentRole = ref('user')
+
+// 用戶身份列表
+const userRoles = ref([
+  {
+    value: 'user',
+    title: t('admin.userRole'),
+    icon: 'mdi-account'
+  },
+  {
+    value: 'org',
+    title: t('admin.orgRole'),
+    icon: 'mdi-office-building'
+  },
+  {
+    value: 'counselor',
+    title: t('admin.counselorRole'),
+    icon: 'mdi-account-tie'
+  },
+  {
+    value: 'admin',
+    title: t('admin.adminRole'),
+    icon: 'mdi-shield-account'
+  }
+])
+
+const switchRole = (role) => {
+  currentRole.value = role
+  console.log('切換身份為:', role)
+  // 可以在這裡添加切換身份的邏輯
+}
+
+const handleLogout = () => {
+  appStore.logout()
+  router.push('/')
+}
 </script>
 <template>
   <v-app-bar
@@ -58,17 +97,50 @@ const { t } = useI18n()
 
     <v-spacer />
 
-    <LanguageSwitcher />
-    <div
-      v-show="!appStore.isLogin"
-      class="header-start-icon pr-6"
-    >
-      <v-icon
-        size="32"
-        icon="mdi-login"
-        @click="router.push('/login')"
-      />
+    <!-- 翻譯按鈕 -->
+    <div class="mr-6">
+      <LanguageSwitcher />
     </div>
+
+    <!-- 身份選擇 -->
+    <v-menu
+      v-if="appStore.isLogin"
+      location="bottom end"
+      class="mr-6"
+    >
+      <template #activator="{ props }">
+        <v-btn
+          v-bind="props"
+          icon
+          variant="text"
+        >
+          <v-icon>mdi-account-circle-outline</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item
+          v-for="role in userRoles"
+          :key="role.value"
+          :value="role.value"
+          @click="switchRole(role.value)"
+        >
+          <template #prepend>
+            <v-icon>{{ role.icon }}</v-icon>
+          </template>
+          <v-list-item-title>{{ role.title }}</v-list-item-title>
+        </v-list-item>
+        <v-divider class="my-2" />
+        <v-list-item
+          value="admin-panel"
+          @click="router.push('/admin')"
+        >
+          <template #prepend>
+            <v-icon>mdi-shield-account</v-icon>
+          </template>
+          <v-list-item-title>{{ t('admin.title') }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <div class="header-end-icons">
       <div class="header-end-icon">

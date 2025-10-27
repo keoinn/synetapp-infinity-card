@@ -11,7 +11,9 @@ import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
 import { getCardImagePath } from '@/utils/imageUtils'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const cartStore = useCartStore()
 const selectedCard = ref('goal')
@@ -202,10 +204,10 @@ const clickCardCase = (value) => {
           align="left"
         >
           <v-card-title class="intro-title">
-            無限可能卡
+            {{ t('common.infinityCard') }}
           </v-card-title>
           <v-card-text class="intro-text">
-            尋找人生職涯方向第一步就是做生涯規劃，在生涯規劃中最重要的是個人的自我探索、職涯環境之認知與評估及職涯資訊洞悉掌握職場趨勢與專業能力建構，此三方面可以同時並進探索、學習與建構，人的生涯有無限可能。
+            {{ t('intro.abstractPSYCard') }}
           </v-card-text>
           <v-card-text>
             <v-row class="cards-selector-row">
