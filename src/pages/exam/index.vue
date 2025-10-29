@@ -6,7 +6,9 @@ import { getReportListAPI, updateReportInfoAPI } from '@/plugins/utils/requests/
 // import { getReportList } from '@/plugins/utils/requests/mock/backend'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useAppStore } from '@/stores/app'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const reportList = ref([])
 const appStore = useAppStore()
 const examProcessStore = useExamProcessStore()
@@ -99,15 +101,13 @@ const handleUpdateReportEmail = (data) => {
 <template>
   <div class="exam-dashboard">
     <div class="module-title">
-      我建立的卡牌測驗
+      {{ t('exam.myExams') }}
     </div>
     <div
       v-if="reportList.length === 0"
       class="no-data"
-    >
-      目前沒有任何卡牌測驗<br>
-      請先建立卡牌測驗
-    </div>
+      v-html="t('exam.noExams')"
+    />
     <v-row class="exam-list">
       <v-col
         v-for="report in reportList"

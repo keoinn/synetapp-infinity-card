@@ -2,16 +2,18 @@
 import { ref, onMounted } from 'vue'
 import { getOrderListAPI } from '@/plugins/utils/requests/api/bill'
 import { useAppStore } from '@/stores/app'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const appStore = useAppStore()
 
 const orderList = ref([])
 
 const getOrderStatusText = (status) => {
   if (status === '0') {
-    return '待付款'
+    return t('order.orderStatusPending')
   } else if (status === '1') {
-    return '已付款'
+    return t('order.orderStatusPaid')
   }
 }
 
@@ -32,17 +34,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="checkout-list">
     <v-card>
-      <v-card-title> 訂單列表 </v-card-title>
+      <v-card-title> {{ t('order.orderList') }} </v-card-title>
       <v-card-text>
         <v-table>
           <thead>
             <tr>
-              <th>訂單編號</th>
-              <th>訂單金額</th>
-              <th>訂單狀態</th>
-              <th>訂單日期</th>
+              <th>{{ t('order.orderSn') }}</th>
+              <th>{{ t('order.orderAmount') }}</th>
+              <th>{{ t('order.orderStatus') }}</th>
+              <th>{{ t('order.orderDate') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -63,4 +65,10 @@ onMounted(() => {
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.checkout-list {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 640px;
+}
+</style>

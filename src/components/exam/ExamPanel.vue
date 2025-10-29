@@ -6,15 +6,17 @@ import { useExamProcessStore } from '@/stores/examProcess'
 import { useRouter } from 'vue-router'
 import { sendEmailAPI } from '@/plugins/utils/requests/api/backend'
 import { handleAlert } from '@/plugins/utils/alert'
+import { useI18n } from 'vue-i18n'
+
 const props = defineProps({
   report: {
     type: Object,
     required: true
   }
 })
-
 const emit = defineEmits(['update-report-name', 'update-report-email'])
 
+const { t } = useI18n()
 const examProcessStore = useExamProcessStore()
 const router = useRouter()
 
@@ -63,12 +65,12 @@ const saveEmail = () => {
   emailError.value = ''
   
   if (!editingEmail.value.trim()) {
-    emailError.value = '請輸入信箱地址'
+    emailError.value = t('exam.errorReceiveEmailEmpty')
     return
   }
   
   if (!validateEmail(editingEmail.value.trim())) {
-    emailError.value = '請輸入有效的信箱格式'
+    emailError.value = t('exam.errorReceiveEmailInvalid')
     return
   }
   
@@ -89,12 +91,12 @@ const sendEmail = async () => {
   emailError.value = ''
   
   if (!editingEmail.value.trim()) {
-    emailError.value = '請輸入信箱地址'
+    emailError.value = t('exam.errorReceiveEmailEmpty')
     return
   }
   
   if (!validateEmail(editingEmail.value.trim())) {
-    emailError.value = '請輸入有效的信箱格式'
+    emailError.value = t('exam.errorReceiveEmailInvalid')
     return
   }
   
@@ -119,7 +121,7 @@ const sendEmail = async () => {
     showEmailDialog.value = false
     handleAlert({
       auction: 'success',
-      text: '測驗連結已成功發送到:' + editingEmail.value.trim()
+      text: `${t('exam.examLinkSentSuccess')}:` + editingEmail.value.trim()
     })
     
     console.log('測驗連結已成功發送到:', editingEmail.value.trim())
@@ -127,10 +129,10 @@ const sendEmail = async () => {
   } catch (error) {
     handleAlert({
       auction: 'error',
-      text: '發送測驗連結失敗:' + error
+      text: `${t('exam.errorSendEmailFailed')}:` + error
     })
     console.error('發送測驗連結失敗:', error)
-    emailError.value = '發送失敗，請稍後再試'
+    emailError.value = t('exam.errorSendEmailFailedTryAgain')
   }
 }
 
@@ -140,38 +142,22 @@ const startExam = () => {
 }
 
 const NULLstringFilter = (target) => {
-  return target === null ? '尚未設定' : target
+  return target === null ? `${t('exam.examPanelEmptyEmail')}` : target
 }
 
-const cardsSetString = computed(() => {
-  if (props.report.cards_set.length === 0) {
-    return '尚未設定'
-  } else {
-    let cardsSetString = ''
-    // props.report.cards_set.forEach(card => {
-    //   cardsSetString += card === 'goal' ? '我就是 (I Goal),' : 
-    //     card === 'care' ? '我在乎 (I Care),' : 
-    //     card === 'ce' ? '我可以 國小 (I Can),' : 
-    //     card === 'cj' ? '我可以-社青 (I Can),' : 
-    //     card === 'lj' ? '我喜歡-社青 (I Like),' : 
-    //     card === 'le' ? '我喜歡-國小 (I Like),' : ''
-    // })
-    cardsSetString = '<ul style="list-style: none; padding-left: 5px;">'
-    props.report.cards_set.forEach(card => {
-    cardsSetString += card === 'goal' ? '<li>我就是 (I Goal)</li>' : 
-      card === 'care' ? '<li>我在乎 (I Care)</li>' : 
-      card === 'ce' ? '<li>我可以 國小 (I Can)</li>' : 
-      card === 'cj' ? '<li>我可以-社青 (I Can)</li>' : 
-      card === 'lj' ? '<li>我喜歡-社青 (I Like)</li>' : 
-      card === 'le' ? '<li>我喜歡-國小 (I Like)</li>' : ''
-    })
-    cardsSetString += '</ul>'
-    return cardsSetString.slice(0, -1)
-  }
-})
+const cardsSetStringFilter = (card) => {
+  return card === 'goal' ? t('exam.examPanelGoal') : 
+        card === 'care' ? t('exam.examPanelCare') : 
+        card === 'ce' ? t('exam.examPanelCe') : 
+        card === 'cj' ? t('exam.examPanelCj') : 
+        card === 'lj' ? t('exam.examPanelLj') : 
+        card === 'le' ? t('exam.examPanelLe') : ''
+}
+
+
 
 const statusString = computed(() => {
-  return props.report.status === '0' ? '進行中' : props.report.status === '1' ? '已完成' : '已取消'
+  return props.report.status === '0' ? `${t('exam.examPanelReportInProgress')}` : props.report.status === '1' ? `${t('exam.examPanelReportCompleted')}` : `${t('exam.examPanelReportCancelled')}`
 })
 
 </script>
@@ -187,7 +173,7 @@ const statusString = computed(() => {
       />
       {{
         report.report_name === null || report.report_name === ''
-          ? `${report.report_id} (未設定名稱)`
+          ? `${report.report_id} (${t('exam.examPanelReportEmptyName')})`
           : report.report_name
       }}
     </v-card-title>
@@ -195,12 +181,29 @@ const statusString = computed(() => {
       <div class="exam-card-content">
         <ul class="content-list">
           <!-- TODO: 內容規劃 -->
-          <li>序號: {{ report.report_id }}</li>
-          <li>卡片組合: <span v-html="cardsSetString" /></li>
-          <li>測驗狀態: {{ statusString }}</li>
-          <li>建立時間: {{ NULLstringFilter(report.created_at) }}</li>
-          <li>更新時間: {{ NULLstringFilter(report.updated_at) }}</li>
-          <li>發送測驗信箱: {{ NULLstringFilter(report.target_email) }}</li>
+          <li>{{ t('exam.examSn') }}: {{ report.report_id }}</li>
+          <li>{{ t('exam.examStatus') }}: {{ statusString }}</li>
+          <li>{{ t('exam.examCreatedAt') }}: {{ NULLstringFilter(report.created_at) }}</li>
+          <li>{{ t('exam.examUpdatedAt') }}: {{ NULLstringFilter(report.updated_at) }}</li>
+          <li>{{ t('exam.examTargetEmail') }}: {{ NULLstringFilter(report.target_email) }}</li>
+          <li>{{ t('exam.examCardsSet') }}:</li>
+          <div class="cardset-container">
+            <v-chip
+              v-for="card in props.report.cards_set"
+              :key="card"
+              class="cardset-label"
+              variant="elevated"
+              :color="card === 'goal' ? 'success' : 
+                card === 'care' ? 'error' : 
+                card === 'ce' ? 'primary' : 
+                card === 'cj' ? 'info' : 
+                card === 'lj' ? 'yellow' : 
+                card === 'le' ? 'warning' : ''"
+              size="small"
+            >
+              {{ cardsSetStringFilter(card) }}
+            </v-chip>
+          </div>
         </ul>
       </div>
     </v-card-text>
@@ -213,7 +216,7 @@ const statusString = computed(() => {
         rounded="xl"
       >
         <v-icon>mdi-eye</v-icon>
-        查看
+        {{ t('exam.examPanelView') }}
       </v-btn>
 
       <v-btn
@@ -224,7 +227,7 @@ const statusString = computed(() => {
         @click="openEmailDialog"
       >
         <v-icon>mdi-email</v-icon>
-        登錄信箱
+        {{ t('exam.examPanelSetEmail') }}
       </v-btn>
 
       <v-spacer />
@@ -236,7 +239,7 @@ const statusString = computed(() => {
         @click="startExam"
       >
         <v-icon>mdi-pencil</v-icon>
-        進行測驗
+        {{ t('exam.examPanelStartExam') }}
       </v-btn>
     </v-card-actions>
 
@@ -247,13 +250,13 @@ const statusString = computed(() => {
     >
       <v-card>
         <v-card-title class="text-h6">
-          編輯報告名稱
+          {{ t('exam.editReportName') }}
         </v-card-title>
         <v-card-text>
           <v-text-field
             v-model="editingReportName"
-            label="報告名稱"
-            placeholder="請輸入報告名稱"
+            :label="t('exam.examReportName')"
+            :placeholder="t('exam.enterReportNamePlaceholder')"
             variant="outlined"
             @keyup.enter="saveReportName"
           />
@@ -264,14 +267,14 @@ const statusString = computed(() => {
             variant="text"
             @click="closeEditDialog"
           >
-            取消
+            {{ t('common.cancel') }}
           </v-btn>
           <v-btn
             color="primary"
             variant="tonal"
             @click="saveReportName"
           >
-            儲存
+            {{ t('common.save') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -284,14 +287,14 @@ const statusString = computed(() => {
     >
       <v-card>
         <v-card-title class="text-h6">
-          登錄信箱
+          {{ t('exam.setReceiveEmail') }}
         </v-card-title>
         <v-card-text>
           <div class="email-input-container">
             <v-text-field
               v-model="editingEmail"
-              label="信箱地址"
-              placeholder="請輸入信箱地址"
+              :label="t('common.email')"
+              :placeholder="t('exam.enterEmailPlaceholder')"
               variant="outlined"
               type="email"
               :error-messages="emailError"
@@ -307,11 +310,11 @@ const statusString = computed(() => {
               @click="saveEmail"
             >
               <v-icon>mdi-content-save</v-icon>
-              存儲
+              {{ t('common.save') }}
             </v-btn>
           </div>
           <div class="text-caption text-grey mt-2">
-            此信箱將用於發送測驗連結
+            {{ t('exam.setReceiveEmailDescription') }}
           </div>
         </v-card-text>
         <v-card-actions>
@@ -320,7 +323,7 @@ const statusString = computed(() => {
             variant="text"
             @click="closeEmailDialog"
           >
-            取消
+            {{ t('common.cancel') }}
           </v-btn>
           <v-btn
             color="primary"
@@ -329,7 +332,7 @@ const statusString = computed(() => {
             @click="sendEmail"
           >
             <v-icon>mdi-send</v-icon>
-            發送
+            {{ t('common.send') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -351,6 +354,11 @@ const statusString = computed(() => {
 
     li {
       text-indent: 10px;
+    }
+    .cardset-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
     }
   }
 }

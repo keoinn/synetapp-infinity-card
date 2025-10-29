@@ -85,7 +85,7 @@ const handleAddToCart = (target) => {
   }
   handleAlert({
     auction: 'success',
-    text: '加入購物車成功'
+    text: t('order.addToCartSuccess')
   })
   
 }
@@ -127,7 +127,7 @@ const handleBuyCard = (target) => {
   }
   handleAlert({
     auction: 'success',
-    text: '加入購物車成功，轉向付款頁面'
+    text: t('order.addToCartAndCheckout')
   })
   router.push('/cart')
 }
@@ -186,10 +186,10 @@ const handleBuyCard = (target) => {
             </v-row>
           </v-card-text>
           <v-card-title class="item-title">
-            無限可能卡 - 社青版
+            {{ t('common.infinityCard') }} - {{ t('product.adult') }}
           </v-card-title>
           <v-card-subtitle class="item-subtitle">
-            售價: 2800 元
+            {{ t('product.sellingPrice') }}: {{ t('product.adultPrice') }}
           </v-card-subtitle>
           <v-card-actions class="pt-3">
             <v-row align="center">
@@ -231,7 +231,7 @@ const handleBuyCard = (target) => {
                   variant="flat"
                   rounded="xl"
                   size="large"
-                  text="立即購買"
+                  :text="t('navigation.buyNow')"
                   block
                   density="compact"
                   @click="handleBuyCard('set1')"
@@ -280,10 +280,10 @@ const handleBuyCard = (target) => {
             </v-row>
           </v-card-text>
           <v-card-title class="item-title">
-            無限可能卡 - 國小版
+            {{ t('common.infinityCard') }} - {{ t('product.child') }}
           </v-card-title>
           <v-card-subtitle class="item-subtitle">
-            售價: 2800 元
+            {{ t('product.sellingPrice') }}: {{ t('product.childPrice') }}
           </v-card-subtitle>
           <v-card-actions class="pt-3">
             <v-row align="center">
@@ -325,7 +325,7 @@ const handleBuyCard = (target) => {
                   variant="flat"
                   rounded="xl"
                   size="large"
-                  text="立即購買"
+                  :text="t('navigation.buyNow')"
                   block
                   density="compact"
                   @click="handleBuyCard('set2')"
@@ -358,10 +358,10 @@ const handleBuyCard = (target) => {
                     </div>
                   </v-card-text>
                   <v-card-title class="item-title">
-                    我就是
+                    {{ t('product.goal') }}
                   </v-card-title>
                   <v-card-subtitle class="item-subtitle">
-                    售價: 790 元
+                    {{ t('product.sellingPrice') }}: {{ t('product.goalPrice') }}
                   </v-card-subtitle>
                   <v-card-actions class="pt-3">
                     <v-row
@@ -403,7 +403,7 @@ const handleBuyCard = (target) => {
                           variant="flat"
                           rounded="xl"
                           size="large"
-                          text="立即購買"
+                          :text="t('navigation.buyNow')"
                           block
                           density="compact"
                           class="goal-btn"
@@ -432,10 +432,10 @@ const handleBuyCard = (target) => {
                     </div>
                   </v-card-text>
                   <v-card-title class="item-title">
-                    我在乎
+                    {{ t('product.care') }}
                   </v-card-title>
                   <v-card-subtitle class="item-subtitle">
-                    售價: 790 元
+                    {{ t('product.sellingPrice') }}: {{ t('product.carePrice') }}
                   </v-card-subtitle>
                   <v-card-actions class="pt-3">
                     <v-row
@@ -477,7 +477,7 @@ const handleBuyCard = (target) => {
                           variant="flat"
                           rounded="xl"
                           size="large"
-                          text="立即購買"
+                          :text="t('navigation.buyNow')"
                           block
                           density="compact"
                           class="care-btn"
@@ -506,10 +506,10 @@ const handleBuyCard = (target) => {
                     </div>
                   </v-card-text>
                   <v-card-title class="item-title">
-                    我喜歡 (社青版)
+                    {{ t('product.lj') }}
                   </v-card-title>
                   <v-card-subtitle class="item-subtitle">
-                    售價: 790 元
+                    {{ t('product.sellingPrice') }}: {{ t('product.ljPrice') }}
                   </v-card-subtitle>
                   <v-card-actions class="pt-3">
                     <v-row
@@ -551,7 +551,7 @@ const handleBuyCard = (target) => {
                           variant="flat"
                           rounded="xl"
                           size="large"
-                          text="立即購買"
+                          :text="t('navigation.buyNow')"
                           block
                           density="compact"
                           class="lj-btn"
@@ -580,10 +580,10 @@ const handleBuyCard = (target) => {
                     </div>
                   </v-card-text>
                   <v-card-title class="item-title">
-                    我喜歡 (國小版)
+                    {{ t('product.le') }}
                   </v-card-title>
                   <v-card-subtitle class="item-subtitle">
-                    售價: 790 元
+                    {{ t('product.sellingPrice') }}: {{ t('product.lePrice') }}
                   </v-card-subtitle>
                   <v-card-actions class="pt-3">
                     <v-row
@@ -625,7 +625,7 @@ const handleBuyCard = (target) => {
                           variant="flat"
                           rounded="xl"
                           size="large"
-                          text="立即購買"
+                          :text="t('navigation.buyNow')"
                           block
                           density="compact"
                           class="le-btn"
@@ -654,10 +654,10 @@ const handleBuyCard = (target) => {
                     </div>
                   </v-card-text>
                   <v-card-title class="item-title">
-                    我可以 (社青版)
+                    {{ t('product.cj') }}
                   </v-card-title>
                   <v-card-subtitle class="item-subtitle">
-                    售價: 790 元
+                    {{ t('product.sellingPrice') }}: {{ t('product.cjPrice') }}
                   </v-card-subtitle>
                   <v-card-actions class="pt-3">
                     <v-row
@@ -699,7 +699,7 @@ const handleBuyCard = (target) => {
                           variant="flat"
                           rounded="xl"
                           size="large"
-                          text="立即購買"
+                          :text="t('navigation.buyNow')"
                           block
                           density="compact"
                           class="cj-btn"
@@ -728,10 +728,10 @@ const handleBuyCard = (target) => {
                     </div>
                   </v-card-text>
                   <v-card-title class="item-title">
-                    我可以 (國小版)
+                    {{ t('product.ce') }}
                   </v-card-title>
                   <v-card-subtitle class="item-subtitle">
-                    售價: 790 元
+                    {{ t('product.sellingPrice') }}: {{ t('product.cePrice') }}
                   </v-card-subtitle>
                   <v-card-actions class="pt-3">
                     <v-row
@@ -773,7 +773,7 @@ const handleBuyCard = (target) => {
                           variant="flat"
                           rounded="xl"
                           size="large"
-                          text="立即購買"
+                          :text="t('navigation.buyNow')"
                           block
                           density="compact"
                           class="ce-btn"

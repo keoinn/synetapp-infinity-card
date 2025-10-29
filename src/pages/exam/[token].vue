@@ -7,6 +7,9 @@ import { useRoute } from 'vue-router'
 import { decrypt } from '@/plugins/utils/encryption'
 import SingleExamPanel from '@/components/exam/SingleExamPanel.vue'
 import { useExamProcessStore } from '@/stores/examProcess'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const route = useRoute()
 const examProcessStore = useExamProcessStore()
 const pid = decrypt(route.params.token)
@@ -35,7 +38,7 @@ const stage = (target) => {
               class="text-h6 d-flex align-center"
               cols="8"
             >
-              <span class="mr-2">進行測驗</span>
+              <span class="mr-2">{{ t('playground.examProcessing') }}</span>
               <div class="button-group">
                 <ExamResultView />
                 <ExamResultTextView />
@@ -45,7 +48,7 @@ const stage = (target) => {
               class="text-h6 d-flex justify-end align-center"
               cols="4"
             >
-              測驗編號：{{ pid }}
+              {{ t('exam.examSn') }}: {{ pid }}
             </v-col>
           </v-row>
           <v-divider class="border-opacity-100 mt-3" />
@@ -77,7 +80,7 @@ const stage = (target) => {
       >
         <v-col cols="12">
           <div class="text-h6">
-            卡牌配對
+            {{ t('playground.pairingExam') }}
             <v-divider class="border-opacity-100" />
           </div>
         </v-col>

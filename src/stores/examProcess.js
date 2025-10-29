@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 // import { getReportSettings } from '@/plugins/utils/requests/mock/backend'
 import { getReportDetailAPI, saveReportAPI } from '@/plugins/utils/requests/api/backend'
 import { getCardImageName, getCardCoverImage, getGoalCardData } from '@/plugins/utils/psy_cards'
+import i18n from '@/i18n'
 export const useExamProcessStore = defineStore('examProcess', {
   state: () => ({
     crd_id: null,
@@ -275,9 +276,9 @@ export const useExamProcessStore = defineStore('examProcess', {
           like: 0.0,
           can: 0.0,
         },
-        title: '總和',
+        title: i18n.global.t('result.Total'),
         img: null,
-        hcode: null,
+        hcode: null,  
       }
     },
 
@@ -1028,7 +1029,7 @@ export const useExamProcessStore = defineStore('examProcess', {
           if (differences[0] >= 12 && differences[1] < 12) {
             h_code = high_values[0][0].toUpperCase(); // 輸出比例最高的 key
           } else if (differences[0] < 12 && differences[1] < 12) {
-            h_code = '職業傾向不明';
+            h_code = i18n.global.t('result.careerUnspecified');
           }
         } else if (high_sign == 0 && medium_high_sign == 1) {
           h_code = Object.entries(h_code_analysis).reduce((max, entry) => {
@@ -1045,9 +1046,9 @@ export const useExamProcessStore = defineStore('examProcess', {
             h_code = medium_high_values.map(([key]) => key.toUpperCase()).join(''); // 串接兩個 key
           }
         } else if (high_sign == 0 && medium_high_sign >= 3) {
-          h_code = '職業傾向不明';
+          h_code = i18n.global.t('result.careerUnspecified');
         } else { // high_sign == 0 && medium_high_sign == 0
-          h_code = '職業傾向不明';
+          h_code = i18n.global.t('result.careerUnspecified');
         }
 
         state.calculate_pick[exam].h_code = h_code
@@ -1111,7 +1112,7 @@ export const useExamProcessStore = defineStore('examProcess', {
             like: 0.0,
             can: 0.0,
           },
-          title: '總和',
+          title: i18n.global.t('result.Total'),
           img: null,
           hcode: null,
         }

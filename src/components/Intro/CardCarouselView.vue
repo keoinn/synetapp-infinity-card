@@ -21,7 +21,7 @@
         size="x-small"
         @click="prev"
       />
-      <span class="nav-btn-text"> 職業卡牌 </span>
+      <span class="nav-btn-text"> {{ t('intro.careerCards') }} </span>
       <v-btn
         class="nav-btn right"
         icon="mdi-chevron-right"
@@ -35,6 +35,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // 定义接收的 props
 const props = defineProps({

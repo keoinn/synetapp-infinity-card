@@ -3,8 +3,10 @@ import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { getFinalResult } from '@/plugins/utils/psy_cards'
 import { Chart, registerables } from 'chart.js';
+import { useI18n } from 'vue-i18n'
 Chart.register(...registerables);
 
+const { t } = useI18n()
 const dialogIsActive = ref(false)
 const examProcess = useExamProcessStore()
 const finalResultObj = ref(null)
@@ -188,7 +190,7 @@ const findMaxValueInJobs = computed(() => {
         size="small"
         color="primary"
         rounded="xl"
-        text="檢視報告"
+        :text="t('playground.viewReport')"
       />
     </template>
 

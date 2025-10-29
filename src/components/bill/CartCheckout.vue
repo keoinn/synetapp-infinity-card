@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useAppStore } from '@/stores/app'
 import { handleAlert } from '@/plugins/utils/alert'
@@ -11,7 +11,9 @@ import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const cartStore = useCartStore()
 const appStore = useAppStore()
@@ -19,21 +21,21 @@ const email = ref('')
 
 const getItemTitle = (item_id) => {
   if (item_id === 'goal') {
-    return '我就是: I goal'
+    return t('product.goalTitle')
   } else if (item_id === 'care') {
-    return '我在乎: I care'
+    return t('product.careTitle')
   } else if (item_id === 'cj') {
-    return '我可以 (社青版): I can'
+    return t('product.cjTitle')
   } else if (item_id === 'ce') {
-    return '我可以 (國小版): I can'
+    return t('product.ceTitle')
   } else if (item_id === 'lj') {
-    return '我喜歡 (社青版): I like'
+    return t('product.ljTitle')
   } else if (item_id === 'le') {
-    return '我喜歡 (國小版): I like'
+    return t('product.leTitle')
   } else if (item_id === 'set_j') {
-    return '無限可能卡組合 － 社青版'
+    return t('product.setJTitle')
   } else if (item_id === 'set_e') {
-    return '無限可能卡組合 － 國小版'
+    return t('product.setETitle')
   }
 }
 
@@ -111,7 +113,15 @@ const handleCheckout = async () => {
     })
   }
 
+
+
 }
+
+const cartEmptyTitle = computed(() => {
+  const text = t('order.cartEmptyTitle')
+  // 使用正則表達式匹配 #link:文字# 格式
+  return text.replace(/#link:([^#]+)#/g, '<a href="/shop">$1</a>')
+})
 </script>
 
 <template>
@@ -122,10 +132,11 @@ const handleCheckout = async () => {
         align="center"
         class="pt-10"
       >
-        <span class="cart-empty-title">
+        <span class="cart-empty-title" v-html="cartEmptyTitle" />
+        <!-- <span class="cart-empty-title">
           購物車是空的！<br>
           去商城逛逛 <a @click="router.push('/shop')">購買卡牌</a> 吧！
-        </span>
+        </span> -->
       </v-col>
     </v-row>
     <v-row v-else>
@@ -137,18 +148,18 @@ const handleCheckout = async () => {
                 <tr class="cart-table-header">
                   <th class="cart-table-header-checkbox">
                     <v-checkbox
-                      label="全選"
+                      :label="t('order.selectall')"
                       @update:model-value="cartStore.updateCheckedAll($event)"
                     />
                   </th>
                   <th class="cart-table-header-image" />
                   <th class="cart-table-header-name">
-                    商品名稱
+                    {{ t('order.productName') }}
                   </th>
-                  <th>價格</th>
-                  <th>數量</th>
-                  <th>小計</th>
-                  <th>操作</th>
+                  <th>{{ t('order.price') }}</th>
+                  <th>{{ t('order.quantity') }}</th>
+                  <th>{{ t('order.subtotal') }}</th>
+                  <th>{{ t('order.action') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -213,14 +224,14 @@ const handleCheckout = async () => {
         >
           <v-row>
             <v-col>
-              <span class="cart-total-price">購買人信箱：</span>
+              <span class="cart-total-price">{{ t('order.buyerMail') }}：</span>
             </v-col>
           </v-row>
           <v-row style="margin-top: -10px">
             <v-col cols="12">
               <v-text-field
                 v-model="email"
-                label="信箱"
+                :label="t('common.email')"
                 density="compact"
               />
             </v-col>
@@ -235,14 +246,16 @@ const handleCheckout = async () => {
               cols="12"
               class="pa-0 ma-0"
             >
-              <span class="cart-total-price"> 商品金額：{{ cartStore.totalCheckedPrice }} </span>
+              <span class="cart-total-price">
+                <span v-html="t('order.totalPrice')" />:&nbsp;&nbsp;&nbsp;&nbsp;{{ cartStore.totalCheckedPrice }}
+              </span>
             </v-col>
             <v-col
               cols="12"
               class="pa-0 ma-0"
             >
               <span class="cart-total-price">
-                運&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;費：{{ cartStore.shippingFee }}
+                <span v-html="t('order.shippingFee')" />:&nbsp;&nbsp;&nbsp;&nbsp;{{ cartStore.shippingFee }}
               </span>
             </v-col>
             <v-divider />
@@ -252,7 +265,7 @@ const handleCheckout = async () => {
               class="pa-0 ma-0 pt-1"
             >
               <span class="cart-total-price">
-                總金額&nbsp;&nbsp;&nbsp;&nbsp;：{{
+                <span v-html="t('order.totalAmount')" />:&nbsp;&nbsp;&nbsp;&nbsp;{{
                   cartStore.totalCheckedPrice + cartStore.shippingFee
                 }}
               </span>
@@ -265,7 +278,7 @@ const handleCheckout = async () => {
               <v-btn
                 block
                 color="#FA5015"
-                text="確認付款"
+                :text="t('order.confirmPayment')"
                 @click="handleCheckout"
               />
             </v-col>
@@ -284,7 +297,7 @@ const handleCheckout = async () => {
 
 .cart-empty-title {
   font-size: 24px;
-  a {
+  :deep(a) {
     color: #FA5015;
     text-decoration: underline;
   }

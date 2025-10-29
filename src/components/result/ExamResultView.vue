@@ -4,8 +4,11 @@
 import { onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { Chart, registerables } from 'chart.js';
+import { useI18n } from 'vue-i18n'
+
 Chart.register(...registerables);
 
+const { t } = useI18n()
 const examProcess = useExamProcessStore()
 const pickResult = ref(null)
 const pairResult = ref(null)
@@ -14,23 +17,23 @@ const radarChartRef = ref(null)
 const stringOfType = (type) => {
   switch (type) {
     case 'goal':
-      return '我就是'
+      return t('product.goalTitle')
     case 'care':
-      return '我在乎'
+      return t('product.careTitle')
     case 'cj':
-      return '我可以 (社青版)'
+      return t('product.cjTitle')
     case 'ce':
-      return '我可以 (國小版)'
+      return t('product.ceTitle')
     case 'le':
-      return '我喜歡 (國小版)'
+      return t('product.leTitle')
     case 'lj':
-      return '我喜歡 (社青版)'
+      return t('product.ljTitle')
     case 'total':
-      return '總數'
+      return t('result.Total')
     case 'can':
-      return '我可以'
+      return t('product.can')
     case 'like':
-      return '我喜歡'
+      return t('product.like')
     default:
       return type
   }
@@ -149,7 +152,7 @@ const drawRadarChart = () => {
 }
 
 const radarChartData = () => {
-  const labels = ["我重視 (I Care)", "我喜歡 (I Like)", "我可以 (I Can)"]
+  const labels = [t('result.RadarLabelCare'), t('result.RadarLabelLike'), t('result.RadarLabelCan')]
   const backgroundColors = ["rgba(255, 99, 132, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(255, 206, 86, 0.2)"]
   const borderColors = ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"]
   const pointBackgroundColors = ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"]
@@ -227,7 +230,7 @@ const findMaxValueInJobs = computed(() => {
         color="primary"
         rounded="xl"
         class="mb-1"
-        text="統計結果"
+        :text="t('playground.statisticsResults')"
       />
     </template>
 
@@ -240,13 +243,13 @@ const findMaxValueInJobs = computed(() => {
             @click="dialogIsActive = false"
           />
 
-          <v-toolbar-title>統計結果</v-toolbar-title>
+          <v-toolbar-title>{{ t('playground.statisticsResults') }}</v-toolbar-title>
 
           <v-spacer />
 
           <v-toolbar-items>
             <v-btn
-              text="下載報告"
+              :text="t('result.downloadReport')"
               variant="text"
               @click="dialogIsActive = false"
             />
@@ -254,7 +257,7 @@ const findMaxValueInJobs = computed(() => {
         </v-toolbar>
         <v-card-text>
           <!-- 卡片挑選結果 -->
-          <h2>卡片挑選結果</h2>
+          <h2>{{ t('result.PickResultTitle') }}</h2>
           <v-divider />
           <v-table
             v-if="pickResult !== null"
@@ -262,30 +265,38 @@ const findMaxValueInJobs = computed(() => {
           >
             <thead>
               <tr align="center">
-                <th class="text-center">
-                  類型
-                </th>
-                <th class="text-center">
-                  實用型<br>(R)
-                </th>
-                <th class="text-center">
-                  研究型<br>(I)
-                </th>
-                <th class="text-center">
-                  藝術型<br>(A)
-                </th>
-                <th class="text-center">
-                  社會型<br>(S)
-                </th>
-                <th class="text-center">
-                  企業型<br>(E)
-                </th>
-                <th class="text-center">
-                  事務型<br>(C)
-                </th>
-                <th class="text-center">
-                  總數
-                </th>
+                <th
+                  class="text-center"
+                  v-html="t('result.HollandType')"
+                />
+                <th
+                  class="text-center"
+                  v-html="t('result.HollandTypeR')"
+                />
+                <th
+                  class="text-center"
+                  v-html="t('result.HollandTypeI')"
+                />
+                <th
+                  class="text-center"
+                  v-html="t('result.HollandTypeA')"
+                />
+                <th
+                  class="text-center"
+                  v-html="t('result.HollandTypeS')"
+                />
+                <th
+                  class="text-center"
+                  v-html="t('result.HollandTypeE')"
+                />
+                <th
+                  class="text-center"
+                  v-html="t('result.HollandTypeC')"
+                />
+                <th
+                  class="text-center"
+                  v-html="t('result.Total')"
+                />
               </tr>
             </thead>
             <tbody>
@@ -321,7 +332,7 @@ const findMaxValueInJobs = computed(() => {
 
           <!-- 職業卡牌 -->
           <h2 class="mt-8">
-            職業卡牌配對結果
+            {{ t('result.PairResultTitle') }}
           </h2>
           <v-divider />
           <v-table
@@ -331,7 +342,7 @@ const findMaxValueInJobs = computed(() => {
             <thead>
               <tr align="center">
                 <th class="text-center">
-                  類型
+                  {{ t('result.HollandType') }}
                 </th>
                 <th
                   v-for="(item, index) in pairResult"
@@ -343,7 +354,7 @@ const findMaxValueInJobs = computed(() => {
             </thead>
             <tbody>
               <tr>
-                <td>我在乎</td>
+                <td>{{ t('product.care') }}</td>
                 <td 
                   v-for="(item, index) in pairResult" 
                   :key="index"
@@ -353,7 +364,7 @@ const findMaxValueInJobs = computed(() => {
                 </td>
               </tr>
               <tr>
-                <td>我喜歡</td>
+                <td>{{ t('product.like') }}</td>
                 <td
                   v-for="(item, index) in pairResult"
                   :key="index"
@@ -363,7 +374,7 @@ const findMaxValueInJobs = computed(() => {
                 </td>
               </tr>
               <tr>
-                <td>我可以</td>
+                <td>{{ t('product.can') }}</td>
                 <td
                   v-for="(item, index) in pairResult"
                   :key="index"
@@ -373,7 +384,7 @@ const findMaxValueInJobs = computed(() => {
                 </td>
               </tr>
               <tr>
-                <td>總數</td>
+                <td>{{ t('result.Total') }}</td>
                 <td
                   v-for="(item, index) in pairResult"
                   :key="index"
@@ -386,7 +397,7 @@ const findMaxValueInJobs = computed(() => {
           </v-table>
 
           <h2 class="mt-8">
-            分析結果: 特質挑選
+            {{ t('result.AnalysisTraitResult') }}
           </h2>
           <v-divider />
           <v-table
@@ -395,30 +406,38 @@ const findMaxValueInJobs = computed(() => {
           >
             <thead>
               <tr align="center">
-                <th class="text-center">
-                  類型
-                </th>
-                <th class="text-center">
-                  實用型<br>(R)
-                </th>
-                <th class="text-center">
-                  研究型<br>(I)
-                </th>
-                <th class="text-center">
-                  藝術型<br>(A)
-                </th>
-                <th class="text-center">
-                  社會型<br>(S)
-                </th>
-                <th class="text-center">
-                  企業型<br>(E)
-                </th>
-                <th class="text-center">
-                  事務型<br>(C)
-                </th>
-                <th class="text-center">
-                  荷倫碼
-                </th>
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandType')"
+                />
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandTypeR')"
+                />
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandTypeI')"
+                />
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandTypeA')"
+                />
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandTypeS')"
+                />
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandTypeE')"
+                />
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandTypeC')"
+                />
+                <th 
+                  class="text-center"
+                  v-html="t('result.HollandCode')"
+                />
               </tr>
             </thead>
             <tbody
@@ -453,7 +472,7 @@ const findMaxValueInJobs = computed(() => {
           </v-table>
 
           <h2 class="mt-8">
-            分析結果: 職業配對
+            {{ t('result.AnalysisCareerResult') }}
           </h2>
           <v-divider />
           <v-table
@@ -463,7 +482,7 @@ const findMaxValueInJobs = computed(() => {
             <thead>
               <tr align="center">
                 <th class="text-center">
-                  類型
+                  {{ t('result.HollandType') }}
                 </th>
                 <th
                   v-for="(item, index) in filterResultRateForProfession"
@@ -475,7 +494,7 @@ const findMaxValueInJobs = computed(() => {
             </thead>
             <tbody>
               <tr>
-                <td>我在乎</td>
+                <td>{{ t('product.care') }}</td>
                 <td
                   v-for="(item, index) in filterResultRateForProfession"
                   :key="index"
@@ -485,7 +504,7 @@ const findMaxValueInJobs = computed(() => {
                 </td>
               </tr>
               <tr>
-                <td>我喜歡</td>
+                <td>{{ t('product.like') }}</td>
                 <td
                   v-for="(item, index) in filterResultRateForProfession"
                   :key="index"
@@ -495,7 +514,7 @@ const findMaxValueInJobs = computed(() => {
                 </td>
               </tr>
               <tr>
-                <td>我可以</td>
+                <td>{{ t('product.can') }}</td>
                 <td
                   v-for="(item, index) in filterResultRateForProfession"
                   :key="index"
@@ -508,7 +527,7 @@ const findMaxValueInJobs = computed(() => {
           </v-table>
 
           <h2 class="mt-8">
-            職業卡牌雷達圖
+            {{ t('result.RadarChart') }}
           </h2>
           <v-divider />
           <div class="radar-chart-container">
@@ -520,7 +539,8 @@ const findMaxValueInJobs = computed(() => {
           <v-spacer />
 
           <v-btn
-            text="關閉報告頁面"
+            :text="t('result.closeReport')"
+            variant="tonal"
             @click="dialogIsActive = false"
           />
         </v-card-actions>

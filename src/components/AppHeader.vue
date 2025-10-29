@@ -102,7 +102,18 @@ const handleLogout = () => {
       <LanguageSwitcher />
     </div>
 
-    <!-- 身份選擇 -->
+    <!-- 登入按鈕 (未登入時顯示) -->
+    <v-btn
+      v-if="!appStore.isLogin"
+      class="mr-6"
+      color="#FA5015"
+      variant="outlined"
+      @click="router.push('/login')"
+    >
+      {{ t('common.login') }}
+    </v-btn>
+
+    <!-- 身份選擇 (已登入時顯示) -->
     <v-menu
       v-if="appStore.isLogin"
       location="bottom end"
@@ -138,6 +149,16 @@ const handleLogout = () => {
             <v-icon>mdi-shield-account</v-icon>
           </template>
           <v-list-item-title>{{ t('admin.title') }}</v-list-item-title>
+        </v-list-item>
+        <v-divider class="my-2" />
+        <v-list-item
+          value="logout"
+          @click="handleLogout"
+        >
+          <template #prepend>
+            <v-icon>mdi-logout</v-icon>
+          </template>
+          <v-list-item-title>{{ t('common.logout') }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>

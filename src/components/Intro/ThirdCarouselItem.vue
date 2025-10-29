@@ -2,6 +2,8 @@
 import demo from '@/assets/images/intro/demo.webp'
 import sponsor1 from '@/assets/wepro-logo.webp'
 import sponsor2 from '@/assets/logo.png'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 </script>
 
 <template>
@@ -51,7 +53,7 @@ import sponsor2 from '@/assets/logo.png'
 
     <v-card class="mt-10">
       <v-card-title class="d-flex justify-start">
-        <h3>合作夥伴</h3>
+        <h3>{{ t('intro.partners') }}</h3>
       </v-card-title>
       <v-card-text>
         <v-row>

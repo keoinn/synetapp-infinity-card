@@ -6,6 +6,9 @@ import caseCj from '@/assets/images/case/case_cj.webp'
 import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const props = defineProps({
   cardCase: {
     type: String,
@@ -23,17 +26,17 @@ const props = defineProps({
 
 const cardCaseText = computed(() => {
   return props.cardCase === 'goal'
-    ? '我就是'
+    ? t('product.goal')
     : props.cardCase === 'care'
-    ? '我在乎'
+    ? t('product.care')
     : props.cardCase === 'ce'
-    ? '我可以 (國小)'
+    ? t('product.ce')
     : props.cardCase === 'cj'
-    ? '我可以 (社青)'
+    ? t('product.cj')
     : props.cardCase === 'le'
-    ? '我喜歡 (國小)'
+    ? t('product.le')
     : props.cardCase === 'lj'
-    ? '我喜歡 (社青)'
+    ? t('product.lj')
     : ''
 })
 
@@ -81,11 +84,11 @@ const handleBuyCard = () => {
           color="primary"
           @click="handleBuyCard"
         >
-          購買卡牌
+          {{ t('navigation.buyCards') }}
         </v-btn>
         <v-spacer />
         <v-chip v-if="!inDropArea">
-          庫存 {{ inventory }}
+          {{ t('common.stock') }} {{ inventory }}
         </v-chip>
         <v-btn
           v-if="inDropArea"
@@ -94,7 +97,7 @@ const handleBuyCard = () => {
           block
           @click="emit('removeCard', props.cardCase)"
         >
-          移除
+          {{ t('common.remove') }}
         </v-btn>
       </div>
     </v-card-actions>

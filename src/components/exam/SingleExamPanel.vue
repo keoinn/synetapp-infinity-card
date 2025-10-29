@@ -19,9 +19,10 @@ import caseCj from '@/assets/images/case/case_cj.webp'
 import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
-
+import { useI18n } from 'vue-i18n'
 import { useExamProcessStore } from '@/stores/examProcess'
 
+const { t } = useI18n()
 const examProcessStore = useExamProcessStore()
 
 const props = defineProps({
@@ -82,29 +83,29 @@ const caseImage = computed(() => {
 const caseName = computed(() => {
   if (props.action === 'pick') {
     return props.case === 'care'
-      ? '我在乎'
+      ? t('product.care')
       : props.case === 'ce'
-      ? '我可以 (國小)'
+      ? t('product.ce')
       : props.case === 'cj'
-      ? '我可以'
+      ? t('product.cj')
       : props.case === 'le'
-      ? '我喜歡 (國小)'
+      ? t('product.le')
       : props.case === 'lj'
-      ? '我喜歡'
+      ? t('product.lj')
       : props.case === 'goal'
-      ? '我就是'
+      ? t('product.goal')
       : 'Error'
   } else if (props.action === 'pair') {
     return props.case === 'care'
-      ? '我就是&我在乎'
+      ? t('product.goal') + ' & ' + t('product.care')
       : props.case === 'ce'
-      ? '我就是&我可以 (國小)'
+      ? t('product.goal') + ' & ' + t('product.ce')
       : props.case === 'cj'
-      ? '我就是&我可以'
+      ? t('product.goal') + ' & ' + t('product.cj')
       : props.case === 'le'
-      ? '我就是&我喜歡 (國小)'
+      ? t('product.goal') + ' & ' + t('product.le')
       : props.case === 'lj'
-      ? '我就是&我喜歡'
+      ? t('product.goal') + ' & ' + t('product.lj')
       : 'Error'
   } else {
     return ''
@@ -114,29 +115,29 @@ const caseName = computed(() => {
 const caseSubtitle = computed(() => {
   if (props.action === 'pick') {
     return props.case === 'care'
-      ? '我重視的價值觀'
+      ? t('playground.CareSubTitle')
       : props.case === 'ce'
-      ? '我擁有的能力'
+      ? t('playground.CanSubTitle')
       : props.case === 'cj'
-      ? '我擁有的能力'
+      ? t('playground.CanSubTitle')
       : props.case === 'le'
-      ? '我喜歡的事物'
+      ? t('playground.LikeSubTitle')
       : props.case === 'lj'
-      ? '我喜歡的事物'
+      ? t('playground.LikeSubTitle')
       : props.case === 'goal'
-      ? '我憧憬的職業'
+      ? t('playground.GoalSubTitle')
       : 'Error'
   } else if (props.action === 'pair') {
     return props.case === 'care'
-      ? '與職業配對我重視的價值觀'
+      ? t('playground.PairCareSubTitle')
       : props.case === 'ce'
-      ? '與職業配對我擁有的能力'
+      ? t('playground.PairCanSubTitle')
       : props.case === 'cj'
-      ? '與職業配對我擁有的能力'
+      ? t('playground.PairCanSubTitle')
       : props.case === 'le'
-      ? '與職業配對我喜歡的事物'
+      ? t('playground.PairLikeSubTitle')
       : props.case === 'lj'
-      ? '我喜歡的事物'
+      ? t('playground.PairLikeSubTitle')
       : ''
   } else {
     return ''
@@ -145,13 +146,13 @@ const caseSubtitle = computed(() => {
 
 const chipText = computed(() => {
   if (props.stage === 0) {
-    return '第一階段'
+    return t('playground.GoalStage1')
   } else if (props.stage === 1) {
-    return '第二階段'
+    return t('playground.GoalStage2')
   } else if (props.stage === 2) {
-    return '第三階段'
+    return t('playground.GoalStage3')
   } else {
-    return '全部完成'
+    return t('playground.AllFinished')
   }
 })
 
@@ -256,14 +257,14 @@ const checkFinished = computed(() => {
         variant="tonal"
         rounded="xl"
         color="#FA5015"
-        text="觀看紀錄"
+        :text="t('playground.viewRecordBtn')"
       />
       <v-spacer />
       <v-btn
         variant="elevated"
         rounded="xl"
         color="#FA5015"
-        :text="checkFinished ? '已完成' : '開始測驗'"
+        :text="checkFinished ? t('playground.completed') : t('playground.startExamBtn')"
         :disabled="checkFinished"
         :to="
           props.action === 'pick'
@@ -283,7 +284,7 @@ const checkFinished = computed(() => {
         color="#FA5015"
         block
         disabled
-        text="請先完成前一階段測試"
+        :text="t('playground.NeedToCompletePreviousStage')"
       />
       <v-spacer />
     </v-card-actions>

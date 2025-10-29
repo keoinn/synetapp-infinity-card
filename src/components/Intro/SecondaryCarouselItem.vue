@@ -20,24 +20,30 @@ import caseCj from '@/assets/images/case/case_cj.webp'
 import caseGoal from '@/assets/images/case/case_goal.webp'
 
 import { ref, computed } from 'vue'
-
+import { useI18n } from 'vue-i18n'
+import { useAppStore } from '@/stores/app'
+const appStore = useAppStore()
+const { t } = useI18n()
 const images = [caseCare, caseCe, caseCj, caseGoal]
 
+
 const selectedTheory = ref(0)
-const thoeryItems = [
+
+// 使用 computed 讓 thoeryItems 能動態響應語言切換
+const thoeryItems = computed(() => [
   {
-    title: 'Holland<br>生涯興趣展論'
+    title: t('intro.hollandCareerInterestTheory')
   },
   {
-    title: 'Super 五個發展<br>階段與彩虹圖'
+    title: t('intro.superFiveDevelopmentStages')
   },
   {
-    title: '運用焦點解決<br>短期諮商理論'
+    title: t('intro.focusProblemSolvingTheory')
   },
   {
-    title: 'Swain<br>生涯規劃金三角'
+    title: t('intro.swainCareerPlanningTriangle')
   }
-]
+])
 
 const toggleSelection = (index) => {
   selectedTheory.value = index
@@ -51,7 +57,7 @@ const isSelected = (index) => computed(() => index === selectedTheory.value)
   <div class="secondary-page">
     <v-card class="page-card-container">
       <v-card-title>
-        <h2>卡牌說明</h2>
+        <h2>{{ t('intro.cardDesc') }}</h2>
       </v-card-title>
       <v-card-text>
         <v-row align="center">
@@ -96,7 +102,7 @@ const isSelected = (index) => computed(() => index === selectedTheory.value)
 
     <v-card class="page-card-container secondary-card-container mt-2 mb-5">
       <v-card-title>
-        <h2>理論依據</h2>
+        <h2>{{ t('intro.theoryDesc') }}</h2>
       </v-card-title>
       <v-card-text>
         <v-row>
@@ -117,7 +123,7 @@ const isSelected = (index) => computed(() => index === selectedTheory.value)
                     rounded
                     @click="() => toggleSelection(index)"
                   >
-                    <span v-html="item.title" />
+                    <span v-html="item.title" :style="{ fontSize: appStore.locale === 'en' ? '14px' : '20px' }" />
                   </v-btn>
                 </v-slide-group-item>
               </v-slide-group>
@@ -165,7 +171,7 @@ const isSelected = (index) => computed(() => index === selectedTheory.value)
           <v-col cols="10">
             <v-card class="page-card-container">
               <v-card-title>
-                <h3>橫跨生活廣度及生命長度縱貫一生不同角色,彩虹的外層顯示人生主要的發展五階段。</h3>
+                <h3 v-html="t('intro.superFiveDevelopmentStagesDesc')" />
               </v-card-title>
               <v-card-text class="pt-5">
                 <v-img
@@ -186,9 +192,7 @@ const isSelected = (index) => computed(() => index === selectedTheory.value)
           <v-col cols="10">
             <v-card class="page-card-container">
               <v-card-title>
-                <h3>
-                  幫助參與者在職涯發展上短而有效三要素。目標建立、自信心與希望感,建立<br>正向思維與正向行動力的開展,創造無限可能。
-                </h3>
+                <h3 v-html="t('intro.focusProblemSolvingTheoryDesc')" />
               </v-card-title>
               <v-card-text class="pt-5">
                 <v-img
@@ -209,7 +213,7 @@ const isSelected = (index) => computed(() => index === selectedTheory.value)
           <v-col cols="10">
             <v-card class="page-card-container">
               <v-card-title>
-                <h3>生涯決定時要考量「自我」、「生涯環境」及「生涯資訊」三個向度。</h3>
+                <h3 v-html="t('intro.swainCareerPlanningTriangleDesc')" />
               </v-card-title>
               <v-card-text class="pt-5">
                 <v-img

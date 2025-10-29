@@ -21,50 +21,57 @@ const quantity = ref(1)
 const pageSubCard = ref(0)
 const selectedSubCard = ref(null)
 
-const optionsCardSet = [
+const optionsCardSet = computed(() => [
   {
-    title: '我就是: I goal - $790',
+    title: t('product.goalTitle') + ' - ' + t('product.goalPrice'),
     value: 'goal',
     image: caseGoal,
     price: 790,
     subCardImage: ['goal001.webp', 'goal002.webp', 'goal003.webp', 'goal004.webp', 'goal005.webp']
   },
   {
-    title: '我在乎: I care - $790',
+    title: t('product.careTitle') + ' - ' + t('product.carePrice'),
     value: 'care',
     image: caseCare,
     price: 790,
     subCardImage: ['care001.webp', 'care002.webp', 'care003.webp', 'care004.webp', 'care005.webp']
   },
   {
-    title: '我可以 (社青版): I can - $790',
+    title: t('product.cjTitle') + ' - ' + t('product.cjPrice'),
     value: 'cj',
     image: caseCj,
     price: 790,
     subCardImage: ['cj001.webp', 'cj002.webp', 'cj003.webp', 'cj004.webp', 'cj005.webp']
   },
   {
-    title: '我可以 (國小版): I can - $790',
+    title: t('product.ceTitle') + ' - ' + t('product.cePrice'),
     value: 'ce',
     image: caseCe,
     price: 790,
     subCardImage: ['ce001.webp', 'ce002.webp', 'ce003.webp', 'ce004.webp', 'ce005.webp']
   },
   {
-    title: '我喜歡 (社青版): I like - $790',
+    title: t('product.ljTitle') + ' - ' + t('product.ljPrice'),
     value: 'lj',
     image: caseLj,
     price: 790,
     subCardImage: ['lj001.webp', 'lj002.webp', 'lj003.webp', 'lj004.webp', 'lj005.webp']
   },
   {
-    title: '我喜歡 (國小版): I like - $790',
+    title: t('product.leTitle') + ' - ' + t('product.lePrice'),
     value: 'le',
     image: caseLe,
     price: 790,
     subCardImage: ['le001.webp', 'le002.webp', 'le003.webp', 'le004.webp', 'le005.webp']
   }
-]
+])
+
+const getTotalPrice = computed(() => {
+  const selectedItem = optionsCardSet.value?.find((item) => item.value === selectedCard.value)
+  const price = selectedItem?.price || 0
+  const qty = quantity.value || 0
+  return qty * price
+})
 
 const handleSelectChange = () => {
   pageSubCard.value = 0
@@ -73,17 +80,17 @@ const handleSelectChange = () => {
 
 const getCardImage = computed(() => {
   if (selectedSubCard.value === null) {
-    return optionsCardSet.find((item) => item.value === selectedCard.value)?.image
+    return optionsCardSet.value?.find((item) => item.value === selectedCard.value)?.image
   } else {
     return selectedSubCard.value
   }
 })
 
 const getSubCardImage = computed(() => {
-  return optionsCardSet
-    .find((item) => item.value === selectedCard.value)
+  return optionsCardSet.value
+    ?.find((item) => item.value === selectedCard.value)
     ?.subCardImage.slice(pageSubCard.value * 3, (pageSubCard.value + 1) * 3)
-    .map(imageName => getCardImagePath(imageName))
+    ?.map(imageName => getCardImagePath(imageName))
 })
 
 const handleSubCardChange = (direction) => {
@@ -93,10 +100,10 @@ const handleSubCardChange = (direction) => {
   }
   if (
     pageSubCard.value >
-    optionsCardSet.find((item) => item.value === selectedCard.value)?.subCardImage.length / 3 - 1
+    optionsCardSet.value?.find((item) => item.value === selectedCard.value)?.subCardImage.length / 3 - 1
   ) {
     pageSubCard.value =
-      optionsCardSet.find((item) => item.value === selectedCard.value)?.subCardImage.length / 3 - 1
+      optionsCardSet.value?.find((item) => item.value === selectedCard.value)?.subCardImage.length / 3 - 1
   }
 }
 
@@ -109,23 +116,27 @@ const handleSubCardClick = (img) => {
 }
 
 const handleAddToCart = () => {
-  cartStore.addItem(selectedCard.value, quantity.value, optionsCardSet.find((item) => item.value === selectedCard.value)?.price)
+  const selectedItem = optionsCardSet.value?.find((item) => item.value === selectedCard.value)
+  const price = selectedItem?.price || 0
+  cartStore.addItem(selectedCard.value, quantity.value, price)
   handleAlert({
     auction: 'success',
-    text: '加入購物車成功'
+    text: t('order.addToCartSuccess')
   })
 }
 
 const handleBuyCard = () => {
+  const selectedItem = optionsCardSet.value?.find((item) => item.value === selectedCard.value)
+  const price = selectedItem?.price || 0
   cartStore.addItem(
     selectedCard.value,
     quantity.value,
-    optionsCardSet.find((item) => item.value === selectedCard.value)?.price, 
+    price, 
   )
   cartStore.butImmediate(selectedCard.value)
   handleAlert({
     auction: 'success',
-    text: '加入購物車成功，轉向付款頁面'
+    text: t('order.addToCartAndCheckout')
   })
   router.push('/cart')
 }
@@ -207,7 +218,7 @@ const clickCardCase = (value) => {
             {{ t('common.infinityCard') }}
           </v-card-title>
           <v-card-text class="intro-text">
-            {{ t('intro.abstractPSYCard') }}
+            {{ t('intro.cardAbs') }}
           </v-card-text>
           <v-card-text>
             <v-row class="cards-selector-row">
@@ -230,12 +241,15 @@ const clickCardCase = (value) => {
               <v-row>
                 <v-col cols="12">
                   <v-row align="center">
-                    <v-col cols="2">
+                    <v-col
+                      cols="3"
+                      align="center"
+                    >
                       <div class="input-label">
-                        卡組：
+                        {{ t('common.cardSet') }}:
                       </div>
                     </v-col>
-                    <v-col cols="10">
+                    <v-col cols="9">
                       <v-select
                         v-model="selectedCard"
                         :items="optionsCardSet"
@@ -253,14 +267,14 @@ const clickCardCase = (value) => {
                 >
                   <v-row align="center">
                     <v-col
-                      cols="2"
+                      cols="3"
                       align="center"
                     >
                       <div class="input-label">
-                        數量：
+                        {{ t('common.quantity') }}:
                       </div>
                     </v-col>
-                    <v-col cols="10">
+                    <v-col cols="9">
                       <v-number-input
                         v-model="quantity"
                         control-variant="stacked"
@@ -276,10 +290,8 @@ const clickCardCase = (value) => {
                   class="buy-card-row"
                 >
                   <div class="cards-price">
-                    總金額： $
-                    {{
-                      quantity * optionsCardSet.find((item) => item.value === selectedCard)?.price
-                    }}
+                    {{ t('common.totalAmount') }}: $
+                    {{ getTotalPrice }}
                   </div>
                 </v-col>
               </v-row>
@@ -292,7 +304,7 @@ const clickCardCase = (value) => {
                 class="buy-card-btn buy-card-btn-secondary"
                 @click="handleAddToCart"
               >
-                加入購物車
+                {{ t('navigation.addToCart') }}
               </v-btn>
             </v-col>
             <v-col cols="8">
@@ -301,7 +313,7 @@ const clickCardCase = (value) => {
                 class="buy-card-btn buy-card-btn-primary"
                 @click="handleBuyCard"
               >
-                立即購買
+                {{ t('navigation.buyNow') }}
               </v-btn>
             </v-col>
             <v-col cols="12">

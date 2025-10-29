@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const route = useRoute()
 const tab = ref(null)
 
@@ -30,11 +32,11 @@ onMounted(() => {
       >
         <v-tab value="cart">
           <v-icon>mdi-cart</v-icon>
-          購物車
+          {{ t('common.cart') }}
         </v-tab>
         <v-tab value="order">
           <v-icon>mdi-check-circle</v-icon>
-          訂單
+          {{ t('order.orderInfo') }}
         </v-tab>
       </v-tabs>
 

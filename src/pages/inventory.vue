@@ -1,10 +1,15 @@
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useCartStore } from '@/stores/cart'
 import { getCardInventoryAPI, createReportAPI } from '@/plugins/utils/requests/api/backend'
 import { handleAlert } from '@/plugins/utils/alert'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import CardCaseInventory from '@/components/inventory/CardCaseInventory.vue'
+
+
+const { t } = useI18n()
 const appStore = useAppStore()
 const cartStore = useCartStore()
 const inventory = reactive({
@@ -30,14 +35,14 @@ const handleDrop = (event) => {
   if ((key === 'le' && droppedItems.value.includes('lj')) || (key === 'lj' && droppedItems.value.includes('le'))) {
     handleAlert({
       auction: 'error',
-      text: 'le 和 lj 不能同時存在報告中',
+      text: '【' + t('product.le') + '】'+ '& 【' + t('product.lj') + '】' + t('exam.errorCardSetConflict') ,
     })
     return
   }
   if ((key === 'ce' && droppedItems.value.includes('cj')) || (key === 'cj' && droppedItems.value.includes('ce'))) {
     handleAlert({
       auction: 'error',
-      text: 'ce 和 cj 不能同時存在報告中',
+      text: '【' + t('product.ce') + '】'+ '& 【' + t('product.cj') + '】' + t('exam.errorCardSetConflict') ,
     })
     return
   }
@@ -47,7 +52,7 @@ const handleDrop = (event) => {
   } else {
     handleAlert({
       auction: 'error',
-      text: '牌組不能重複於測驗中。',
+      text: t('exam.errorCardSetDuplicate'),
     })
   }
 }
@@ -63,31 +68,26 @@ const handleRemoveItem = (index) => {
 }
 
 const updateInventory = (cardCase) => {
-  // inventory[cardCase] = (parseInt(inventory[cardCase]) + 1).toString()
-  // handleAlert({
-  //   auction: 'success',
-  //   text: `(模擬)【${caseText(cardCase)}】牌組已購買。`,
-  // })
   cartStore.addItem(cardCase, 1, 790)
   handleAlert({
     auction: 'success',
-    text: `【${caseText(cardCase)}】牌組已加入購物車，請到購物車結帳。`,
+    text: `【${caseText(cardCase)}】 ${t('exam.examPageAddToCartSuccess')}。`,
   })
 }
 
 const caseText = (cardCase) => {
   return cardCase === 'goal'
-    ? '我就是'
+    ? t('product.goal')
     : cardCase === 'care'
-    ? '我在乎'
+    ? t('product.care')
     : cardCase === 'ce'
-    ? '我可以 (國小)'
+    ? t('product.ce')
     : cardCase === 'cj'
-    ? '我可以 (社青)'
+    ? t('product.cj')
     : cardCase === 'le'
-    ? '我喜歡 (國小)'
+    ? t('product.le')
     : cardCase === 'lj'
-    ? '我喜歡 (社青)'
+    ? t('product.lj')
     : ''
 }
 
@@ -96,7 +96,7 @@ const handleCreateReport = async () => {
   if (droppedItems.value.length === 0) {
     handleAlert({
       auction: 'error',
-      text: '請至少選擇一個牌組。',
+      text: t('exam.errorAtLeastOneCardSet'),
     })
     return
   }
@@ -104,7 +104,7 @@ const handleCreateReport = async () => {
   console.log(res)
   handleAlert({
     auction: 'success',
-    text: '測驗已建立。',
+    text: t('exam.examCreatedSuccess'),
   })
   router.push(`/exam/`)
 }
@@ -121,6 +121,9 @@ onMounted(async () => {
   inventory.lj = instock.lj
   inventory.le = instock.le
   document.body.setAttribute('ondragstart', 'return true')
+  
+  // 初始化拖拽區域文字
+  updateDropAreaText()
 })
 
 const dropItemToArray = computed(() => {
@@ -130,19 +133,32 @@ const dropItemToArray = computed(() => {
   })
   return card_sets
 })
+
+// 動態設置拖拽區域的提示文字
+const updateDropAreaText = () => {
+  const dropArea = document.querySelector('.drop-areas-container')
+  if (dropArea) {
+    dropArea.setAttribute('data-text', t('exam.dragCardsHere'))
+  }
+}
+
+// 監聽語系變化
+watch(() => t('exam.dragCardsHere'), () => {
+  updateDropAreaText()
+})
 </script>
 
 <template>
   <div class="inventory-page">
     <h1 style="text-decoration: underline;">
-      建立測驗
+      {{ t('exam.createExam') }}
     </h1>
     <v-row class="inventory-row">
       <v-col
         v-for="(value, key) in inventory"
         :key="key"
         :cols="2"
-        :draggable="inventory[key] > 0 && !(droppedItems.includes('le') && key === 'lj') && !(droppedItems.includes('lj') && key === 'le') && !(droppedItems.includes('ce') && key === 'cj') && !(droppedItems.includes('cj') && key === 'ce')"
+        :draggable="inventory[key] > 0"
         @dragstart="handleDragStart($event, key)"
       >
         <CardCaseInventory
@@ -155,13 +171,13 @@ const dropItemToArray = computed(() => {
     <v-divider class="mt-10" />
     <v-row>
       <div class="pt-5 pl-4">
-        拖曳卡組到這裡建立測驗
+        {{ t('exam.dragCardsHere') }}
         <v-btn
+          class="ml-4"
           color="primary"
+          :text="t('exam.createExam')"
           @click="handleCreateReport"
-        >
-          建立測驗
-        </v-btn>
+        />
       </div>
       <v-col cols="12">
         <div class="container">
@@ -220,7 +236,7 @@ const dropItemToArray = computed(() => {
   }
 
   .drop-areas-container::before {
-    content: '拖曳卡組到這裡建立報告';
+    content: attr(data-text);
     position: absolute;
     top: 10%;
     left: 50%;
