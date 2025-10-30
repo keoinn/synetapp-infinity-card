@@ -14,6 +14,9 @@
 <script setup>
 import { formattedTime } from '@/plugins/utils/countdown.js'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const props = defineProps({
   remainingSeconds: {
     type: Number,
@@ -33,8 +36,8 @@ const remainingProgress = computed(() => {
 <template>
   <v-row class="pa-0 ma-0">
     <v-spacer />
-    <v-col cols="2">
-      <span class="text-h6 progress-bar-title"> 剩餘時間: </span>
+    <v-col cols="3">
+      <span class="text-h6 progress-bar-title"> {{ t('playground.PlaygroundRemainingTime') }}: </span>
     </v-col>
     <v-col
       cols="8"

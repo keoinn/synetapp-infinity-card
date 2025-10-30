@@ -40,7 +40,9 @@ import { getCardImagePath } from '@/utils/imageUtils'
 import emptyCard from '@/assets/images/covers/empty.webp'
 import { addLog, getLogs, clearLogs, setProcessType } from '@/plugins/utils/process_logger.js'
 import { useExamProcessStore } from '@/stores/examProcess'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const examProcessStore = useExamProcessStore()
 
 // 定義 props
@@ -283,7 +285,7 @@ const handleSave = () => {
 const handleFinish = () => {
   let submitCheck = false;
   const warningCount = examProcessStore.computedPickGoalStage === 1 ? 10 : examProcessStore.computedPickGoalStage === 2 ? 3 : 0;
-  const warningStageText = examProcessStore.computedPickGoalStage === 1 ? '第二階段' : examProcessStore.computedPickGoalStage === 2 ? '第三階段' : '第一階段';
+  const warningStageText = examProcessStore.computedPickGoalStage === 1 ? t('playground.GoalStage2') : examProcessStore.computedPickGoalStage === 2 ? t('playground.GoalStage3') : t('playground.GoalStage1');
   if (props.type === 'goal') {
     if (examProcessStore.computedPickGoalStage === 1) {
       if(keepCardsNum.value <= 10 && keepCardsNum.value > 1) {
@@ -324,9 +326,12 @@ const handleFinish = () => {
     stopTimer()
     clearLogs()
   } else {
+    let warningText = warningStageText + ': ' + t('playground.errorGoalKeepCardsNum')
+    warningText = warningText.replace('#warningCount#', warningCount)
+    warningText = warningText.replace('#keepCardsNum#', keepCardsNum.value)
     handleAlert({
       auction: 'warning',
-      text: `${warningStageText}: 請至多保留 ${warningCount} 張卡片，目前保留 ${keepCardsNum.value} 張卡片，至少要保留 2 張卡片。`
+      text: warningText
     })
   }
 }
@@ -395,7 +400,7 @@ onBeforeUnmount(() => {
           <v-btn
             rounded="xl"
             color="#FA5015"
-            text="*我憧憬的職業"
+            :text="t('playground.MyDreamCareerBtn')"
             size="large"
             block
           />
@@ -405,7 +410,7 @@ onBeforeUnmount(() => {
           <v-btn
             rounded="xl"
             color="#FA5015"
-            text="*暫存"
+            :text="t('playground.PlaygroundSaveBtn')"
             size="large"
             block
             @click="handleSave"
@@ -420,7 +425,7 @@ onBeforeUnmount(() => {
             v-show="!isFinish"
             rounded="xl"
             color="green"
-            text="完成卡片選擇"
+            :text="t('playground.PlaygroundFinishCardSelectionBtn')"
             size="large"
             block
             @click="handleFinish"
@@ -428,8 +433,8 @@ onBeforeUnmount(() => {
         </v-col>
         <v-col cols="3">
           <div class="d-flex justify-left align-center pt-3">
-            <span class="text-h6 text-primary">保留：{{ keepCardsNum }}</span>
-            <span class="text-h6 text-red pl-4">全部：{{ currentCardPoolNum }}</span>
+            <span class="text-h6 text-primary">{{ t('playground.PlaygroundKeepCardsNum') }}：{{ keepCardsNum }}</span>
+            <span class="text-h6 text-red pl-4">{{ t('playground.PlaygroundAllCardsNum') }}：{{ currentCardPoolNum }}</span>
           </div>
         </v-col>
         <v-spacer />
@@ -505,7 +510,7 @@ onBeforeUnmount(() => {
               <v-btn
                 rounded="xl"
                 color="#FA5015"
-                text="開始測驗"
+                :text="t('playground.startExamBtn')"
                 size="large"
                 block
                 @click="isStart = !isStart"

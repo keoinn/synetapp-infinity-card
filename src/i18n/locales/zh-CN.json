@@ -158,7 +158,18 @@
     "PairCareSubTitle": "与职业配对我重视的价值观",
     "PairCanSubTitle": "与职业配对我拥有的能力",
     "PairLikeSubTitle": "与职业配对我喜欢的事物",
-    "NeedToCompletePreviousStage": "请先完成前一阶段测试"
+    "MyDreamCareerBtn": "我憧憬的职业",
+    "PlaygroundSaveBtn": "暂存",
+    "PlaygroundFinishCardSelectionBtn": "完成卡片选择",
+    "PlaygroundKeepCardsNum": "保留",
+    "PlaygroundAllCardsNum": "全部",
+    "PlaygroundRemainingTime": "剩余时间",
+    "NeedToCompletePreviousStage": "请先完成前一阶段测试",
+    "GoalSelectDescriptionStage1": "<li>接下来将会有 100 种职业别显示于画面上，请依照你个人的判断与感受，选出<span class='highlight'>你喜欢的、你憧憬的、对该职业有热情未来有可能想去从事的行业</span>。</li>",
+    "GoalSelectDescriptionStage2": "<li>从刚刚选择<span class='highlight'>「喜欢的职业」</span>中共有 #remainingCards# 种职业别显示于画面上，挑选至多<span class='highlight'> 10 </span>个，你<span class='highlight'>「未来很想从事的职业」</span>。</li>",
+    "errorGoalKeepCardsNum": "请至多保留 #warningCount# 张卡片，目前保留 #keepCardsNum# 张卡片，至少要保留 2 张卡片。",
+    "PickupCardRuleGoal": "<li>请在 8 分钟内，<span class='highlight'>点击</span>职业卡牌可以将牌面翻开或盖上，正面表示你留下选择的职业卡牌。</li>",
+    "PickupCardRuleFinish": "<li>最后按下<span class='highlight'>「完成卡片选择」</span>按钮结束这一阶段的测试。</li>"
   },
   "result":{
     "downloadReport": "下载报告",

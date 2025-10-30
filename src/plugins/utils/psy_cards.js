@@ -6,6 +6,7 @@ import caseLe from '@/assets/images/case/case_le.webp'
 import caseLj from '@/assets/images/case/case_lj.webp'
 import caseCe from '@/assets/images/case/case_ce.webp'
 import caseCj from '@/assets/images/case/case_cj.webp'
+import i18n from '@/i18n'
 
 // 依照前綴分類圖片並排序
 const categorizeImages = () => {
@@ -641,17 +642,11 @@ function getGoalCardData(imgName) {
 function getGuidanceContent(type, stage = 0, remainingCards = 0) {
   const goalContentFirstLine = () => {
     if (stage === 0) {
-      return `<li>
-                接下來將會有 100 種職業別顯示於畫面上，請依照你個人的判斷與感受，選出<span
-                  class="highlight"
-                  >你喜歡的、你憧憬的、對該職業有熱情未來有可能想去從事的行業</span
-                >。
-              </li>`
+      return i18n.global.t('playground.GoalSelectDescriptionStage1')
     } else if (stage === 1) {
-      return `<li>
-                 請在剛剛選擇<span class="highlight">「喜歡的職業」</span>中共有 ${remainingCards} 種職業別顯示於畫面上，
-                 挑選至多<span class="highlight"> 10 </span>個，你<span class="highlight">「未來很想從事的職業」</span>。
-              </li>`
+      let text = i18n.global.t('playground.GoalSelectDescriptionStage2')
+      text = text.replace('#remainingCards#', remainingCards)
+      return text
     } else if (stage === 2) {
       return `<li>
                  請在剛剛選擇<span class="highlight">「未來很想從事的職業」</span>中共有 ${remainingCards} 種職業別顯示於畫面上，
@@ -663,17 +658,12 @@ function getGuidanceContent(type, stage = 0, remainingCards = 0) {
     case 'goal':
       return {
         coverImg: caseGoal,
-        title: '我就是',
-        subtitle: '我憧憬的職業',
+        title: i18n.global.t('product.goal'),
+        subtitle: i18n.global.t('playground.GoalSubTitle'),
         content: `<ul>
                     ${goalContentFirstLine()}
-                    <li>
-                      請在 5 分鐘內，<span class="highlight">點擊</span
-                      >職業卡牌可以將牌面翻開或蓋上，正面表示你留下選擇的職業卡牌。
-                    </li>
-                    <li>
-                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
-                    </li>
+                    ${i18n.global.t('playground.PickupCardRuleGoal')}
+                    ${i18n.global.t('playground.PickupCardRuleFinish')}
                   </ul>`
       }
     case 'care':

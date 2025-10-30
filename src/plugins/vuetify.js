@@ -34,4 +34,9 @@ export default createVuetify({
       infinityCardTheme,
     },
   },
+  defaults: {
+    VBtn: {
+      class: 'text-none',
+    },
+  },
 })
