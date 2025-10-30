@@ -8,6 +8,9 @@ import { getCardImageName } from '@/plugins/utils/psy_cards.js'
 import { getCardImagePath } from '@/utils/imageUtils'
 import { remainingSeconds, startTimer, stopTimer, setTimer } from '@/plugins/utils/countdown.js'
 import { addLog, clearLogs, getLogs, setProcessType } from '@/plugins/utils/process_logger.js'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // 定義 emit
 const emit = defineEmits(['finishClassify'])
@@ -159,7 +162,7 @@ const handleDragStart = (card) => {
 const handleFinish = () => {
   handleAlert({
     auction: 'success',
-    text: `你已經成功完成卡片選擇`
+    text: t('playground.pairFinishSuccess')
   })
 
   addLog({
@@ -217,7 +220,7 @@ const handleRollback = () => {
     draggedCard.value = null
     handleAlert({
       auction: 'success',
-      text: `你已經成功復原上一個動作`
+      text: t('playground.pairRollbackSuccess')
     })
   }
 }
@@ -300,11 +303,13 @@ const handleClickDrop = async (professionIndex) => {
       }
     })
 
+    let actionText = t('playground.pairClickSuccess')
+    actionText = actionText.replace('#cardName#', getCardImageName(currentCard))
+    actionText = actionText.replace('#professionName#', professions.value[professionIndex].title)
+
     handleAlert({
       auction: 'success',
-      text: `你已經成功點擊 ${getCardImageName(currentCard)} 到 ${
-        professions.value[professionIndex].title
-      }`
+      text: actionText
     })
     currentSequence.value++
     cards_status.value[currentSequence.value] = false
@@ -315,7 +320,7 @@ watch(remainingSeconds, (newValue) => {
   if (newValue === 0) {
     handleAlert({
       auction: 'warning',
-      text: '時間到！請確認是否要繼續？'
+      text: t('playground.playgroundTimeOver')
     })
     addLog({
       action: 'warning',
@@ -405,7 +410,7 @@ onMounted(() => {
             v-if="remainingCards === 0"
             rounded="xl"
             color="#FA5015"
-            text="完成卡片選擇"
+            :text="t('playground.PlaygroundFinishCardSelectionBtn')"
             size="x-large"
             class="finish"
             @click="handleFinish"
@@ -416,7 +421,7 @@ onMounted(() => {
             v-show="currentSequence > 0 && isStart"
             rounded="xl"
             color="#FA5015"
-            text="復原上一個動作"
+            :text="t('playground.pairRollbackBtn')"
             size="x-large"
             @click="handleRollback"
           />
@@ -425,7 +430,7 @@ onMounted(() => {
           v-show="isStart"
           class="card-count"
         >
-          卡牌剩餘張數 <span class="card-count-number">{{ remainingCards }}</span>
+          {{ t('playground.pairRemainingCardsNum') }} <span class="card-count-number">{{ remainingCards }}</span>
         </div>
       </v-col>
     </v-row>

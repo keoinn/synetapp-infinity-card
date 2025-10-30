@@ -167,9 +167,22 @@
     "NeedToCompletePreviousStage": "请先完成前一阶段测试",
     "GoalSelectDescriptionStage1": "<li>接下来将会有 100 种职业别显示于画面上，请依照你个人的判断与感受，选出<span class='highlight'>你喜欢的、你憧憬的、对该职业有热情未来有可能想去从事的行业</span>。</li>",
     "GoalSelectDescriptionStage2": "<li>从刚刚选择<span class='highlight'>「喜欢的职业」</span>中共有 #remainingCards# 种职业别显示于画面上，挑选至多<span class='highlight'> 10 </span>个，你<span class='highlight'>「未来很想从事的职业」</span>。</li>",
+    "GoalSelectDescriptionStage3": "<li>请在刚刚选择<span class='highlight'>「未来很想从事的职业」</span>中共有 #remainingCards# 种职业别显示于画面上，挑选至多<span class='highlight'> 3 </span>个，你<span class='highlight'>「未来最想做的职业」</span>。</li>",
     "errorGoalKeepCardsNum": "请至多保留 #warningCount# 张卡片，目前保留 #keepCardsNum# 张卡片，至少要保留 2 张卡片。",
     "PickupCardRuleGoal": "<li>请在 8 分钟内，<span class='highlight'>点击</span>职业卡牌可以将牌面翻开或盖上，正面表示你留下选择的职业卡牌。</li>",
-    "PickupCardRuleFinish": "<li>最后按下<span class='highlight'>「完成卡片选择」</span>按钮结束这一阶段的测试。</li>"
+    "PickupCardRuleFinish": "<li>最后按下<span class='highlight'>「完成卡片选择」</span>按钮结束这一阶段的测试。</li>",
+    "CareSelectDescription": "<li>接下来将会有 60 种特质显示于画面上，请依照你个人的判断与感受，选出<span class='highlight'>你重视的能力或特质</span>，请以第一直觉选择。</li>",
+    "PickupCardRuleCare": "<li>请在 8 分钟内，<span class='highlight'>点击</span>卡牌可以将牌面翻开或盖上，正面表示你留下该重视的能力或特质。</li>",
+    "LikeSelectDescription": "<li>接下来将会有 60 种喜欢做的事情显示于画面上，请依照你个人的判断与感受，选出<span class='highlight'>你喜歒做的事情</span>，请以第一直觉选择。</li>",
+    "PickupCardRuleLike": "<li>请在 8 分钟内，<span class='highlight'>点击</span>卡牌可以将牌面翻开或盖上，正面表示你留下该喜歒做的事情。</li>",
+    "CanSelectDescription": "<li>接下来将会有 60 种自己会或是做得到的叙述显示于画面上，请依照你个人的判断与感受，选出<span class='highlight'>自己会或是做得到的事情</span>，请以第一直觉选择。</li>",
+    "PickupCardRuleCan": "<li>请在 8 分钟内，<span class='highlight'>点击</span>卡牌可以将牌面翻开或盖上，正面表示你留下该自己会或是做得到的事情。</li>",
+    "pairFinishSuccess": "你已经成功完成卡片选择",
+    "pairRollbackSuccess": "你已经成功复原上一个动作",
+    "pairRollbackBtn": "复原上一个动作",
+    "pairRemainingCardsNum": "剩余卡牌张数",
+    "pairClickSuccess": "你已经成功点击 #cardName# 到 #professionName#",
+    "playgroundTimeOver": "时间到！请确认是否要继续？"
   },
   "result":{
     "downloadReport": "下载报告",

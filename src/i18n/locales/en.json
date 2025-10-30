@@ -182,9 +182,22 @@
     "NeedToCompletePreviousStage": "Please complete the previous stage first",
     "GoalSelectDescriptionStage1": "<li>Next, 100 careers types will be displayed on the screen. Please select the <span class='highlight'>careers you like, aspire to, and have a passion for in the future</span> based on your personal judgment and feelings.</li>",
     "GoalSelectDescriptionStage2": "<li>From the #remainingCards# careers you previously selected as <span class='highlight'>\"liked\"</span>, up to 10 will be displayed on the screen. Please choose up to <span class='highlight'> 10 </span> careers that you would <span class='highlight'> really like to pursue </span> in the future.</li>",
+    "GoalSelectDescriptionStage3": "<li>From the #remainingCards# careers you previously selected as <span class='highlight'>\"would really like to pursue in the future\"</span>, up to #remainingCards# will be displayed on the screen. Please choose up to <span class='highlight'> 3 </span> careers that <span class='highlight'> you most want to do in the future</span>.</li>",
     "errorGoalKeepCardsNum": "Please keep up to #warningCount# cards. You currently have #keepCardsNum# cards selected, and you must keep at least 2 cards.",
     "PickupCardRuleGoal": "<li>Please in 8 minutes, <span class='highlight'>click</span> the career card to flip the card face up or down, the front represents the career card you leave selected.</li>",
-    "PickupCardRuleFinish": "<li>Finally, press the <span class='highlight'>\"Finish\"</span> button to end this stage of the exam.</li>"
+    "PickupCardRuleFinish": "<li>Finally, press the <span class='highlight'>\"Finish\"</span> button to end this stage of the exam.</li>",
+    "CareSelectDescription": "<li>Next, 60 traits will be displayed on the screen. Please select the <span class='highlight'>traits you value most</span> based on your personal judgment and feelings. Please choose based on your first instinct.</li>",
+    "PickupCardRuleCare": "<li>Please in 8 minutes, <span class='highlight'>click</span> the trait card to flip the card face up or down, the front represents the trait you leave selected.</li>",
+    "LikeSelectDescription": "<li>Next, 60 things you like to do will be displayed on the screen. Please select the <span class='highlight'>things you like to do</span> based on your personal judgment and feelings. Please choose based on your first instinct.</li>",
+    "PickupCardRuleLike": "<li>Please in 8 minutes, <span class='highlight'>click</span> the thing card to flip the card face up or down, the front represents the thing you leave selected.</li>",
+    "CanSelectDescription": "<li>Next, 60 things you can do will be displayed on the screen. Please select the <span class='highlight'>things you can do</span> based on your personal judgment and feelings. Please choose based on your first instinct.</li>",
+    "PickupCardRuleCan": "<li>Please in 8 minutes, <span class='highlight'>click</span> the thing card to flip the card face up or down, the front represents the thing you leave selected.</li>",
+    "pairFinishSuccess": "You have successfully completed card selection.",
+    "pairRollbackSuccess": "You have successfully rolled back the previous action.",
+    "pairRollbackBtn": "Rollback",
+    "pairRemainingCardsNum": "Remaining Cards:",
+    "pairClickSuccess": "You have successfully clicked #cardName# to #professionName#.",
+    "playgroundTimeOver": "Time's up! Please confirm if you want to continue?"
   },
   "result":{
     "downloadReport": "Download Report",

@@ -210,7 +210,7 @@ watch(remainingSeconds, (newValue) => {
   if (newValue === 0) {
     handleAlert({
       auction: 'warning',
-      text: '時間到！請確認是否要繼續？'
+      text: t('playground.playgroundTimeOver')
     })
     addLog({
       action: 'warning',

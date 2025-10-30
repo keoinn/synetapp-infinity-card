@@ -648,10 +648,10 @@ function getGuidanceContent(type, stage = 0, remainingCards = 0) {
       text = text.replace('#remainingCards#', remainingCards)
       return text
     } else if (stage === 2) {
-      return `<li>
-                 請在剛剛選擇<span class="highlight">「未來很想從事的職業」</span>中共有 ${remainingCards} 種職業別顯示於畫面上，
-                 挑選至多<span class="highlight"> 3 </span>個，你<span class="highlight">「未來最想做的職業」</span>。
-              </li>`
+      let text = i18n.global.t('playground.GoalSelectDescriptionStage3')
+      text = text.replace('#remainingCards#', remainingCards)
+      text = text.replace('#remainingCards#', remainingCards)
+      return text
     }
   }
   switch (type) {
@@ -669,93 +669,62 @@ function getGuidanceContent(type, stage = 0, remainingCards = 0) {
     case 'care':
       return {
         coverImg: caseCare,
-        title: '我重視',
-        subtitle: '我重視的特質',
+        title: i18n.global.t('product.care'),
+        subtitle: i18n.global.t('playground.CareSubTitle'),
         content: `<ul>
-                    <li>
-                      接下來將會有有 60 種特質顯示於畫面上，請依照你個人的判斷與感受，選出
-                      <span class="highlight">你重視的能力或特質</span>，請以第一直覺選擇。
-                    </li>
-                    <li>
-                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示你留下該重視的能力或特質。
-                    </li>
-                    <li>
-                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
-                    </li>
-                  </ul>
+                      ${i18n.global.t('playground.CareSelectDescription')}
+                      ${i18n.global.t('playground.PickupCardRuleCare')}
+                      ${i18n.global.t('playground.PickupCardRuleFinish')}
+                    </ul>
         `
       }
     case 'lj':
       return {
         coverImg: caseLj,
-        title: '我喜歡',
-        subtitle: '我喜歡的特質',
+        title: i18n.global.t('product.like'),
+        subtitle: i18n.global.t('playground.LikeSubTitle'),
         content: `<ul>
-                    <li>
-                      接下來將會有有 60 種喜歡做的事情顯示於畫面上，請依照你個人的判斷與感受，選出
-                      <span class="highlight">你喜歡做的事情</span>，請以第一直覺選擇。
-                    </li>
-                    <li>
-                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你喜歡做的事情。
-                    </li>
-                    <li>
-                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
-                    </li>
-                  </ul>`
+                      ${i18n.global.t('playground.LikeSelectDescription')}
+                      ${i18n.global.t('playground.PickupCardRuleLike')}
+                      ${i18n.global.t('playground.PickupCardRuleFinish')}
+                    </ul>
+        `
       }
     case 'le':
       return {
         coverImg: caseLe,
-        title: '我喜歡-國小版',
-        subtitle: '我喜歡的特質',
+        title: i18n.global.t('product.leTitle'),
+        subtitle: i18n.global.t('playground.LikeSubTitle'),
         content: `<ul>
-                    <li>
-                      接下來將會有有 60 種喜歡做的事情顯示於畫面上，請依照你個人的判斷與感受，選出
-                      <span class="highlight">你喜歡做的事情</span>，請以第一直覺選擇。
-                    </li>
-                    <li>
-                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你喜歡做的事情。
-                    </li>
-                    <li>
-                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
-                    </li>
-                  </ul>`
+                      ${i18n.global.t('playground.LikeSelectDescription')}
+                      ${i18n.global.t('playground.PickupCardRuleLike')}
+                      ${i18n.global.t('playground.PickupCardRuleFinish')}
+                    </ul>
+        `
       }
     case 'ce':
       return {
         coverImg: caseCe,
-        title: '我可以-國小版',
-        subtitle: '我可以做到的事情',
+        title: i18n.global.t('product.ceTitle'),
+        subtitle: i18n.global.t('playground.CanSubTitle'),
         content: `<ul>
-                    <li>
-                      接下來將會有有 60 種自己會或是做得到的敘述顯示於畫面上，請依照你個人的判斷與感受，選出
-                      <span class="highlight">自己會的或是做得到的事情</span>，請以第一直覺選擇。
-                    </li>
-                    <li>
-                      請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你可以做到的事情或能力。
-                    </li>
-                    <li>
-                      最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
-                    </li>
-                  </ul>`
+                      ${i18n.global.t('playground.CanSelectDescription')}
+                      ${i18n.global.t('playground.PickupCardRuleCan')}
+                      ${i18n.global.t('playground.PickupCardRuleFinish')}
+                    </ul>
+        `
       }
     case 'cj':
       return {
         coverImg: caseCj,
-        title: '我可以',
-        subtitle: '我可以做到的事情',
+        title: i18n.global.t('product.can'),
+        subtitle: i18n.global.t('playground.CanSubTitle'),
         content: `<ul>
-                      <li>
-                        接下來將會有有 60 種自己會或是做得到的敘述顯示於畫面上，請依照你個人的判斷與感受，選出
-                        <span class="highlight">自己會的或是做得到的事情</span>，請以第一直覺選擇。
-                      </li>
-                      <li>
-                        請在 5 分鐘內，<span class="highlight">點擊</span>卡牌可以將牌面翻開或蓋上，正面表示該卡片描述是你可以做到的事情或能力。
-                      </li>
-                      <li>
-                        最後按下<span class="highlight">「完成卡片選擇」</span>按鈕結束這一階段的測驗。
-                      </li>
-                    </ul>`
+                      ${i18n.global.t('playground.CanSelectDescription')}
+                      ${i18n.global.t('playground.PickupCardRuleCan')}
+                      ${i18n.global.t('playground.PickupCardRuleFinish')}
+                    </ul>
+        `
         }
   }
 }

@@ -102,6 +102,9 @@ import {
   setTimer
 } from '@/plugins/utils/countdown.js'
 import { handleAlert } from '@/plugins/utils/alert.js'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // 常量
 const CARDS_PER_PAGE = 8
@@ -163,7 +166,7 @@ const stopWatch = watch(remainingSeconds, (newValue) => {
     // TODO: 倒數結束後，需要做的事情
     handleAlert({
       auction: 'warning',
-      text: '時間到！請確認是否要繼續？'
+      text: t('playground.playgroundTimeOver')
     })
     stopWatch(); // 移除監聽器
   }
