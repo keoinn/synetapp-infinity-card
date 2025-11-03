@@ -10,6 +10,7 @@ import OrganizationSubAccountManagement from '@/components/admin/OrganizationSub
 import OrganizationCardInventory from '@/components/admin/OrganizationCardInventory.vue'
 import SubAccountCardInventory from '@/components/admin/SubAccountCardInventory.vue'
 import CounselorManagement from '@/components/admin/CounselorManagement.vue'
+import WorkshopManagement from '@/components/admin/WorkshopManagement.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const router = useRouter()
@@ -53,6 +54,11 @@ const menuItems = [
     title: t('admin.counselors'),
     icon: 'mdi-account-tie',
     value: 'counselors'
+  },
+  {
+    title: t('admin.workshop.title'),
+    icon: 'mdi-calendar-multiple-check',
+    value: 'workshops'
   },
   {
     title: t('admin.statistics'),
@@ -160,7 +166,8 @@ const handleLogout = () => {
                        activeTab === 'subAccounts' ? 'mdi-account-multiple' :
                        activeTab === 'subAccountCards' ? 'mdi-card-multiple' :
                        activeTab === 'cards' ? 'mdi-cards' :
-                       activeTab === 'counselors' ? 'mdi-account-tie' : 'mdi-chart-line'"
+                       activeTab === 'counselors' ? 'mdi-account-tie' :
+                       activeTab === 'workshops' ? 'mdi-calendar-multiple-check' : 'mdi-chart-line'"
               />
               {{ menuItems.find(item => item.value === activeTab)?.title }}
             </v-card-title>
@@ -173,6 +180,7 @@ const handleLogout = () => {
               <SubAccountCardInventory v-else-if="activeTab === 'subAccountCards'" />
               <OrganizationCardInventory v-else-if="activeTab === 'cards'" />
               <CounselorManagement v-else-if="activeTab === 'counselors'" />
+              <WorkshopManagement v-else-if="activeTab === 'workshops'" />
               <div
                 v-else
                 class="text-center py-10"
