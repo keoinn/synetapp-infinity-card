@@ -18,6 +18,17 @@ export const verifyTokenAPI = () => {
   return request
 }
 
+export const eventLoginAPI = ({event_code, account, password}) => {
+  const data = jsonapiEnc('event', Date.now(), {
+    event_code: event_code, 
+    identification: account, 
+    password: hashpwd(password), 
+    platform: 'PsyCard'
+  })
+  const request = requestInstance.post('psycard/event/login', data, JSONAPI_HEADER)
+  return request
+}
+
 export const registerAPI = ({email, password}) => {
   // 驗證參數
   if (!email || !password) {
@@ -29,8 +40,11 @@ export const registerAPI = ({email, password}) => {
   return request
 }
 
-export const getReportListAPI = (uid) => {
-  const data = jsonapiEnc('report', Date.now(), {own_id: uid})
+export const getReportListAPI = (uid, current_role) => {
+  const data = jsonapiEnc('report', Date.now(), {
+    role: current_role,
+    own_id: uid,
+  })
   const request = requestInstance.post('/psycard/report', data, JSONAPI_HEADER)
   return request
 }

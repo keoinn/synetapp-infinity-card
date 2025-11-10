@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
-import { registerAPI } from '@/plugins/utils/requests/api/backend'
+import { registerAPI, eventLoginAPI } from '@/plugins/utils/requests/api/backend'
 import { handleAlert } from '@/plugins/utils/alert'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -17,6 +17,8 @@ const password_confirm = ref('')
 const newAccount = ref(false)
 const error_detail = ref(null)
 const testing_status = ref(false)
+const isEventMode = ref(false)
+const eventCode = ref('')
 
 const login = async () => {
   // 驗證輸入
@@ -29,25 +31,91 @@ const login = async () => {
     return
   }
 
-  try{
-    const response = await appStore.login(account.value, password.value)
+  // 如果是活動登入模式，驗證活動代碼
+  if (isEventMode.value) {
+    if (!eventCode.value || !eventCode.value.trim()) {
+      error_detail.value = '請輸入活動代碼'
+      return
+    }
+  }
+
+  try {
+    let response
     
-    // 檢查登入是否成功
-    if (response.meta.code === '2000') {
-      // 登入成功，清空表單並跳轉
-      account.value = ''
-      password.value = ''
-      password_confirm.value = ''
-      error_detail.value = null
-      newAccount.value = false
-      router.push('/')
+    if (isEventMode.value) {
+      // 活動展演帳號登入
+      console.log('活動登入:', { event_code: eventCode.value, account: account.value })
+      response = await eventLoginAPI({
+        event_code: eventCode.value.trim(),
+        account: account.value.trim(),
+        password: password.value
+      })
+      console.log('活動登入回應:', response)
+      
+      // 檢查登入是否成功
+      if (response.meta.code === '2000') {
+        // 更新 app store 狀態
+        appStore.token = response.meta.token
+        appStore.refreshToken = response.meta.refresh_token
+        appStore.user_id = response.data.attributes.uid
+        // 保存完整的 role 數組（如果 API 返回的是數組）
+        let roleValue = response.data.attributes.role || null
+        // 如果是字符串，轉換為數組以便統一處理
+        if (typeof roleValue === 'string') {
+          roleValue = [roleValue]
+        }
+        // 如果為 null 或 undefined，設為空數組
+        if (!roleValue) {
+          roleValue = []
+        }
+        // 確保是數組格式
+        if (!Array.isArray(roleValue)) {
+          roleValue = []
+        }
+        appStore.role = roleValue
+        // 登入時自動設置 selectedRole 為 role 的第一個元素（用於顯示）
+        appStore.selectedRole = roleValue.length > 0 ? roleValue[0] : null
+        appStore.isLogin = true
+        
+        // 登入成功，清空表單並跳轉
+        account.value = ''
+        password.value = ''
+        password_confirm.value = ''
+        eventCode.value = ''
+        error_detail.value = null
+        newAccount.value = false
+        router.push('/')
+      } else {
+        // 登入失敗，顯示後端錯誤訊息
+        error_detail.value = response.meta.msg || response.meta.detail || '登入失敗，請稍後再試'
+      }
     } else {
-      // 登入失敗，顯示後端錯誤訊息
-      error_detail.value = response.meta.msg || '登入失敗，請稍後再試'
+      // 一般會員登入
+      response = await appStore.login(account.value, password.value)
+      
+      // 檢查登入是否成功
+      if (response.meta.code === '2000') {
+        // 登入成功，清空表單並跳轉
+        account.value = ''
+        password.value = ''
+        password_confirm.value = ''
+        error_detail.value = null
+        newAccount.value = false
+        router.push('/')
+      } else {
+        // 登入失敗，顯示後端錯誤訊息
+        error_detail.value = response.meta.msg || '登入失敗，請稍後再試'
+      }
     }
   } catch (error) {
-    console.log(error);
-    errorHandler(error)
+    console.log(error)
+    // 如果是活動登入模式，優先檢查是否有 meta.detail 或 meta.msg
+    if (isEventMode.value && error?.response?.data?.meta) {
+      const errorMeta = error.response.data.meta
+      error_detail.value = errorMeta.detail || errorMeta.msg || '活動登入失敗，請稍後再試'
+    } else {
+      errorHandler(error)
+    }
   }
   return false
 }
@@ -145,21 +213,96 @@ const errorHandler = (error_response) => {
 const inputAccountLabel = computed(() => {
   return newAccount.value ? t('common.email') : t('common.login')
 })
+
+// 從 URL 查詢參數初始化 isEventMode 和 eventCode
+onMounted(() => {
+  const query = router.currentRoute.value.query
+  isEventMode.value = query.mode === 'event'
+  // 同步 code 參數到 eventCode，如果 code 為 'null' 或不存在則保持空白
+  if (query.code && query.code !== 'null') {
+    eventCode.value = query.code
+  } else {
+    eventCode.value = ''
+  }
+})
+
+// 監聽路由變化，同步 isEventMode 和 eventCode
+watch(() => router.currentRoute.value.query.mode, (newMode) => {
+  isEventMode.value = newMode === 'event'
+})
+
+// 監聽 code 參數變化，同步到 eventCode
+watch(() => router.currentRoute.value.query.code, (newCode) => {
+  if (isEventMode.value) {
+    if (newCode && newCode !== 'null') {
+      eventCode.value = newCode
+    } else {
+      eventCode.value = ''
+    }
+  }
+})
+
+const toggleLoginMode = () => {
+  const currentQuery = { ...router.currentRoute.value.query }
+  
+  if (isEventMode.value) {
+    // 切換到會員登入：移除 mode 和 code 參數，清空活動代碼
+    isEventMode.value = false
+    eventCode.value = ''
+    const newQuery = { ...currentQuery }
+    delete newQuery.mode
+    delete newQuery.code
+    router.push({
+      path: router.currentRoute.value.path,
+      query: newQuery
+    })
+  } else {
+    // 切換到研討會登入：添加 mode 和 code 參數
+    isEventMode.value = true
+    router.push({
+      path: router.currentRoute.value.path,
+      query: {
+        ...currentQuery,
+        mode: 'event',
+        code: eventCode.value || 'null'
+      }
+    })
+  }
+}
 </script>
 
 <template>
   <div class="login-form-container">
     <div class="login-form">
       <v-card
-        class="mx-auto pa-12 pb-8"
+        class="mx-auto pa-12 pb-6"
         elevation="8"
         max-width="448"
         rounded="lg"
       >
         <form @submit.prevent="newAccount ? register() : login()">
+          <!-- 活動代碼輸入欄位（僅在 mode=event 時顯示） -->
+          <div
+            v-if="isEventMode && !newAccount"
+            class="mb-2"
+          >
+            <div class="text-subtitle-1 text-medium-emphasis mb-2">
+              活動代碼
+            </div>
+            <v-text-field
+              v-model="eventCode"
+              density="compact"
+              placeholder="請輸入活動代碼"
+              prepend-inner-icon="mdi-ticket-outline"
+              variant="outlined"
+              autocomplete="off"
+            />
+          </div>
+
           <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
             {{ inputAccountLabel }}
             <a
+              v-if="!isEventMode"
               class="text-caption text-decoration-none text-blue"
               href="#"
               rel="noopener noreferrer"
@@ -180,7 +323,7 @@ const inputAccountLabel = computed(() => {
           <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
             {{ t('common.password') }}
             <a
-              v-if="newAccount === false"
+              v-if="newAccount === false && !isEventMode"
               class="text-caption text-decoration-none text-blue"
               href="#"
               rel="noopener noreferrer"
@@ -243,7 +386,7 @@ const inputAccountLabel = computed(() => {
           </v-card>
 
           <v-btn
-            class="mb-8"
+            class="mb-1"
             color="#fa5015"
             size="large"
             variant="tonal"
@@ -251,6 +394,19 @@ const inputAccountLabel = computed(() => {
             type="submit"
             :text="newAccount ? t('common.register') : t('common.login')"
           />
+          
+          <div
+            v-if="!newAccount"
+            class="d-flex justify-start mb-4"
+          >
+            <a
+              class="text-caption text-decoration-none text-blue"
+              href="#"
+              @click.prevent="toggleLoginMode"
+            >
+              >> {{ isEventMode ? '會員登入' : '研討會登入' }}
+            </a>
+          </div>
         </form>
       </v-card>
     </div>

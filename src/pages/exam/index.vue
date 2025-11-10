@@ -16,7 +16,7 @@ const examProcessStore = useExamProcessStore()
 onMounted(async () => {
   try {
     examProcessStore.resetStore()
-    const res = await getReportListAPI(appStore.user_id)
+    const res = await getReportListAPI(appStore.user_id, appStore.selectedRole)
     
     if (res && res.data && res.data.attributes && res.data.attributes.report_list) {
       reportList.value = res.data.attributes.report_list

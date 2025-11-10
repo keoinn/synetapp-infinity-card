@@ -8,6 +8,8 @@ export const useAppStore = defineStore('app', {
     token: null,
     refreshToken: null,
     user_id: null,
+    role: null,
+    selectedRole: null, // 用戶選擇的身份別
     locale: 'zh-TW',
   }),
   actions: {
@@ -33,6 +35,23 @@ export const useAppStore = defineStore('app', {
         this.token = response.meta.token
         this.refreshToken = response.meta.refresh_token
         this.user_id = response.data.attributes.uid
+        // 保存完整的 role 數組（如果 API 返回的是數組）
+        let roleValue = response.data.attributes.role || null
+        // 如果是字符串，轉換為數組以便統一處理
+        if (typeof roleValue === 'string') {
+          roleValue = [roleValue]
+        }
+        // 如果為 null 或 undefined，設為空數組
+        if (!roleValue) {
+          roleValue = []
+        }
+        // 確保是數組格式
+        if (!Array.isArray(roleValue)) {
+          roleValue = []
+        }
+        this.role = roleValue
+        // 登入時自動設置 selectedRole 為 role 的第一個元素（用於顯示）
+        this.selectedRole = roleValue.length > 0 ? roleValue[0] : null
         this.isLogin = true
         return response
       } else {
@@ -55,6 +74,8 @@ export const useAppStore = defineStore('app', {
         this.token = null
         this.refreshToken = null
         this.user_id = null
+        this.role = null
+        this.selectedRole = null
       })
     }
   },

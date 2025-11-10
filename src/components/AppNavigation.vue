@@ -95,48 +95,66 @@ watchEffect(() => {
 
 const appStore = useAppStore()
 
+// 獲取當前角色（優先使用 selectedRole，否則使用 role）
+const currentRole = computed(() => {
+  // 處理 role 可能是數組的情況
+  let roleValue = appStore.selectedRole || appStore.role || null
+  
+  // 如果是數組，取第一個元素
+  if (Array.isArray(roleValue)) {
+    roleValue = roleValue.length > 0 ? roleValue[0] : null
+  }
+  
+  return roleValue
+})
+
+// 判斷是否為會員角色
+const isMember = computed(() => {
+  return currentRole.value === 'member'
+})
+
 const navItems = computed(() => [
   {
     value: 'exam',
     icon: 'mdi-cards-playing',
     text: t('navigation.exam'),
     path: '/exam',
-    show: true
+    show: true // 所有角色都顯示
   },
   {
     value: 'inventory',
     icon: 'mdi-account',
     text: t('navigation.createExam'),
     path: '/inventory',
-    show: true
+    show: isMember.value // 只有會員顯示
   },
   {
     value: 'user',
     icon: 'mdi-text-box-edit-outline',
     text: t('navigation.editProfile'),
     path: '/user',
-    show: true
+    show: isMember.value // 只有會員顯示
   },
   {
     value: 'shop',
     icon: 'mdi-shopping-outline',
     text: t('navigation.buyCards'),
     path: '/shop',
-    show: true
+    show: isMember.value // 只有會員顯示
   },
   {
     value: 'cart',
     icon: 'mdi-cart-outline',
     text: t('navigation.cart'),
     path: '/cart',
-    show: true
+    show: isMember.value // 只有會員顯示
   },
   {
     value: 'logout',
     icon: 'mdi-logout',
     text: t('navigation.logout'),
     path: '/logout',
-    show: true
+    show: true // 所有角色都顯示
   }
 ])
 

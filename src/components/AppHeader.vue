@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
@@ -11,18 +11,30 @@ const router = useRouter()
 const cartStore = useCartStore()
 const { t } = useI18n()
 
-// 當前身份
-const currentRole = ref('user')
-
-// 用戶身份列表
-const userRoles = ref([
+// 所有可用的身份列表
+const allUserRoles = [
   {
     value: 'user',
     title: t('admin.userRole'),
     icon: 'mdi-account'
   },
   {
+    value: 'member',
+    title: '會員',
+    icon: 'mdi-account'
+  },
+  {
+    value: 'subaccount',
+    title: '子帳號',
+    icon: 'mdi-account-multiple'
+  },
+  {
     value: 'org',
+    title: t('admin.orgRole'),
+    icon: 'mdi-office-building'
+  },
+  {
+    value: 'organization',
     title: t('admin.orgRole'),
     icon: 'mdi-office-building'
   },
@@ -35,11 +47,73 @@ const userRoles = ref([
     value: 'admin',
     title: t('admin.adminRole'),
     icon: 'mdi-shield-account'
+  },
+  {
+    value: 'demo_account',
+    title: '展演帳號',
+    icon: 'mdi-account-star'
   }
-])
+]
+
+// 獲取用戶實際擁有的角色（處理數組格式）
+const userAvailableRoles = computed(() => {
+  let roles = appStore.role || []
+  
+  // 如果是字符串，轉換為數組
+  if (typeof roles === 'string') {
+    roles = [roles]
+  }
+  
+  // 如果不是數組，返回空數組
+  if (!Array.isArray(roles)) {
+    return []
+  }
+  
+  return roles
+})
+
+// 檢查是否有機構角色（organization 或 org）
+const hasOrganizationRole = computed(() => {
+  return userAvailableRoles.value.includes('organization') || 
+         userAvailableRoles.value.includes('org')
+})
+
+// 過濾出用戶可用的角色列表（排除 admin，因為 admin 不應該在選擇列表中顯示）
+const userRoles = computed(() => {
+  return allUserRoles.filter(role => 
+    userAvailableRoles.value.includes(role.value) && 
+    role.value !== 'admin' // 排除 admin 角色
+  )
+})
+
+// 當前選擇的身份別（優先使用 selectedRole，否則使用 role）
+const currentRole = computed(() => {
+  // 處理 role 可能是數組的情況
+  let roleValue = appStore.selectedRole || appStore.role || 'user'
+  
+  // 如果是數組，取第一個元素
+  if (Array.isArray(roleValue)) {
+    roleValue = roleValue.length > 0 ? roleValue[0] : 'user'
+  }
+  
+  // 確保返回字符串
+  return String(roleValue || 'user')
+})
+
+// 獲取當前身份的顯示文字
+const currentRoleTitle = computed(() => {
+  const role = userRoles.value.find(r => r.value === currentRole.value)
+  return role ? role.title : String(currentRole.value)
+})
+
+// 獲取當前身份的圖標
+const currentRoleIcon = computed(() => {
+  const role = userRoles.value.find(r => r.value === currentRole.value)
+  return role ? role.icon : 'mdi-account'
+})
 
 const switchRole = (role) => {
-  currentRole.value = role
+  appStore.selectedRole = role
   console.log('切換身份為:', role)
   // 可以在這裡添加切換身份的邏輯
 }
@@ -113,20 +187,29 @@ const handleLogout = () => {
       {{ t('common.login') }}
     </v-btn>
 
-    <!-- 身份選擇 (已登入時顯示) -->
+    <!-- 身份選擇與顯示 (已登入時顯示) -->
     <v-menu
-      v-if="appStore.isLogin"
+      v-if="appStore.isLogin && currentRole"
       location="bottom end"
       class="mr-6"
     >
       <template #activator="{ props }">
-        <v-btn
+        <v-chip
           v-bind="props"
-          icon
-          variant="text"
+          :prepend-icon="currentRoleIcon"
+          color="primary"
+          variant="outlined"
+          size="small"
+          class="cursor-pointer"
         >
-          <v-icon>mdi-account-circle-outline</v-icon>
-        </v-btn>
+          {{ currentRoleTitle }}
+          <v-icon
+            size="small"
+            class="ml-1"
+          >
+            mdi-chevron-down
+          </v-icon>
+        </v-chip>
       </template>
       <v-list>
         <v-list-item
@@ -140,8 +223,12 @@ const handleLogout = () => {
           </template>
           <v-list-item-title>{{ role.title }}</v-list-item-title>
         </v-list-item>
-        <v-divider class="my-2" />
+        <v-divider
+          v-if="hasOrganizationRole"
+          class="my-2"
+        />
         <v-list-item
+          v-if="hasOrganizationRole"
           value="admin-panel"
           @click="router.push('/admin')"
         >
@@ -234,5 +321,9 @@ const handleLogout = () => {
   margin-left: 20px;
   color: rgba(0, 0, 0, 0.87);
   opacity: 0.8;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>
