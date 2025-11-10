@@ -1,82 +1,131 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { handleAlert } from '@/plugins/utils/alert'
+import { getCounselorListAPI, createCounselorAPI, updateCounselorAPI } from '@/plugins/utils/requests/api/backend'
 
 const { t } = useI18n()
 
 const search = ref('')
 const headers = ref([
-  { title: t('admin.counselorName'), key: 'name' },
-  { title: t('admin.licenseNumber'), key: 'licenseNumber' },
+  { title: t('admin.counselor.counselorCode'), key: 'code' },
+  { title: t('admin.counselor.name'), key: 'name' },
+  { title: t('admin.counselor.accountType'), key: 'accountType' },
   { title: t('admin.email'), key: 'email' },
   { title: t('admin.phone'), key: 'phone' },
-  { title: t('admin.specialty'), key: 'specialty' },
   { title: t('admin.status'), key: 'status' },
   { title: t('admin.actions'), key: 'actions', sortable: false }
 ])
 
-const counselors = ref([
-  {
-    id: 1,
-    name: '王心理師',
-    licenseNumber: 'CP0001',
-    email: 'counselor1@example.com',
-    phone: '0912-345-678',
-    specialty: '青少年諮商、生涯規劃',
-    status: t('admin.active'),
-    statusColor: 'success',
-    organization: '台北市諮商中心',
-    licenseType: '心理師',
-    licenseExpiry: '2025-12-31',
-    experience: '5年',
-    education: '國立台灣大學心理學系碩士'
-  },
-  {
-    id: 2,
-    name: '李諮商師',
-    licenseNumber: 'CP0002',
-    email: 'counselor2@example.com',
-    phone: '0923-456-789',
-    specialty: '情緒管理、壓力調適',
-    status: t('admin.active'),
-    statusColor: 'success',
-    organization: '新北市諮商中心',
-    licenseType: '諮商心理師',
-    licenseExpiry: '2026-06-30',
-    experience: '8年',
-    education: '國立師範大學心理諮商系碩士'
-  },
-  {
-    id: 3,
-    name: '張心理師',
-    licenseNumber: 'CP0003',
-    email: 'counselor3@example.com',
-    phone: '0934-567-890',
-    specialty: '家庭諮商、親職教育',
-    status: t('admin.inactive'),
-    statusColor: 'warning',
-    organization: '台中市諮商中心',
-    licenseType: '臨床心理師',
-    licenseExpiry: '2024-12-31',
-    experience: '10年',
-    education: '國立中正大學心理學系博士'
+const counselors = ref([])
+const loading = ref(false)
+
+// 將後端諮商師資料映射到前端格式
+const mapCounselorData = (backendCounselor) => {
+  const counselorCode = backendCounselor.counselor_code || ''
+  return {
+    id: backendCounselor.id || null,
+    userId: backendCounselor.user_id || null,
+    code: counselorCode,
+    counselorCode: counselorCode, // 同時映射為 counselorCode 供表單使用
+    accountType: backendCounselor.type || '1', // '0' = 觀察者, '1' = 諮商師
+    name: backendCounselor.name || '',
+    email: backendCounselor.email || '',
+    phone: backendCounselor.phone || '',
+    specialty: backendCounselor.domain || '',
+    education: backendCounselor.education || '',
+    status: backendCounselor.st === '1' ? t('admin.active') : t('admin.inactive'),
+    statusColor: backendCounselor.st === '1' ? 'success' : 'warning',
+    account: backendCounselor.account || '',
+    createdAt: backendCounselor.created_at || null,
+    updatedAt: backendCounselor.updated_at || null
   }
-])
+}
+
+// 載入諮商師列表
+const loadCounselors = async () => {
+  loading.value = true
+  try {
+    console.log('載入諮商師列表...')
+    const response = await getCounselorListAPI()
+    console.log('載入諮商師列表回應:', response)
+    
+    // 解析 API 回應
+    // API 回應格式：{ data: { attributes: { counselor_list: [...] } } }
+    let counselorList = []
+    
+    // 優先檢查 data.attributes.counselor_list（標準格式）
+    if (response?.data?.attributes?.counselor_list) {
+      counselorList = response.data.attributes.counselor_list
+      console.log('從 response.data.attributes.counselor_list 取得資料')
+    } 
+    // 檢查 attributes.counselor_list（攔截器已解包的情況）
+    else if (response?.attributes?.counselor_list) {
+      counselorList = response.attributes.counselor_list
+      console.log('從 response.attributes.counselor_list 取得資料')
+    } 
+    // 其他可能的格式
+    else if (response?.counselor_list) {
+      counselorList = response.counselor_list
+      console.log('從 response.counselor_list 取得資料')
+    } else if (Array.isArray(response)) {
+      counselorList = response
+      console.log('從 response 陣列取得資料')
+    } else if (response?.data && Array.isArray(response.data)) {
+      counselorList = response.data
+      console.log('從 response.data 陣列取得資料')
+    }
+    
+    console.log('解析後的 counselorList:', counselorList)
+    
+    if (Array.isArray(counselorList)) {
+      counselors.value = counselorList.map(mapCounselorData)
+      console.log('載入完成，共', counselors.value.length, '筆諮商師資料')
+      if (counselors.value.length === 0) {
+        console.log('目前沒有諮商師資料')
+      }
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      handleAlert({
+        auction: 'error',
+        text: t('admin.loadCounselorsError') || '載入諮商師列表失敗'
+      })
+      counselors.value = []
+    }
+  } catch (error) {
+    console.error('載入諮商師列表錯誤:', error)
+    const errorMessage = error?.response?.data?.meta?.detail || 
+                        error?.response?.data?.message || 
+                        error?.message || 
+                        t('admin.loadCounselorsError') || 
+                        '載入諮商師列表失敗'
+    handleAlert({
+      auction: 'error',
+      text: errorMessage
+    })
+    counselors.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 初始化載入
+onMounted(() => {
+  loadCounselors()
+})
 
 const editedItem = ref({
   id: null,
-  name: '',
-  licenseNumber: '',
+  account: '', // 帳號
   email: '',
+  accountType: '0', // 帳號類型：0 = 觀察者, 1 = 諮商師
+  counselorCode: '', // 諮商師代碼
+  name: '',
   phone: '',
   specialty: '',
+  education: '',
   status: t('admin.active'),
-  statusColor: 'success',
-  organization: '',
-  licenseType: '',
-  licenseExpiry: '',
-  experience: '',
-  education: ''
+  statusColor: 'success'
 })
 const dialog = ref(false)
 const editMode = ref(false)
@@ -87,18 +136,16 @@ const addCounselor = () => {
   editMode.value = false
   editedItem.value = {
     id: null,
-    name: '',
-    licenseNumber: '',
+    account: '',
     email: '',
+    accountType: '0', // 預設為觀察者
+    counselorCode: '',
+    name: '',
     phone: '',
     specialty: '',
+    education: '',
     status: t('admin.active'),
-    statusColor: 'success',
-    organization: '',
-    licenseType: '',
-    licenseExpiry: '',
-    experience: '',
-    education: ''
+    statusColor: 'success'
   }
   dialog.value = true
 }
@@ -121,20 +168,148 @@ const deleteCounselor = (item) => {
   }
 }
 
-const saveCounselor = () => {
+const saving = ref(false)
+
+const saveCounselor = async () => {
+  // 驗證必填欄位
+  if (!editedItem.value.account || !editedItem.value.email || !editedItem.value.name) {
+    handleAlert({
+      auction: 'error',
+      text: t('admin.fillRequiredFields') || '請填寫必填欄位'
+    })
+    return
+  }
+
   if (editMode.value) {
-    const index = counselors.value.findIndex(c => c.id === editedItem.value.id)
-    if (index > -1) {
-      counselors.value[index] = { ...editedItem.value }
+    // 編輯模式 - 調用 API 更新諮商師
+    if (!editedItem.value.id) {
+      handleAlert({
+        auction: 'error',
+        text: t('admin.invalidCounselor') || '無效的諮商師資料'
+      })
+      return
+    }
+
+    saving.value = true
+    try {
+      console.log('開始更新諮商師...')
+      console.log('諮商師 ID:', editedItem.value.id)
+      console.log('表單資料:', editedItem.value)
+      
+      // 將前端的 status 轉換為後端的 st ('1' = 啟用, '0' = 停用)
+      const st = editedItem.value.status === t('admin.active') ? '1' : '0'
+      
+      // 準備 API 參數（根據 request example，不包含 email）
+      const apiParams = {
+        type: editedItem.value.accountType || '0', // '0' = 觀察者, '1' = 諮商師
+        name: editedItem.value.name,
+        phone: editedItem.value.phone || '',
+        domain: editedItem.value.specialty || '', // 專業領域
+        education: editedItem.value.education || '',
+        st: st
+      }
+      
+      console.log('更新諮商師 API 參數:', apiParams)
+      
+      const response = await updateCounselorAPI(editedItem.value.id, apiParams)
+      console.log('更新諮商師 API 回應:', response)
+      
+      // 解析 API 回應
+      const responseCode = response?.meta?.code || response?.data?.meta?.code
+      const responseStatus = response?.meta?.status || response?.data?.meta?.status
+      const responseDetail = response?.meta?.detail || response?.data?.meta?.detail
+      
+      // 檢查是否成功（通常 code 2005 或 status 200 表示成功）
+      if (responseCode === '2005' || responseStatus === '200') {
+        handleAlert({
+          auction: 'success',
+          text: responseDetail || t('admin.counselorUpdated') || '諮商師更新成功'
+        })
+        
+        // 關閉對話框
+        dialog.value = false
+        
+        // 重新載入諮商師列表
+        await loadCounselors()
+      } else {
+        throw new Error(responseDetail || '更新諮商師失敗')
+      }
+    } catch (error) {
+      console.error('更新諮商師錯誤:', error)
+      const errorMessage = error?.response?.data?.meta?.detail || 
+                          error?.response?.data?.message || 
+                          error?.message || 
+                          t('admin.counselorUpdateFailed') || 
+                          '更新諮商師失敗'
+      handleAlert({
+        auction: 'error',
+        text: errorMessage
+      })
+    } finally {
+      saving.value = false
     }
   } else {
-    const newId = Math.max(...counselors.value.map(c => c.id), 0) + 1
-    counselors.value.push({
-      ...editedItem.value,
-      id: newId
-    })
+    // 新增模式 - 調用 API 創建諮商師
+    saving.value = true
+    try {
+      console.log('開始創建諮商師...')
+      console.log('表單資料:', editedItem.value)
+      
+      // 將前端的 status 轉換為後端的 st ('1' = 啟用, '0' = 停用)
+      const st = editedItem.value.status === t('admin.active') ? '1' : '0'
+      
+      // 準備 API 參數
+      const apiParams = {
+        account: editedItem.value.account,
+        email: editedItem.value.email,
+        name: editedItem.value.name,
+        type: editedItem.value.accountType || '1', // '0' = 觀察者, '1' = 諮商師
+        phone: editedItem.value.phone || '',
+        domain: editedItem.value.specialty || '', // 專業領域
+        education: editedItem.value.education || '',
+        st: st
+      }
+      
+      console.log('創建諮商師 API 參數:', apiParams)
+      
+      const response = await createCounselorAPI(apiParams)
+      console.log('創建諮商師 API 回應:', response)
+      
+      // 解析 API 回應
+      const responseCode = response?.meta?.code || response?.data?.meta?.code
+      const responseStatus = response?.meta?.status || response?.data?.meta?.status
+      const responseDetail = response?.meta?.detail || response?.data?.meta?.detail
+      
+      // 檢查是否成功（通常 code 2005 或 status 200 表示成功）
+      if (responseCode === '2005' || responseStatus === '200') {
+        handleAlert({
+          auction: 'success',
+          text: responseDetail || t('admin.counselorCreated') || '諮商師創建成功'
+        })
+        
+        // 關閉對話框
+        dialog.value = false
+        
+        // 重新載入諮商師列表
+        await loadCounselors()
+      } else {
+        throw new Error(responseDetail || '創建諮商師失敗')
+      }
+    } catch (error) {
+      console.error('創建諮商師錯誤:', error)
+      const errorMessage = error?.response?.data?.meta?.detail || 
+                          error?.response?.data?.message || 
+                          error?.message || 
+                          t('admin.counselorCreateFailed') || 
+                          '創建諮商師失敗'
+      handleAlert({
+        auction: 'error',
+        text: errorMessage
+      })
+    } finally {
+      saving.value = false
+    }
   }
-  dialog.value = false
 }
 
 const filteredCounselors = computed(() => {
@@ -144,29 +319,29 @@ const filteredCounselors = computed(() => {
   const searchLower = search.value.toLowerCase()
   return counselors.value.filter(counselor =>
     counselor.name.toLowerCase().includes(searchLower) ||
-    counselor.licenseNumber.toLowerCase().includes(searchLower) ||
+    (counselor.code || counselor.counselorCode || counselor.licenseNumber || '').toLowerCase().includes(searchLower) ||
     counselor.email.toLowerCase().includes(searchLower) ||
-    counselor.specialty.toLowerCase().includes(searchLower)
+    (counselor.specialty || '').toLowerCase().includes(searchLower)
   )
 })
 
 const stats = computed(() => [
   {
-    title: t('admin.totalCounselors'),
+    title: t('admin.counselor.totalCounselorsAndObservers') || '諮商師/觀察者總數',
     value: counselors.value.length,
-    icon: 'mdi-account-tie',
+    icon: 'mdi-account-group',
     color: 'primary'
   },
   {
-    title: t('admin.activeCounselors'),
-    value: counselors.value.filter(c => c.status === t('admin.active')).length,
-    icon: 'mdi-check-circle',
+    title: t('admin.counselor.totalCounselors') || '諮商師總數',
+    value: counselors.value.filter(c => c.accountType === '1').length,
+    icon: 'mdi-account-tie',
     color: 'success'
   },
   {
-    title: t('admin.licensedCounselors'),
-    value: counselors.value.length,
-    icon: 'mdi-certificate',
+    title: t('admin.counselor.totalObservers') || '觀察者總數',
+    value: counselors.value.filter(c => c.accountType === '0').length,
+    icon: 'mdi-account-eye',
     color: 'info'
   }
 ])
@@ -259,8 +434,23 @@ const licenseTypeOptions = [
       :headers="headers"
       :items="filteredCounselors"
       :search="search"
+      :loading="loading"
       class="elevation-1"
     >
+      <template #item.code="{ item }">
+        {{ item.code || item.counselorCode || item.licenseNumber || '-' }}
+      </template>
+
+      <template #item.accountType="{ item }">
+        <v-chip
+          :color="item.accountType === '1' ? 'primary' : 'default'"
+          size="small"
+          variant="flat"
+        >
+          {{ item.accountType === '1' ? (t('admin.counselor.counselor') || '諮商師') : (t('admin.counselor.observer') || '觀察者') }}
+        </v-chip>
+      </template>
+
       <template #item.status="{ item }">
         <v-chip
           :color="item.statusColor"
@@ -268,12 +458,6 @@ const licenseTypeOptions = [
         >
           {{ item.status }}
         </v-chip>
-      </template>
-
-      <template #item.specialty="{ item }">
-        <div class="text-caption">
-          {{ item.specialty }}
-        </div>
       </template>
 
       <template #item.actions="{ item }">
@@ -288,13 +472,6 @@ const licenseTypeOptions = [
           size="small"
           variant="text"
           @click="editCounselor(item)"
-        />
-        <v-btn
-          icon="mdi-delete"
-          size="small"
-          variant="text"
-          color="error"
-          @click="deleteCounselor(item)"
         />
       </template>
     </v-data-table>
@@ -312,34 +489,19 @@ const licenseTypeOptions = [
         <v-divider />
         <v-card-text>
           <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="editedItem.name"
-                :label="t('admin.counselorName')"
-                variant="outlined"
-                required
-              />
-            </v-col>
+            <!-- 第一行：帳號、電子信箱 -->
             <v-col
               cols="12"
               md="6"
             >
               <v-text-field
-                v-model="editedItem.licenseNumber"
-                :label="t('admin.licenseNumber')"
+                v-model="editedItem.account"
+                :label="t('admin.userName') || '帳號'"
                 variant="outlined"
+                :disabled="editMode"
+                :hint="editMode ? t('admin.counselor.cannotModifyAccount'): ''"
+                persistent-hint
                 required
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <v-select
-                v-model="editedItem.licenseType"
-                :items="licenseTypeOptions"
-                :label="t('admin.licenseType')"
-                variant="outlined"
               />
             </v-col>
             <v-col
@@ -350,6 +512,50 @@ const licenseTypeOptions = [
                 v-model="editedItem.email"
                 :label="t('admin.email')"
                 type="email"
+                variant="outlined"
+                :disabled="editMode"
+                :hint="editMode ? t('admin.counselor.cannotModifyEmail'): ''"
+                persistent-hint
+                required
+              />
+            </v-col>
+            <!-- 第二行：帳號類型、諮商師代碼 -->
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-select
+                v-model="editedItem.accountType"
+                :items="[
+                  { title: t('admin.counselor.observer'), value: '0' },
+                  { title: t('admin.counselor.counselor'), value: '1' }
+                ]"
+                :label="t('admin.counselor.accountType')"
+                variant="outlined"
+                required
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                v-model="editedItem.counselorCode"
+                :label="t('admin.counselor.counselorCode')"
+                variant="outlined"
+                disabled
+                :hint="t('admin.counselor.cannotModifyCounselorCode')"
+                persistent-hint
+              />
+            </v-col>
+            <!-- 第三行：姓名、電話 -->
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                v-model="editedItem.name"
+                :label="t('admin.counselorName')"
                 variant="outlined"
                 required
               />
@@ -364,50 +570,25 @@ const licenseTypeOptions = [
                 variant="outlined"
               />
             </v-col>
+            <!-- 第四行：專業領域（文字區域） -->
             <v-col cols="12">
               <v-textarea
                 v-model="editedItem.specialty"
                 :label="t('admin.specialty')"
                 variant="outlined"
-                rows="2"
+                rows="3"
               />
             </v-col>
-            <v-col cols="12">
-              <v-text-field
-                v-model="editedItem.organization"
-                :label="t('admin.organization')"
-                variant="outlined"
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <v-text-field
-                v-model="editedItem.licenseExpiry"
-                :label="t('admin.licenseExpiry')"
-                type="date"
-                variant="outlined"
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <v-text-field
-                v-model="editedItem.experience"
-                :label="t('admin.experience')"
-                variant="outlined"
-              />
-            </v-col>
+            <!-- 第五行：學歷（文字區域） -->
             <v-col cols="12">
               <v-textarea
                 v-model="editedItem.education"
                 :label="t('admin.education')"
                 variant="outlined"
-                rows="2"
+                rows="3"
               />
             </v-col>
+            <!-- 第六行：狀態 -->
             <v-col cols="12">
               <v-select
                 v-model="editedItem.status"
@@ -430,6 +611,8 @@ const licenseTypeOptions = [
           <v-btn
             color="primary"
             variant="text"
+            :loading="saving"
+            :disabled="saving"
             @click="saveCounselor"
           >
             {{ t('common.save') }}

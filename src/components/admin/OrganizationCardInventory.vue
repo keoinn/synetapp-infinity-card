@@ -1,53 +1,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import CardCaseInventory from '@/components/inventory/CardCaseInventory.vue'
+import { handleAlert } from '@/plugins/utils/alert'
+import { getOrgCardInventoryAdminAPI, updateOrgCardInventoryAdminAPI } from '@/plugins/utils/requests/api/backend'
 
 const { t } = useI18n()
 
 // 機構列表
 const selectedOrg = ref(null)
-const organizations = ref([
-  {
-    id: 1,
-    name: '台北市政府教育局',
-    code: 'ORG001',
-    inventory: {
-      goal: 10,
-      care: 8,
-      ce: 5,
-      cj: 6,
-      lj: 4,
-      le: 7
-    }
-  },
-  {
-    id: 2,
-    name: '新北市教育局',
-    code: 'ORG002',
-    inventory: {
-      goal: 15,
-      care: 12,
-      ce: 9,
-      cj: 8,
-      lj: 10,
-      le: 11
-    }
-  },
-  {
-    id: 3,
-    name: '台中市政府教育局',
-    code: 'ORG003',
-    inventory: {
-      goal: 0,
-      care: 0,
-      ce: 0,
-      cj: 0,
-      lj: 0,
-      le: 0
-    }
-  }
-])
+const organizations = ref([])
+const orgLoading = ref(false)
+const inventoryLoading = ref(false)
 
 // 當前選擇的機構庫存
 const currentInventory = ref({
@@ -59,9 +22,157 @@ const currentInventory = ref({
   le: 0
 })
 
+// 將後端庫存資料映射到前端格式
+const mapInventoryData = (backendInventory) => {
+  return {
+    id: backendInventory.org_id || backendInventory.id,
+    name: backendInventory.org_name || '',
+    code: backendInventory.org_code || '',
+    inventory: {
+      goal: parseInt(backendInventory.goal || '0', 10),
+      care: parseInt(backendInventory.care || '0', 10),
+      ce: parseInt(backendInventory.ce || '0', 10),
+      cj: parseInt(backendInventory.cj || '0', 10),
+      lj: parseInt(backendInventory.lj || '0', 10),
+      le: parseInt(backendInventory.le || '0', 10)
+    }
+  }
+}
+
+// 載入所有機構列表
+const loadOrganizations = async () => {
+  orgLoading.value = true
+  try {
+    console.log('載入所有機構列表...')
+    const response = await getOrgCardInventoryAdminAPI('all')
+    console.log('載入機構列表回應:', response)
+    
+    // 解析 API 回應
+    // API 回應格式：{ data: { attributes: { org_card_inventory_detail: [...] } } }
+    // 攔截器解包後：{ attributes: { org_card_inventory_detail: [...] } }
+    let inventoryList = []
+    
+    if (response?.data?.attributes?.org_card_inventory_detail) {
+      inventoryList = response.data.attributes.org_card_inventory_detail
+    } else if (response?.attributes?.org_card_inventory_detail) {
+      inventoryList = response.attributes.org_card_inventory_detail
+    } else if (response?.org_card_inventory_detail) {
+      inventoryList = response.org_card_inventory_detail
+    } else if (Array.isArray(response)) {
+      inventoryList = response
+    }
+    
+    if (Array.isArray(inventoryList) && inventoryList.length > 0) {
+      organizations.value = inventoryList.map(mapInventoryData)
+      console.log('載入完成，共', organizations.value.length, '筆機構資料')
+      
+      // 如果有機構且未選擇，自動選擇第一個
+      if (organizations.value.length > 0 && !selectedOrg.value) {
+        await selectOrganization(organizations.value[0])
+      }
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      handleAlert({
+        auction: 'error',
+        text: t('admin.loadOrganizationsError') || '載入機構資料失敗'
+      })
+      organizations.value = []
+    }
+  } catch (error) {
+    console.error('載入機構列表錯誤:', error)
+    handleAlert({
+      auction: 'error',
+      text: t('admin.loadOrganizationsError') || '載入機構資料失敗'
+    })
+    organizations.value = []
+  } finally {
+    orgLoading.value = false
+  }
+}
+
+// 載入指定機構的庫存
+const loadOrgInventory = async (orgId) => {
+  if (!orgId) {
+    currentInventory.value = {
+      goal: 0,
+      care: 0,
+      ce: 0,
+      cj: 0,
+      lj: 0,
+      le: 0
+    }
+    return
+  }
+
+  inventoryLoading.value = true
+  try {
+    console.log('載入機構庫存...', orgId)
+    const response = await getOrgCardInventoryAdminAPI(orgId)
+    console.log('載入機構庫存回應:', response)
+    
+    // 解析 API 回應
+    let inventoryList = []
+    
+    if (response?.data?.attributes?.org_card_inventory_detail) {
+      inventoryList = response.data.attributes.org_card_inventory_detail
+    } else if (response?.attributes?.org_card_inventory_detail) {
+      inventoryList = response.attributes.org_card_inventory_detail
+    } else if (response?.org_card_inventory_detail) {
+      inventoryList = response.org_card_inventory_detail
+    } else if (Array.isArray(response)) {
+      inventoryList = response
+    }
+    
+    if (Array.isArray(inventoryList) && inventoryList.length > 0) {
+      const inventoryData = mapInventoryData(inventoryList[0])
+      currentInventory.value = { ...inventoryData.inventory }
+      
+      // 更新機構列表中的庫存資料
+      const orgIndex = organizations.value.findIndex(org => org.id === inventoryData.id)
+      if (orgIndex !== -1) {
+        organizations.value[orgIndex].inventory = { ...currentInventory.value }
+        // 如果當前選擇的機構是這個，也要更新
+        if (selectedOrg.value?.id === inventoryData.id) {
+          selectedOrg.value.inventory = { ...currentInventory.value }
+        }
+      }
+      
+      console.log('載入完成，機構庫存:', currentInventory.value)
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      // 如果沒有資料，設為全 0
+      currentInventory.value = {
+        goal: 0,
+        care: 0,
+        ce: 0,
+        cj: 0,
+        lj: 0,
+        le: 0
+      }
+    }
+  } catch (error) {
+    console.error('載入機構庫存錯誤:', error)
+    handleAlert({
+      auction: 'error',
+      text: t('admin.loadInventoryError') || '載入機構庫存失敗'
+    })
+    currentInventory.value = {
+      goal: 0,
+      care: 0,
+      ce: 0,
+      cj: 0,
+      lj: 0,
+      le: 0
+    }
+  } finally {
+    inventoryLoading.value = false
+  }
+}
+
 const dialog = ref(false)
 const editingCardSet = ref(null)
 const editQuantity = ref(0)
+const saving = ref(false)
 
 // 卡組類型列表
 const cardSets = [
@@ -74,9 +185,10 @@ const cardSets = [
 ]
 
 // 選擇機構時更新庫存
-const selectOrganization = (org) => {
+const selectOrganization = async (org) => {
   selectedOrg.value = org
-  currentInventory.value = { ...org.inventory }
+  // 載入該機構的最新庫存
+  await loadOrgInventory(org.id)
 }
 
 // 編輯庫存
@@ -87,8 +199,30 @@ const editInventory = (cardSet) => {
 }
 
 // 儲存庫存變更
-const saveInventory = () => {
-  if (selectedOrg.value && editingCardSet.value) {
+const saveInventory = async () => {
+  if (!selectedOrg.value || !editingCardSet.value) {
+    return
+  }
+
+  saving.value = true
+  try {
+    // 準備 API 參數（單一更新）
+    const updateData = {
+      key: editingCardSet.value.key,
+      [editingCardSet.value.key]: editQuantity.value
+    }
+
+    console.log('更新庫存資料:', updateData)
+    const response = await updateOrgCardInventoryAdminAPI(selectedOrg.value.id, updateData)
+    console.log('更新庫存回應:', response)
+
+    // 解析 API 回應
+    const inventoryDetail = response?.data?.attributes?.org_card_inventory_detail || 
+                           response?.attributes?.org_card_inventory_detail ||
+                           response?.org_card_inventory_detail
+
+    if (inventoryDetail) {
+      // 更新本地狀態
     currentInventory.value[editingCardSet.value.key] = editQuantity.value
     
     // 更新機構列表中的庫存
@@ -96,8 +230,34 @@ const saveInventory = () => {
     if (orgIndex !== -1) {
       organizations.value[orgIndex].inventory[editingCardSet.value.key] = editQuantity.value
     }
+      
+      // 更新 selectedOrg 的庫存
+      if (selectedOrg.value) {
+        selectedOrg.value.inventory = { ...currentInventory.value }
+      }
+
+      handleAlert({
+        auction: 'success',
+        text: t('admin.updateInventorySuccess') || '庫存更新成功'
+      })
     
     dialog.value = false
+    } else {
+      throw new Error('API 回應格式不符合預期')
+    }
+  } catch (error) {
+    console.error('更新庫存錯誤:', error)
+    const errorMessage = error?.response?.data?.meta?.detail || 
+                        error?.response?.data?.message || 
+                        error?.message || 
+                        t('admin.updateInventoryError') || 
+                        '更新庫存失敗'
+    handleAlert({
+      auction: 'error',
+      text: errorMessage
+    })
+  } finally {
+    saving.value = false
   }
 }
 
@@ -118,8 +278,34 @@ const openBatchUpdate = () => {
   batchDialog.value = true
 }
 
-const saveBatchUpdate = () => {
-  if (selectedOrg.value) {
+const saveBatchUpdate = async () => {
+  if (!selectedOrg.value) {
+    return
+  }
+
+  saving.value = true
+  try {
+    // 準備 API 參數（批次更新）
+    const updateData = {
+      goal: batchUpdate.value.goal,
+      care: batchUpdate.value.care,
+      ce: batchUpdate.value.ce,
+      cj: batchUpdate.value.cj,
+      lj: batchUpdate.value.lj,
+      le: batchUpdate.value.le
+    }
+
+    console.log('批次更新庫存資料:', updateData)
+    const response = await updateOrgCardInventoryAdminAPI(selectedOrg.value.id, updateData)
+    console.log('批次更新庫存回應:', response)
+
+    // 解析 API 回應
+    const inventoryDetail = response?.data?.attributes?.org_card_inventory_detail || 
+                           response?.attributes?.org_card_inventory_detail ||
+                           response?.org_card_inventory_detail
+
+    if (inventoryDetail) {
+      // 更新本地狀態
     currentInventory.value = { ...batchUpdate.value }
     
     // 更新機構列表中的庫存
@@ -127,17 +313,43 @@ const saveBatchUpdate = () => {
     if (orgIndex !== -1) {
       organizations.value[orgIndex].inventory = { ...batchUpdate.value }
     }
+      
+      // 更新 selectedOrg 的庫存
+      if (selectedOrg.value) {
+        selectedOrg.value.inventory = { ...currentInventory.value }
+      }
+
+      handleAlert({
+        auction: 'success',
+        text: t('admin.updateInventorySuccess') || '庫存更新成功'
+      })
     
     batchDialog.value = false
+    } else {
+      throw new Error('API 回應格式不符合預期')
+    }
+  } catch (error) {
+    console.error('批次更新庫存錯誤:', error)
+    const errorMessage = error?.response?.data?.meta?.detail || 
+                        error?.response?.data?.message || 
+                        error?.message || 
+                        t('admin.updateInventoryError') || 
+                        '更新庫存失敗'
+    handleAlert({
+      auction: 'error',
+      text: errorMessage
+    })
+  } finally {
+    saving.value = false
   }
 }
 
 // 計算統計
 const stats = computed(() => {
-  const orgId = selectedOrg.value?.id
-  if (!orgId) return { total: 0, bySet: {} }
+  if (!selectedOrg.value) return { total: 0, bySet: {} }
   
-  const inv = selectedOrg.value.inventory
+  // 使用 currentInventory 來計算統計
+  const inv = currentInventory.value
   const total = Object.values(inv).reduce((sum, val) => sum + val, 0)
   const bySet = Object.entries(inv).reduce((acc, [key, val]) => {
     acc[key] = val
@@ -147,11 +359,9 @@ const stats = computed(() => {
   return { total, bySet }
 })
 
-onMounted(() => {
-  // 預設選擇第一個機構
-  if (organizations.value.length > 0) {
-    selectOrganization(organizations.value[0])
-  }
+// 初始化載入
+onMounted(async () => {
+  await loadOrganizations()
 })
 </script>
 
@@ -162,8 +372,9 @@ onMounted(() => {
       <v-card-title>{{ t('admin.selectOrganization') }}</v-card-title>
       <v-card-text>
         <v-select
-          :model-value="selectedOrg?.name"
+          :model-value="selectedOrg?.id"
           :items="organizations.map(org => ({ title: `${org.name} (${org.code})`, value: org.id }))"
+          :loading="orgLoading"
           variant="outlined"
           @update:model-value="(id) => selectOrganization(organizations.find(o => o.id === id))"
         />
@@ -265,7 +476,7 @@ onMounted(() => {
       </div>
 
       <!-- 卡組庫存列表 -->
-      <v-row>
+      <v-row v-if="!inventoryLoading">
         <v-col
           v-for="cardSet in cardSets"
           :key="cardSet.key"
@@ -310,6 +521,20 @@ onMounted(() => {
           </v-card>
         </v-col>
       </v-row>
+      
+      <!-- 載入中提示 -->
+      <v-card v-else>
+        <v-card-text class="text-center py-10">
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="64"
+          />
+          <div class="text-h6 mt-4">
+            {{ t('admin.loadingOrgInventory') }}
+          </div>
+        </v-card-text>
+      </v-card>
 
       <!-- 編輯對話框 -->
       <v-dialog
@@ -351,6 +576,8 @@ onMounted(() => {
             <v-btn
               color="primary"
               variant="text"
+              :loading="saving"
+              :disabled="saving"
               @click="saveInventory"
             >
               {{ t('common.save') }}
@@ -399,6 +626,8 @@ onMounted(() => {
             <v-btn
               color="primary"
               variant="text"
+              :loading="saving"
+              :disabled="saving"
               @click="saveBatchUpdate"
             >
               {{ t('common.save') }}

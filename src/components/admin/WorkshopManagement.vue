@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { handleAlert } from '@/plugins/utils/alert'
+import { getEventListAPI, createEventAPI, updateEventAPI, listDemoAccountAPI, createDemoAccountAPI, optionsCounselorList } from '@/plugins/utils/requests/api/backend'
 
 const { t } = useI18n()
 
@@ -38,9 +40,9 @@ const generateDemoAccounts = (workshop) => {
       case 'uniform':
         password = workshop.uniformPassword || ''
         break
-      case 'withNumber':
+      case 'serial':
         // 將編號格式化為四位數（例如：0001, 0002, 0003）
-        const formattedNumber = i.toString().padStart(4, '0')
+        const formattedNumber = i.toString().padStart(5, '0')
         password = (workshop.uniformPassword || '') + formattedNumber
         break
       case 'random':
@@ -65,35 +67,128 @@ const search = ref('')
 const headers = ref([
   { title: t('admin.workshop.activityName'), key: 'name' },
   { title: t('admin.workshop.activityCode'), key: 'code' },
-  { title: t('admin.workshop.accountCount'), key: 'accountCount' },
-  { title: t('admin.workshop.createdAccounts'), key: 'createdAccounts' },
+  { title: t('admin.workshop.activityDate'), key: 'eventDate' },
   { title: t('admin.workshop.expiryDate'), key: 'expiryDate' },
+  { title: t('admin.workshop.accountCount'), key: 'accountCount' },
   { title: t('admin.workshop.status'), key: 'status' },
   { title: t('admin.createdAt'), key: 'createdAt' },
   { title: t('admin.actions'), key: 'actions', sortable: false }
 ])
 
 const workshops = ref([])
+const loading = ref(false)
 
-// 範例數據（實際應該從 API 獲取）
+// 將後端活動資料映射到前端格式
+const mapEventData = (backendEvent) => {
+  return {
+    id: backendEvent.id || null,
+    name: backendEvent.event_name || '',
+    code: backendEvent.event_code || '',
+    eventDate: backendEvent.event_date || null,
+    accountCount: parseInt(backendEvent.num_demo_account || '0', 10),
+    createdAccounts: 0, // TODO: 從 API 獲取已創建的帳號數量
+    expiryDate: backendEvent.expire_date || null,
+    description: backendEvent.event_description || '',
+    createdAt: backendEvent.created_at || null,
+    st: backendEvent.st || '0', // 狀態：'0' = 未開始, '1' = 進行中, '2' = 已結束
+    accountPrefix: 'weprodemo', // 預設值，可能需要從 API 獲取
+    passwordType: 'uniform', // 預設值，可能需要從 API 獲取
+    uniformPassword: '', // 預設值，可能需要從 API 獲取
+    observerAccounts: backendEvent.default_counselors || backendEvent.observer_accounts || [],
+    demoAccounts: [] // 儲存生成的帳號列表
+  }
+}
+
+// 載入活動列表
+const loadWorkshops = async () => {
+  loading.value = true
+  try {
+    console.log('載入活動列表...')
+    const response = await getEventListAPI()
+    console.log('載入活動列表回應:', response)
+    
+    // 解析 API 回應
+    // API 回應格式：{ data: { attributes: { event_list: [...] } } }
+    // 攔截器解包後可能是：{ data: { attributes: { event_list: [...] } } } 或 { attributes: { event_list: [...] } }
+    let eventList = []
+    
+    // 優先檢查 data.attributes.event_list（攔截器未解包的情況）
+    if (response?.data?.attributes?.event_list) {
+      eventList = response.data.attributes.event_list
+      console.log('從 response.data.attributes.event_list 取得資料')
+    } 
+    // 檢查 attributes.event_list（攔截器已解包的情況）
+    else if (response?.attributes?.event_list) {
+      eventList = response.attributes.event_list
+      console.log('從 response.attributes.event_list 取得資料')
+    } 
+    // 其他可能的格式
+    else if (response?.event_list) {
+      eventList = response.event_list
+      console.log('從 response.event_list 取得資料')
+    } else if (Array.isArray(response)) {
+      eventList = response
+      console.log('從 response 陣列取得資料')
+    } else if (response?.data && Array.isArray(response.data)) {
+      eventList = response.data
+      console.log('從 response.data 陣列取得資料')
+    }
+    
+    console.log('解析後的 eventList:', eventList)
+    
+    if (Array.isArray(eventList)) {
+      workshops.value = eventList.map(mapEventData)
+      console.log('載入完成，共', workshops.value.length, '筆活動資料')
+      if (workshops.value.length === 0) {
+        console.log('目前沒有活動資料')
+      }
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      handleAlert({
+        auction: 'error',
+        text: t('admin.workshop.loadWorkshopsError') || '載入活動列表失敗'
+      })
+      workshops.value = []
+    }
+  } catch (error) {
+    console.error('載入活動列表錯誤:', error)
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.loadWorkshopsError') || '載入活動列表失敗'
+    })
+    workshops.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 初始化載入
 onMounted(() => {
-  // TODO: 從 API 獲取活動列表
-  // 暫時使用空陣列
-  workshops.value = []
+  loadWorkshops()
+  loadCounselorOptions()
 })
 
 const editedItem = ref({
   id: null,
   name: '',
   code: '',
+  eventDate: '',
   accountCount: 0,
   expiryDate: '',
   description: '',
+  st: '0', // 狀態：'0' = 未開始, '1' = 進行中, '2' = 已結束，預設為未開始
   accountPrefix: 'weprodemo',
-  passwordType: 'uniform', // 'uniform', 'withNumber', 'random'
+  passwordType: 'uniform', // 'uniform', 'serial', 'random'
   uniformPassword: '',
   observerAccounts: [] // 觀察者帳號列表
 })
+
+// 狀態選項
+const statusOptions = [
+  { title: t('admin.workshop.notStarted'), value: '0' },
+  { title: t('admin.workshop.active'), value: '1' },
+  { title: t('admin.workshop.ended'), value: '2' }
+]
 
 const dialog = ref(false)
 const editMode = ref(false)
@@ -101,16 +196,78 @@ const viewDialog = ref(false)
 const viewingItem = ref(null)
 const accountsDialog = ref(false)
 const viewingAccounts = ref([])
+const loadingAccounts = ref(false)
+const createAccountDialog = ref(false)
+const creatingAccountWorkshop = ref(null)
+const newAccountForm = ref({
+  accountCount: 1
+})
 
 // 觀察者帳號相關
 const observerSearch = ref('')
-// TODO: 從 API 獲取可用使用者列表，目前使用範例數據
-const availableUsers = ref([
-  { title: 'user001', value: 'user001' },
-  { title: 'user002', value: 'user002' },
-  { title: 'admin', value: 'admin' },
-  { title: 'observer001', value: 'observer001' }
-])
+const availableUsers = ref([])
+const loadingUsers = ref(false)
+
+// 載入諮商師/觀察者列表
+const loadCounselorOptions = async () => {
+  loadingUsers.value = true
+  try {
+    console.log('載入諮商師/觀察者列表...')
+    const response = await optionsCounselorList()
+    console.log('載入諮商師/觀察者列表回應:', response)
+    
+    // 解析 API 回應
+    // API 回應格式：{ data: { attributes: { counselor_list: [...] } } }
+    let counselorList = []
+    
+    // 優先檢查 data.attributes.counselor_list（標準格式）
+    if (response?.data?.attributes?.counselor_list) {
+      counselorList = response.data.attributes.counselor_list
+      console.log('從 response.data.attributes.counselor_list 取得資料')
+    } 
+    // 檢查 attributes.counselor_list（攔截器已解包的情況）
+    else if (response?.attributes?.counselor_list) {
+      counselorList = response.attributes.counselor_list
+      console.log('從 response.attributes.counselor_list 取得資料')
+    } 
+    // 其他可能的格式
+    else if (response?.counselor_list) {
+      counselorList = response.counselor_list
+      console.log('從 response.counselor_list 取得資料')
+    } else if (Array.isArray(response)) {
+      counselorList = response
+      console.log('從 response 陣列取得資料')
+    } else if (response?.data && Array.isArray(response.data)) {
+      counselorList = response.data
+      console.log('從 response.data 陣列取得資料')
+    }
+    
+    console.log('解析後的 counselorList:', counselorList)
+    
+    if (Array.isArray(counselorList)) {
+      // 將諮商師/觀察者列表映射為下拉選單格式
+      // 格式：(counselor_code) name
+      availableUsers.value = counselorList.map(counselor => {
+        const code = counselor.counselor_code || ''
+        const name = counselor.name || ''
+        const displayText = code ? `(${code}) ${name}` : name
+        return {
+          title: displayText,
+          value: counselor.id || counselor.counselor_code || ''
+        }
+      })
+      console.log('載入完成，共', availableUsers.value.length, '筆諮商師/觀察者資料')
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      availableUsers.value = []
+    }
+  } catch (error) {
+    console.error('載入諮商師/觀察者列表錯誤:', error)
+    availableUsers.value = []
+  } finally {
+    loadingUsers.value = false
+  }
+}
 
 // 統計信息
 const stats = computed(() => [
@@ -149,17 +306,19 @@ const stats = computed(() => [
 
 // 獲取狀態
 const getStatus = (workshop) => {
-  if (!workshop.expiryDate) return { text: t('admin.workshop.noExpiry'), color: 'grey' }
-  const expiryDate = new Date(workshop.expiryDate)
-  const now = new Date()
-  if (expiryDate < now) {
-    return { text: t('admin.workshop.expired'), color: 'error' }
+  // 根據 st 欄位返回狀態：'0' = 未開始, '1' = 進行中, '2' = 已結束
+  const status = workshop.st || '0'
+  
+  switch (status) {
+    case '0':
+      return { text: t('admin.workshop.notStarted'), color: 'grey' }
+    case '1':
+      return { text: t('admin.workshop.active'), color: 'success' }
+    case '2':
+      return { text: t('admin.workshop.ended'), color: 'error' }
+    default:
+      return { text: t('admin.workshop.notStarted'), color: 'grey' }
   }
-  const daysRemaining = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24))
-  if (daysRemaining <= 7) {
-    return { text: t('admin.workshop.expiringSoon'), color: 'warning' }
-  }
-  return { text: t('admin.workshop.active'), color: 'success' }
 }
 
 const addWorkshop = () => {
@@ -167,9 +326,11 @@ const addWorkshop = () => {
     id: null,
     name: '',
     code: generateActivityCode(),
+    eventDate: '',
     accountCount: 0,
     expiryDate: '',
     description: '',
+    st: '0', // 預設為未開始
     accountPrefix: 'weprodemo',
     passwordType: 'uniform',
     uniformPassword: '',
@@ -185,60 +346,163 @@ const editWorkshop = (item) => {
   dialog.value = true
 }
 
-const deleteWorkshop = (item) => {
-  const index = workshops.value.findIndex(w => w.id === item.id)
-  if (index > -1) {
-    workshops.value.splice(index, 1)
-  }
-}
+const saving = ref(false)
 
-const saveWorkshop = () => {
+// 判斷活動是否已結束（只能查看，不能編輯）
+const isEnded = computed(() => {
+  return editMode.value && editedItem.value.st === '2'
+})
+
+const saveWorkshop = async () => {
   // 驗證必填欄位
   if (!editedItem.value.name || !editedItem.value.code) {
-    // TODO: 顯示錯誤訊息
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.nameAndCodeRequired') || '活動名稱和活動代碼為必填'
+    })
     return
   }
 
-  // 驗證帳號前綴
-  if (!editedItem.value.accountPrefix) {
-    // TODO: 顯示錯誤訊息
+  // 驗證帳號前綴（僅在新增模式下驗證）
+  if (!editMode.value && !editedItem.value.accountPrefix) {
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.prefixRequired') || '帳號前綴為必填'
+    })
     return
   }
 
-  // 驗證密碼設定
-  if (editedItem.value.passwordType === 'uniform' || editedItem.value.passwordType === 'withNumber') {
+  // 驗證密碼設定（僅在新增模式下驗證）
+  if (!editMode.value && (editedItem.value.passwordType === 'uniform' || editedItem.value.passwordType === 'serial')) {
     if (!editedItem.value.uniformPassword) {
-      // TODO: 顯示錯誤訊息
+      handleAlert({
+        auction: 'error',
+        text: t('admin.workshop.passwordRequired') || '預設密碼為必填'
+      })
       return
     }
   }
 
   if (editMode.value) {
-    const index = workshops.value.findIndex(w => w.id === editedItem.value.id)
-    if (index > -1) {
-      workshops.value[index] = { ...editedItem.value }
+    // 編輯模式 - 調用 API 更新活動
+    saving.value = true
+    try {
+      console.log('開始更新活動...')
+      console.log('editedItem:', editedItem.value)
+      
+      // 準備 API 參數（不包含不能修改的欄位）
+      const apiParams = {
+        event_id: editedItem.value.id,
+        event_name: editedItem.value.name,
+        event_code: editedItem.value.code,
+        event_description: editedItem.value.description || '',
+        event_date: editedItem.value.eventDate || null,
+        expire_date: editedItem.value.expiryDate || null,
+        st: editedItem.value.st || '0',
+        default_counselors: editedItem.value.observerAccounts || []
+      }
+      
+      console.log('更新活動 API 參數:', apiParams)
+      
+      const response = await updateEventAPI(apiParams)
+      console.log('更新活動 API 回應:', response)
+      
+      // 解析 API 回應
+      const responseCode = response?.meta?.code || response?.data?.meta?.code
+      const responseStatus = response?.meta?.status || response?.data?.meta?.status
+      const responseDetail = response?.meta?.detail || response?.data?.meta?.detail
+      
+      // 檢查是否成功（通常 code 2005 或 2006 表示成功）
+      if (responseCode === '2005' || responseCode === '2006' || responseStatus === '200') {
+        handleAlert({
+          auction: 'success',
+          text: t('admin.workshop.updateWorkshopSuccess') || '活動更新成功'
+        })
+        
+        // 關閉對話框
+        dialog.value = false
+        
+        // 重新載入活動列表
+        await loadWorkshops()
+      } else {
+        throw new Error(responseDetail || '更新活動失敗')
+      }
+    } catch (error) {
+      console.error('更新活動錯誤:', error)
+      const errorMessage = error?.response?.data?.meta?.detail || 
+                          error?.response?.data?.message || 
+                          error?.message || 
+                          t('admin.workshop.updateWorkshopError') || 
+                          '更新活動失敗'
+      handleAlert({
+        auction: 'error',
+        text: errorMessage
+      })
+    } finally {
+      saving.value = false
     }
   } else {
-    // 新增模式
-    const newId = Math.max(...workshops.value.map(w => w.id || 0), 0) + 1
-    const newWorkshop = {
-      ...editedItem.value,
-      id: newId,
-      createdAccounts: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-      demoAccounts: [] // 儲存生成的帳號列表
+    // 新增模式 - 調用 API 創建活動
+    saving.value = true
+    try {
+      console.log('開始創建活動...')
+      console.log('editedItem:', editedItem.value)
+      
+      // 準備 API 參數
+      const apiParams = {
+        event_name: editedItem.value.name,
+        event_code: editedItem.value.code,
+        event_description: editedItem.value.description || '',
+        event_date: editedItem.value.eventDate || null,
+        expire_date: editedItem.value.expiryDate || null,
+        num_demo_account: String(editedItem.value.accountCount || 0),
+        st: editedItem.value.st || '0',
+        account_prefix: editedItem.value.accountPrefix,
+        password_type: editedItem.value.passwordType || 'uniform',
+        default_password: editedItem.value.uniformPassword || '',
+        default_counselors: editedItem.value.observerAccounts || []
+      }
+      
+      console.log('創建活動 API 參數:', apiParams)
+      
+      const response = await createEventAPI(apiParams)
+      console.log('創建活動 API 回應:', response)
+      
+      // 解析 API 回應
+      const responseCode = response?.meta?.code || response?.data?.meta?.code
+      const responseStatus = response?.meta?.status || response?.data?.meta?.status
+      const responseDetail = response?.meta?.detail || response?.data?.meta?.detail
+      
+      // 檢查是否成功（通常 code 2005 或 2006 表示成功）
+      if (responseCode === '2005' || responseCode === '2006' || responseStatus === '200') {
+        handleAlert({
+          auction: 'success',
+          text: t('admin.workshop.createWorkshopSuccess') || '活動創建成功'
+        })
+        
+        // 關閉對話框
+        dialog.value = false
+        
+        // 重新載入活動列表
+        await loadWorkshops()
+      } else {
+        throw new Error(responseDetail || '創建活動失敗')
+      }
+    } catch (error) {
+      console.error('創建活動錯誤:', error)
+      const errorMessage = error?.response?.data?.meta?.detail || 
+                          error?.response?.data?.message || 
+                          error?.message || 
+                          t('admin.workshop.createWorkshopError') || 
+                          '創建活動失敗'
+      handleAlert({
+        auction: 'error',
+        text: errorMessage
+      })
+    } finally {
+      saving.value = false
     }
-    
-    // 建立活動後直接產生帳號
-    if (newWorkshop.accountCount > 0) {
-      newWorkshop.demoAccounts = generateDemoAccounts(newWorkshop)
-      newWorkshop.createdAccounts = newWorkshop.demoAccounts.length
-    }
-    
-    workshops.value.push(newWorkshop)
-    // TODO: 調用 API 創建活動並生成演示帳號
   }
-  dialog.value = false
 }
 
 const regenerateCode = () => {
@@ -250,27 +514,228 @@ const viewWorkshop = (item) => {
   viewDialog.value = true
 }
 
-const viewAccounts = async (item) => {
-  viewingItem.value = item
-  // 從本地數據或 API 獲取該活動的演示帳號列表
-  if (item.demoAccounts && item.demoAccounts.length > 0) {
-    viewingAccounts.value = item.demoAccounts
-  } else {
-    // TODO: 從 API 獲取該活動的演示帳號列表
-    viewingAccounts.value = []
+// 將後端演示帳號資料映射到前端格式
+const mapDemoAccountData = (backendAccount, workshopExpiryDate = null) => {
+  // 優先使用 plain_password，如果沒有則使用 password
+  const password = backendAccount.plain_password || backendAccount.password || ''
+  // 帳號欄位可能是 account 或 username
+  const username = backendAccount.account || backendAccount.username || ''
+  // 過期日期：優先使用帳號的過期日期，否則使用活動的過期日期
+  const expiryDate = backendAccount.expire_date || backendAccount.expiry_date || workshopExpiryDate || null
+  
+  // 計算狀態
+  let status = backendAccount.status
+  if (!status && expiryDate) {
+    status = new Date(expiryDate) > new Date() ? 'active' : 'expired'
+  } else if (!status) {
+    status = 'unknown'
   }
-  accountsDialog.value = true
+  
+  return {
+    username,
+    password,
+    expiryDate,
+    status
+  }
 }
 
-const createDemoAccounts = async (workshop) => {
-  if (!workshop.id) return
-  
-  // 生成演示帳號
-  const accounts = generateDemoAccounts(workshop)
-  workshop.demoAccounts = accounts
-  workshop.createdAccounts = accounts.length
-  
-  // TODO: 調用 API 創建演示帳號
+const viewAccounts = async (item) => {
+  if (!item || !item.id) {
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.invalidEvent') || '無效的活動資料'
+    })
+    return
+  }
+
+  // 檢查活動是否已結束（st === '2' 表示已結束）
+  if (item.st === '2') {
+    viewingItem.value = item
+    viewingAccounts.value = []
+    accountsDialog.value = true
+    return
+  }
+
+  viewingItem.value = item
+  loadingAccounts.value = true
+  viewingAccounts.value = []
+  accountsDialog.value = true
+
+  try {
+    console.log('載入演示帳號列表...', item.id)
+    const response = await listDemoAccountAPI(item.id)
+    console.log('載入演示帳號列表回應:', response)
+    
+    // 解析 API 回應
+    // API 回應格式：{ data: { attributes: { demo_account_list: [...] } } }
+    let accountList = []
+    
+    // 優先檢查 data.attributes.demo_account_list（標準格式）
+    if (response?.data?.attributes?.demo_account_list) {
+      accountList = response.data.attributes.demo_account_list
+      console.log('從 response.data.attributes.demo_account_list 取得資料')
+    } 
+    // 檢查 attributes.demo_account_list（攔截器已解包的情況）
+    else if (response?.attributes?.demo_account_list) {
+      accountList = response.attributes.demo_account_list
+      console.log('從 response.attributes.demo_account_list 取得資料')
+    } 
+    // 兼容舊格式 account_list
+    else if (response?.data?.attributes?.account_list) {
+      accountList = response.data.attributes.account_list
+      console.log('從 response.data.attributes.account_list 取得資料')
+    } 
+    else if (response?.attributes?.account_list) {
+      accountList = response.attributes.account_list
+      console.log('從 response.attributes.account_list 取得資料')
+    }
+    // 其他可能的格式
+    else if (response?.demo_account_list) {
+      accountList = response.demo_account_list
+      console.log('從 response.demo_account_list 取得資料')
+    } else if (response?.account_list) {
+      accountList = response.account_list
+      console.log('從 response.account_list 取得資料')
+    } else if (Array.isArray(response)) {
+      accountList = response
+      console.log('從 response 陣列取得資料')
+    } else if (response?.data && Array.isArray(response.data)) {
+      accountList = response.data
+      console.log('從 response.data 陣列取得資料')
+    }
+    
+    console.log('解析後的 accountList:', accountList)
+    
+    if (Array.isArray(accountList)) {
+      // 使用活動的過期日期作為備用
+      const workshopExpiryDate = item.expiryDate || null
+      viewingAccounts.value = accountList.map(account => mapDemoAccountData(account, workshopExpiryDate))
+      console.log('載入完成，共', viewingAccounts.value.length, '筆演示帳號資料')
+      console.log('映射後的帳號列表:', viewingAccounts.value)
+      if (viewingAccounts.value.length === 0) {
+        handleAlert({
+          auction: 'info',
+          text: t('admin.workshop.noDemoAccounts') || '目前沒有演示帳號'
+        })
+      }
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      handleAlert({
+        auction: 'error',
+        text: t('admin.workshop.loadAccountsError') || '載入演示帳號列表失敗'
+      })
+      viewingAccounts.value = []
+    }
+  } catch (error) {
+    console.error('載入演示帳號列表錯誤:', error)
+    const errorMessage = error?.response?.data?.meta?.detail || 
+                        error?.response?.data?.message || 
+                        error?.message || 
+                        t('admin.workshop.loadAccountsError') || 
+                        '載入演示帳號列表失敗'
+    handleAlert({
+      auction: 'error',
+      text: errorMessage
+    })
+    viewingAccounts.value = []
+  } finally {
+    loadingAccounts.value = false
+  }
+}
+
+const createDemoAccounts = (workshop) => {
+  if (!workshop || !workshop.id) {
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.invalidEvent') || '無效的活動資料'
+    })
+    return
+  }
+
+  // 檢查活動是否已結束
+  if (workshop.st === '2') {
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.cannotCreateAccountsForEndedEvent') || '無法為已結束的活動創建帳號'
+    })
+    return
+  }
+
+  // 初始化表單
+  creatingAccountWorkshop.value = workshop
+  newAccountForm.value = {
+    accountCount: 1
+  }
+  createAccountDialog.value = true
+}
+
+const savingAccounts = ref(false)
+
+const saveNewAccounts = async () => {
+  // 驗證表單
+  if (!newAccountForm.value.accountCount || newAccountForm.value.accountCount <= 0) {
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.countRequired') || '帳號數量必須大於 0'
+    })
+    return
+  }
+
+  if (!creatingAccountWorkshop.value || !creatingAccountWorkshop.value.id) {
+    handleAlert({
+      auction: 'error',
+      text: t('admin.workshop.invalidEvent') || '無效的活動資料'
+    })
+    return
+  }
+
+  savingAccounts.value = true
+  try {
+    console.log('開始創建測試帳號...')
+    console.log('活動 ID:', creatingAccountWorkshop.value.id)
+    console.log('帳號數量:', newAccountForm.value.accountCount)
+    
+    // 調用 API 創建測試帳號
+    const response = await createDemoAccountAPI(
+      creatingAccountWorkshop.value.id,
+      String(newAccountForm.value.accountCount)
+    )
+    console.log('創建測試帳號 API 回應:', response)
+    
+    // 解析 API 回應
+    const responseCode = response?.meta?.code || response?.data?.meta?.code
+    const responseStatus = response?.meta?.status || response?.data?.meta?.status
+    const responseDetail = response?.meta?.detail || response?.data?.meta?.detail
+    
+    // 檢查是否成功（通常 code 2005 或 2006 表示成功）
+    if (responseCode === '2005' || responseCode === '2006' || responseStatus === '200') {
+      handleAlert({
+        auction: 'success',
+        text: t('admin.workshop.createAccountsSuccess') || '測試帳號創建成功'
+      })
+      
+      // 關閉對話框
+      createAccountDialog.value = false
+      
+      // 重新載入活動列表
+      await loadWorkshops()
+    } else {
+      throw new Error(responseDetail || '創建測試帳號失敗')
+    }
+  } catch (error) {
+    console.error('創建測試帳號錯誤:', error)
+    const errorMessage = error?.response?.data?.meta?.detail || 
+                        error?.response?.data?.message || 
+                        error?.message || 
+                        t('admin.workshop.createAccountsError') || 
+                        '創建測試帳號失敗'
+    handleAlert({
+      auction: 'error',
+      text: errorMessage
+    })
+  } finally {
+    savingAccounts.value = false
+  }
 }
 
 const filteredWorkshops = computed(() => {
@@ -365,6 +830,7 @@ const formatDate = (dateString) => {
       :headers="headers"
       :items="filteredWorkshops"
       :search="search"
+      :loading="loading"
       class="elevation-1"
     >
       <template #item.code="{ item }">
@@ -377,18 +843,16 @@ const formatDate = (dateString) => {
         </v-chip>
       </template>
 
-      <template #item.accountCount="{ item }">
-        {{ item.accountCount || 0 }}
-      </template>
-
-      <template #item.createdAccounts="{ item }">
-        <span :class="item.createdAccounts < item.accountCount ? 'text-warning' : ''">
-          {{ item.createdAccounts || 0 }} / {{ item.accountCount || 0 }}
-        </span>
+      <template #item.eventDate="{ item }">
+        {{ formatDate(item.eventDate) }}
       </template>
 
       <template #item.expiryDate="{ item }">
         {{ formatDate(item.expiryDate) }}
+      </template>
+
+      <template #item.accountCount="{ item }">
+        {{ item.accountCount || 0 }}
       </template>
 
       <template #item.status="{ item }">
@@ -422,7 +886,7 @@ const formatDate = (dateString) => {
           size="small"
           variant="text"
           color="success"
-          :disabled="item.createdAccounts >= item.accountCount"
+          :disabled="item.st === '2'"
           @click="createDemoAccounts(item)"
           :title="t('admin.workshop.createAccounts')"
         />
@@ -432,13 +896,6 @@ const formatDate = (dateString) => {
           variant="text"
           @click="viewAccounts(item)"
           :title="t('admin.workshop.viewAccounts')"
-        />
-        <v-btn
-          icon="mdi-delete"
-          size="small"
-          variant="text"
-          color="error"
-          @click="deleteWorkshop(item)"
         />
       </template>
     </v-data-table>
@@ -454,13 +911,23 @@ const formatDate = (dateString) => {
         </v-card-title>
         <v-divider />
         <v-card-text>
+          <!-- 已結束活動提示 -->
+          <v-alert
+            v-if="isEnded"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ t('admin.workshop.endedEventReadOnly') }}
+          </v-alert>
           <v-row>
             <v-col cols="12">
               <v-text-field
                 v-model="editedItem.name"
                 :label="t('admin.workshop.activityName')"
                 variant="outlined"
-                required
+                :required="!isEnded"
+                :disabled="isEnded"
               />
             </v-col>
             <v-col
@@ -471,7 +938,8 @@ const formatDate = (dateString) => {
                 v-model="editedItem.code"
                 :label="t('admin.workshop.activityCode')"
                 variant="outlined"
-                required
+                :required="!isEnded"
+                :disabled="isEnded"
                 :rules="[
                   v => !!v || t('admin.workshop.codeRequired'),
                   v => (v && v.length === 8 && /^[a-z0-9]+$/.test(v)) || t('admin.workshop.codeInvalid')
@@ -487,10 +955,23 @@ const formatDate = (dateString) => {
                 variant="outlined"
                 block
                 prepend-icon="mdi-refresh"
+                :disabled="isEnded"
                 @click="regenerateCode"
               >
                 {{ t('admin.workshop.regenerateCode') }}
               </v-btn>
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                v-model="editedItem.eventDate"
+                :label="t('admin.workshop.activityDate')"
+                variant="outlined"
+                type="datetime-local"
+                :disabled="isEnded"
+              />
             </v-col>
             <v-col
               cols="12"
@@ -502,10 +983,13 @@ const formatDate = (dateString) => {
                 variant="outlined"
                 type="number"
                 min="0"
-                required
+                :required="!editMode && !isEnded"
+                :disabled="editMode || isEnded"
                 :rules="[
                   v => v !== null && v !== undefined && v >= 0 || t('admin.workshop.countRequired')
                 ]"
+                :hint="(editMode || isEnded) ? t('admin.workshop.cannotModify') : ''"
+                persistent-hint
               />
             </v-col>
             <v-col
@@ -516,11 +1000,12 @@ const formatDate = (dateString) => {
                 v-model="editedItem.accountPrefix"
                 :label="t('admin.workshop.accountPrefix')"
                 variant="outlined"
-                required
+                :required="!editMode && !isEnded"
+                :disabled="editMode || isEnded"
                 :rules="[
                   v => !!v || t('admin.workshop.prefixRequired')
                 ]"
-                :hint="t('admin.workshop.prefixHint')"
+                :hint="(editMode || isEnded) ? t('admin.workshop.cannotModify') : t('admin.workshop.prefixHint')"
                 persistent-hint
               />
             </v-col>
@@ -537,23 +1022,30 @@ const formatDate = (dateString) => {
               <v-radio-group
                 v-model="editedItem.passwordType"
                 :label="t('admin.workshop.passwordType')"
+                :disabled="editMode || isEnded"
               >
                 <v-radio
                   :label="t('admin.workshop.passwordUniform')"
                   value="uniform"
                 />
                 <v-radio
-                  :label="t('admin.workshop.passwordWithNumber')"
-                  value="withNumber"
+                  :label="t('admin.workshop.passwordSerial')"
+                  value="serial"
                 />
                 <v-radio
                   :label="t('admin.workshop.passwordRandom')"
                   value="random"
                 />
               </v-radio-group>
+              <div
+                v-if="editMode || isEnded"
+                class="text-caption text-medium-emphasis mt-1"
+              >
+                {{ t('admin.workshop.cannotModify') }}
+              </div>
             </v-col>
             <v-col
-              v-if="editedItem.passwordType === 'uniform' || editedItem.passwordType === 'withNumber'"
+              v-if="editedItem.passwordType === 'uniform' || editedItem.passwordType === 'serial'"
               cols="12"
               md="6"
             >
@@ -562,11 +1054,12 @@ const formatDate = (dateString) => {
                 :label="t('admin.workshop.uniformPassword')"
                 variant="outlined"
                 type="password"
-                required
+                :required="!editMode && !isEnded"
+                :disabled="editMode || isEnded"
                 :rules="[
                   v => !!v || t('admin.workshop.passwordRequired')
                 ]"
-                :hint="editedItem.passwordType === 'withNumber' ? t('admin.workshop.passwordWithNumberHint') : ''"
+                :hint="(editMode || isEnded) ? t('admin.workshop.cannotModify') : (editedItem.passwordType === 'serial' ? t('admin.workshop.passwordSerialHint') : '')"
                 persistent-hint
               />
             </v-col>
@@ -579,7 +1072,8 @@ const formatDate = (dateString) => {
                 :label="t('admin.workshop.expiryDate')"
                 variant="outlined"
                 type="datetime-local"
-                required
+                :required="!isEnded"
+                :disabled="isEnded"
                 :rules="[
                   v => !!v || t('admin.workshop.expiryRequired'),
                   v => {
@@ -591,12 +1085,26 @@ const formatDate = (dateString) => {
                 ]"
               />
             </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-select
+                v-model="editedItem.st"
+                :items="statusOptions"
+                :label="t('admin.workshop.status')"
+                variant="outlined"
+                :required="!isEnded"
+                :disabled="isEnded"
+              />
+            </v-col>
             <v-col cols="12">
               <v-textarea
                 v-model="editedItem.description"
                 :label="t('admin.description')"
                 variant="outlined"
                 rows="3"
+                :disabled="isEnded"
               />
             </v-col>
             <v-col cols="12">
@@ -612,6 +1120,8 @@ const formatDate = (dateString) => {
                 multiple
                 chips
                 closable-chips
+                :disabled="isEnded"
+                :loading="loadingUsers"
               >
                 <template #chip="{ props, item }">
                   <v-chip
@@ -647,6 +1157,8 @@ const formatDate = (dateString) => {
           <v-btn
             color="primary"
             variant="text"
+            :loading="saving"
+            :disabled="saving || isEnded"
             @click="saveWorkshop"
           >
             {{ t('common.save') }}
@@ -806,7 +1318,19 @@ const formatDate = (dateString) => {
         </v-card-title>
         <v-divider />
         <v-card-text>
+          <!-- 活動已結束時顯示訊息 -->
+          <v-alert
+            v-if="viewingItem?.st === '2'"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ t('admin.workshop.eventClosedAccountsRemoved') || '該活動已關閉，已移除測試帳號' }}
+          </v-alert>
+          
+          <!-- 活動未結束時顯示帳號列表 -->
           <v-data-table
+            v-else
             :headers="[
               { title: t('admin.workshop.accountUsername'), key: 'username' },
               { title: t('admin.workshop.accountPassword'), key: 'password' },
@@ -814,7 +1338,7 @@ const formatDate = (dateString) => {
               { title: t('admin.workshop.accountStatus'), key: 'status' }
             ]"
             :items="viewingAccounts"
-            :loading="false"
+            :loading="loadingAccounts"
           >
             <template #item.password="{ item }">
               <div class="d-flex align-center">
@@ -848,6 +1372,54 @@ const formatDate = (dateString) => {
             @click="accountsDialog = false"
           >
             {{ t('common.close') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 新增測試帳號對話框 -->
+    <v-dialog
+      v-model="createAccountDialog"
+      max-width="600px"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ t('admin.workshop.createDemoAccounts') }} - {{ creatingAccountWorkshop?.name }}
+        </v-card-title>
+        <v-divider />
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model.number="newAccountForm.accountCount"
+                :label="t('admin.workshop.accountCount')"
+                variant="outlined"
+                type="number"
+                min="1"
+                :rules="[
+                  v => v !== null && v !== undefined && v > 0 || t('admin.workshop.countRequired')
+                ]"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="text"
+            @click="createAccountDialog = false"
+          >
+            {{ t('common.cancel') }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="text"
+            :loading="savingAccounts"
+            :disabled="savingAccounts"
+            @click="saveNewAccounts"
+          >
+            {{ t('common.save') }}
           </v-btn>
         </v-card-actions>
       </v-card>

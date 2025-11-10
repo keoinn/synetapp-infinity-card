@@ -80,6 +80,43 @@ export function handleBackendMsg (status, msg, dispaly_true = false) {
   }
 }
 
-export default { handleAlert, handleBackendMsg }
+export async function handleConfirm({
+  title = '確認',
+  text = '確定要執行此操作嗎？',
+  confirmButtonText = '確定',
+  cancelButtonText = '取消',
+  icon = 'warning'
+}) {
+  const result = await Swal.fire({
+    title: title,
+    text: text,
+    icon: icon,
+    showCancelButton: true,
+    confirmButtonText: confirmButtonText,
+    cancelButtonText: cancelButtonText,
+    confirmButtonColor: '#1976D2',
+    cancelButtonColor: '#757575',
+    reverseButtons: true,
+    customClass: {
+      confirmButton: 'swal2-confirm-white-text',
+      cancelButton: 'swal2-cancel-white-text'
+    },
+    didOpen: () => {
+      // 確保按鈕文字為白色
+      const confirmBtn = document.querySelector('.swal2-confirm-white-text')
+      const cancelBtn = document.querySelector('.swal2-cancel-white-text')
+      if (confirmBtn) {
+        confirmBtn.style.color = '#ffffff'
+      }
+      if (cancelBtn) {
+        cancelBtn.style.color = '#ffffff'
+      }
+    }
+  })
+  
+  return result.isConfirmed
+}
+
+export default { handleAlert, handleBackendMsg, handleConfirm }
 
 
