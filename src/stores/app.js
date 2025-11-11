@@ -10,6 +10,7 @@ export const useAppStore = defineStore('app', {
     user_id: null,
     role: null,
     selectedRole: null, // 用戶選擇的身份別
+    counselor_id: null, // 諮商師 ID
     locale: 'zh-TW',
   }),
   actions: {
@@ -52,6 +53,8 @@ export const useAppStore = defineStore('app', {
         this.role = roleValue
         // 登入時自動設置 selectedRole 為 role 的第一個元素（用於顯示）
         this.selectedRole = roleValue.length > 0 ? roleValue[0] : null
+        // 保存 counselor_id（如果存在）
+        this.counselor_id = response.data.attributes.counselor_id || null
         this.isLogin = true
         return response
       } else {
@@ -76,6 +79,7 @@ export const useAppStore = defineStore('app', {
         this.user_id = null
         this.role = null
         this.selectedRole = null
+        this.counselor_id = null
       })
     }
   },

@@ -423,3 +423,21 @@ export const optionsCounselorList = () => {
   const request = requestInstance.post(`/psycard/options/counselor`, data, JSONAPI_HEADER)
   return request
 }
+
+export const optionsCounselorReportList = (counselor_id, type = '0') => {
+  const data = jsonapiEnc('counselor', Date.now(), {
+    counselor_id: counselor_id,
+    type: type,
+  })
+  const request = requestInstance.post(`/psycard/options/counselor/report`, data, JSONAPI_HEADER)
+  return request
+}
+
+export const getCounselorReportListAPI = (target_id, type = '0') => {
+  const data = jsonapiEnc('counselor', Date.now(), {
+    target_id: target_id,
+    type: type,
+  })
+  const request = requestInstance.post(`psycard/counselor/report/list`, data, JSONAPI_HEADER)
+  return request
+}

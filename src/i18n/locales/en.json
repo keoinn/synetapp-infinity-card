@@ -33,6 +33,7 @@
   "navigation": {
     "exam": "Card Quiz",
     "createExam": "Create Quiz",
+    "counselorViewableExams": "View Card Results",
     "editProfile": "Edit Profile",
     "buyCards": "Buy Cards",
     "cart": "Cart",
@@ -122,6 +123,7 @@
     "errorAtLeastOneCardSet": "Please select at least one card set.",
     "examCreatedSuccess": "Exam created successfully.",
     "myExams": "My Created Card Quizzes",
+    "counselorViewableExams": "Viewable Card Quiz Results",
     "noExams": "No card quizzes created yet.<br>Please create a card quiz first.",
     "examSn": "Serial Number",
     "examCardsSet": "Card Sets",

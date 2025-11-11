@@ -33,6 +33,7 @@
   "navigation": {
     "exam": "卡牌测验",
     "createExam": "建立测验",
+    "counselorViewableExams": "檢視卡牌結果",
     "editProfile": "修改资料",
     "buyCards": "购买卡牌",
     "cart": "购物车",
@@ -107,6 +108,7 @@
     "errorAtLeastOneCardSet": "请至少选择一个牌组。",
     "examCreatedSuccess": "测验已建立。",
     "myExams": "我建立的卡牌测验",
+    "counselorViewableExams": "我可观看的卡牌测验结果",
     "noExams": "目前没有任何卡牌测验<br>请先建立卡牌测验",
     "examSn": "序号",
     "examCardsSet": "卡片组合",

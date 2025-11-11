@@ -75,6 +75,8 @@ const login = async () => {
         appStore.role = roleValue
         // 登入時自動設置 selectedRole 為 role 的第一個元素（用於顯示）
         appStore.selectedRole = roleValue.length > 0 ? roleValue[0] : null
+        // 保存 counselor_id（如果存在）
+        appStore.counselor_id = response.data.attributes.counselor_id || null
         appStore.isLogin = true
         
         // 登入成功，清空表單並跳轉

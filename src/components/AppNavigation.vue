@@ -113,6 +113,24 @@ const isMember = computed(() => {
   return currentRole.value === 'member'
 })
 
+// 判斷是否為諮商師角色
+const isCounselor = computed(() => {
+  // 檢查 appStore.role 數組中是否包含 'counselor'
+  let roles = appStore.role || []
+  
+  // 如果是字符串，轉換為數組
+  if (typeof roles === 'string') {
+    roles = [roles]
+  }
+  
+  // 如果不是數組，返回 false
+  if (!Array.isArray(roles)) {
+    return false
+  }
+  
+  return roles.includes('counselor')
+})
+
 const navItems = computed(() => [
   {
     value: 'exam',
@@ -127,6 +145,13 @@ const navItems = computed(() => [
     text: t('navigation.createExam'),
     path: '/inventory',
     show: isMember.value // 只有會員顯示
+  },
+  {
+    value: 'counselor-view',
+    icon: 'mdi-eye-outline',
+    text: t('navigation.counselorViewableExams') || '我可觀看的卡牌測驗結果',
+    path: '/exam/counselor-view',
+    show: isCounselor.value // 只有諮商師顯示
   },
   {
     value: 'user',
@@ -169,6 +194,9 @@ const action = (auctionId) => {
       break;
     case 'inventory':
       router.push('/inventory')
+      break;
+    case 'counselor-view':
+      router.push('/exam/counselor-view')
       break;
     case 'cart':
       router.push('/cart')
