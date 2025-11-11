@@ -72,10 +72,10 @@ const userAvailableRoles = computed(() => {
   return roles
 })
 
-// 檢查是否有機構角色（organization 或 org）
+// 檢查是否有機構角色（organization）或管理員角色（admin）
 const hasOrganizationRole = computed(() => {
   return userAvailableRoles.value.includes('organization') || 
-         userAvailableRoles.value.includes('org')
+         userAvailableRoles.value.includes('admin')
 })
 
 // 過濾出用戶可用的角色列表（排除 admin，因為 admin 不應該在選擇列表中顯示）
