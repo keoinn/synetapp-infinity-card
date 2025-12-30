@@ -153,6 +153,20 @@ const filterResultRateForProfession = computed(() => {
   return Object.fromEntries(filteredEntries)
 })
 
+// 過濾掉 pickResult 中的 total 項
+const filteredPickResult = computed(() => {
+  if (!pickResult.value) return null
+  const filteredEntries = Object.entries(pickResult.value).filter(([key]) => key !== 'total')
+  return Object.fromEntries(filteredEntries)
+})
+
+// 過濾掉 pairResult 中的 total 項（用於職業卡牌配對結果表格）
+const filteredPairResult = computed(() => {
+  if (!pairResult.value) return null
+  const filteredEntries = Object.entries(pairResult.value).filter(([key]) => key !== 'total')
+  return Object.fromEntries(filteredEntries)
+})
+
 onMounted(async () => {
   pickResult.value = examProcess.calculatePickResult
   pairResult.value = examProcess.calculatePairResult
@@ -463,37 +477,31 @@ const findMaxValueInJobs = computed(() => {
                       <th class="text-center">
                         事務型<br>(C)
                       </th>
-                      <th class="text-center">
-                        總數
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr
-                      v-for="(item, key) in pickResult"
+                      v-for="(item, key) in filteredPickResult"
                       :key="key"
                     >
                       <td>{{ stringOfType(key) }}</td>
-                      <td :class="key === 'total' ? 'total-cell' : 'raw-cell'">
+                      <td class="raw-cell">
                         {{ item.r }}
                       </td>
-                      <td :class="key === 'total' ? 'total-cell' : 'raw-cell'">
+                      <td class="raw-cell">
                         {{ item.i }}
                       </td>
-                      <td :class="key === 'total' ? 'total-cell' : 'raw-cell'">
+                      <td class="raw-cell">
                         {{ item.a }}
                       </td>
-                      <td :class="key === 'total' ? 'total-cell' : 'raw-cell'">
+                      <td class="raw-cell">
                         {{ item.s }}
                       </td>
-                      <td :class="key === 'total' ? 'total-cell' : 'raw-cell'">
+                      <td class="raw-cell">
                         {{ item.e }}
                       </td>
-                      <td :class="key === 'total' ? 'total-cell' : 'raw-cell'">
+                      <td class="raw-cell">
                         {{ item.c }}
-                      </td>
-                      <td class="total-cell">
-                        {{ item.total }}
                       </td>
                     </tr>
                   </tbody>
@@ -583,7 +591,7 @@ const findMaxValueInJobs = computed(() => {
                           類型
                         </th>
                         <th
-                          v-for="(item, index) in pairResult"
+                          v-for="(item, index) in filteredPairResult"
                           :key="index"
                           class="text-center"
                           v-html="paddingNewLineForCol(item.title)"
@@ -594,9 +602,9 @@ const findMaxValueInJobs = computed(() => {
                       <tr>
                         <td>我在乎</td>
                         <td
-                          v-for="(item, index) in pairResult"
+                          v-for="(item, index) in filteredPairResult"
                           :key="index"
-                          :class="index === 'total' ? 'total-cell' : 'raw-cell'"
+                          class="raw-cell"
                         >
                           {{ filterResultForProfessionCount('care', index, item) }}
                         </td>
@@ -604,9 +612,9 @@ const findMaxValueInJobs = computed(() => {
                       <tr>
                         <td>我可以</td>
                         <td
-                          v-for="(item, index) in pairResult"
+                          v-for="(item, index) in filteredPairResult"
                           :key="index"
-                          :class="index === 'total' ? 'total-cell' : 'raw-cell'"
+                          class="raw-cell"
                         >
                           {{ filterResultForProfessionCount('can', index, item) }}
                         </td>
@@ -614,21 +622,11 @@ const findMaxValueInJobs = computed(() => {
                       <tr>
                         <td>我喜歡</td>
                         <td
-                          v-for="(item, index) in pairResult"
+                          v-for="(item, index) in filteredPairResult"
                           :key="index"
-                          :class="index === 'total' ? 'total-cell' : 'raw-cell'"
+                          class="raw-cell"
                         >
                           {{ filterResultForProfessionCount('like', index, item) }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>總數</td>
-                        <td
-                          v-for="(item, index) in pairResult"
-                          :key="index"
-                          class="total-cell"
-                        >
-                          {{ filterResultForProfessionCount('total', index, item) }}
                         </td>
                       </tr>
                     </tbody>
