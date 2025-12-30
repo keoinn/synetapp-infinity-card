@@ -16,8 +16,10 @@
  * @dependencies
  * - @/stores/examProcess - 測驗流程狀態管理
  * - @/components/exam/SingleExamPanel - 單一測驗面板組件
- * - @/components/result/ExamResultView - 測驗結果視圖
- * - @/components/result/ExamResultTextView - 測驗結果文字視圖
+ * - @/components/result/ExamResultView - 測驗結果視圖 (Deprecated)
+ * - @/components/result/ExamResultTextView - 測驗結果文字視圖 (Deprecated)
+ * - @/components/result/ExamCounselorResult - 諮商師結果視圖
+ * - @/components/result/ExamClientResult - 客戶結果視圖
  * - @/plugins/utils/encryption - 加密工具（用於解密 token）
  * 
  * @lifecycle
@@ -31,6 +33,7 @@ import SingleExamPanel from '@/components/exam/SingleExamPanel.vue'
 import ExamResultView from '@/components/result/ExamResultView.vue'
 import ExamResultTextView from '@/components/result/ExamResultTextView.vue'
 import ExamCounselorResult from '@/components/result/ExamCounselorResult.vue'
+import ExamClientResult from '@/components/result/ExamClientResult.vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useI18n } from 'vue-i18n'
 
@@ -66,6 +69,7 @@ const stage = (target) => {
               <span class="mr-2">{{ t('playground.examProcessing') }}</span>
               <div class="button-group">
                 <ExamCounselorResult />
+                <ExamClientResult />
                 <ExamResultView />
                 <ExamResultTextView />
               </div>

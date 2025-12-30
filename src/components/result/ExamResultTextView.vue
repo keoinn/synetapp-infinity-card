@@ -1,4 +1,55 @@
 <script setup>
+/**
+ * 測驗結果文字視圖組件 (Deprecated)
+ * 
+ * 此組件提供一個對話框，顯示測驗結果的文字說明，包括：
+ * - 綜合解析：顯示測驗結果的文字說明，包括綜合解析、活動偏好、擅長知能、適配職業別、補充說明
+ * - 職業雷達圖：使用 Chart.js 繪製雷達圖，顯示各職業在「我重視 (I Care)」、「我喜歡 (I Like)」、「我可以 (I Can)」三個維度的配對率
+ * 
+ * @component ExamResultTextView
+ * 
+ * @features
+ * - 響應式對話框設計，高度為 90% 視窗高度
+ * - 自動監聽測驗流程狀態變化，即時更新結果
+ * - 雷達圖自動顯示配對率最高的職業
+ * - 支援多語言顯示（使用 vue-i18n）
+ * 
+ * @dependencies
+ * - @/stores/examProcess - 測驗流程狀態管理，提供 calculatePairResult 和 calculate_pick.total.h_code
+ * - @/plugins/utils/psy_cards - 提供 getFinalResult 函數，根據 h_code 獲取最終結果
+ * - chart.js - 用於繪製雷達圖
+ * - vue-i18n - 用於多語言支援
+ * 
+ * @data
+ * - dialogIsActive: 控制對話框顯示/隱藏
+ * - finalResultObj: 儲存最終測驗結果物件
+ * - pairResult: 儲存職業配對結果
+ * - radarChartRef: 雷達圖 canvas 元素引用
+ * 
+ * @computed
+ * - findMaxValueInJobs: 找出配對率最高的職業標題
+ * 
+ * @methods
+ * - finalResult(attrName): 根據屬性名稱獲取最終結果的對應值
+ * - drawRadarChart(): 繪製雷達圖
+ * - radarChartData(): 生成雷達圖數據
+ * 
+ * @watch
+ * - dialogIsActive: 當對話框打開時，載入配對結果並繪製雷達圖
+ * - examProcess.calculate_pick.total.h_code: 監聽 h_code 變化，即時更新文字結果
+ * 
+ * @lifecycle
+ * - onMounted: 初始化時嘗試載入測驗結果
+ * 
+ * @example
+ * <ExamResultTextView />
+ * 
+ * 組件會自動從 examProcess store 讀取數據，無需傳入 props
+ */
+
+/* eslint-disable vue/no-v-html */
+/* eslint-disable no-unused-vars */
+/* eslint-disable vue/no-v-text-v-html-on-component */
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { getFinalResult } from '@/plugins/utils/psy_cards'
