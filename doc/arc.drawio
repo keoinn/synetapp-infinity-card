@@ -1,0 +1,40 @@
+<mxfile host="65bd71144e">
+    <diagram id="bUVVeEbmeZnbothqLa3d" name="第1頁">
+        <mxGraphModel dx="726" dy="672" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="16" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="100" y="400" width="370" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry width="370" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;一般會員&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="140" y="35.714285714285715" width="80" height="35.714285714285715" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="測試者帳號" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="260" y="35.714285714285715" width="80" height="35.714285714285715" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="心理諮商師" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="140" y="169.64285714285717" width="80" height="35.714285714285715" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="企業" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="140" y="107.14285714285715" width="80" height="35.714285714285715" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="附屬帳號" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="260" y="107.14285714285715" width="80" height="35.714285714285715" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="系統管理員" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="16">
+                    <mxGeometry x="20" y="107.14285714285715" width="80" height="35.714285714285715" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="100" width="370" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="報告" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="210" y="195" width="120" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

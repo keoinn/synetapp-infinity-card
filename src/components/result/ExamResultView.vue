@@ -1,4 +1,29 @@
 <script setup>
+/**
+ * 測驗結果視圖組件
+ * 
+ * 此組件提供一個對話框，用於顯示完整的測驗統計結果，包括：
+ * - 卡片挑選結果：顯示各類型卡片的 RIASEC 六種類型統計
+ * - 職業卡牌配對結果：顯示職業與卡片的配對數量
+ * - 分析結果：特質挑選的比例分析和荷倫碼（Holland Code）
+ * - 職業配對分析：各職業在「我在乎」、「我喜歡」、「我可以」三個維度的比例
+ * - 職業卡牌雷達圖：使用 Chart.js 繪製的雷達圖，可視化職業配對結果
+ * 
+ * @component ExamResultView
+ * @example
+ * <ExamResultView />
+ * 
+ * @dependencies
+ * - @/stores/examProcess - 測驗流程狀態管理
+ * - chart.js - 圖表繪製庫
+ * 
+ * @features
+ * - 響應式對話框設計（高度 90%）
+ * - 動態計算測驗結果
+ * - 自動繪製雷達圖
+ * - 顏色編碼的數據展示（高/中高/中/低比例）
+ */
+
 /* eslint-disable vue/no-v-html */
 /* eslint-disable no-unused-vars */
 import { onMounted, ref, watch, computed, nextTick } from 'vue'

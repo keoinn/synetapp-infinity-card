@@ -1,11 +1,36 @@
 <script setup>
 /**
- * 測驗項目一覽
+ * 測驗項目一覽頁面
+ * 
+ * 此頁面顯示所有可用的測驗項目，包括：
+ * - 進行測驗：顯示所有配置的卡片集合（care, ce, cj, le, lj, goal）
+ * - 卡牌配對：當存在 goal 集合時，顯示配對測驗選項
+ * 
+ * @route /exam/[token]
+ * @param {string} token - 加密的參與者 ID，需要解密後使用
+ * 
+ * @example
+ * 訪問路徑：/exam/encrypted_token_here
+ * token 會被解密為參與者 ID (pid)
+ * 
+ * @dependencies
+ * - @/stores/examProcess - 測驗流程狀態管理
+ * - @/components/exam/SingleExamPanel - 單一測驗面板組件
+ * - @/components/result/ExamResultView - 測驗結果視圖
+ * - @/components/result/ExamResultTextView - 測驗結果文字視圖
+ * - @/plugins/utils/encryption - 加密工具（用於解密 token）
+ * 
+ * @lifecycle
+ * - onMounted: 載入測驗報告數據
  */
+
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { decrypt } from '@/plugins/utils/encryption'
 import SingleExamPanel from '@/components/exam/SingleExamPanel.vue'
+import ExamResultView from '@/components/result/ExamResultView.vue'
+import ExamResultTextView from '@/components/result/ExamResultTextView.vue'
+import ExamCounselorResult from '@/components/result/ExamCounselorResult.vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useI18n } from 'vue-i18n'
 
@@ -40,6 +65,7 @@ const stage = (target) => {
             >
               <span class="mr-2">{{ t('playground.examProcessing') }}</span>
               <div class="button-group">
+                <ExamCounselorResult />
                 <ExamResultView />
                 <ExamResultTextView />
               </div>
