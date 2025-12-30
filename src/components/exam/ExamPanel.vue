@@ -1,5 +1,75 @@
 <script setup>
-/* eslint-disable vue/no-v-html */
+/**
+ * 測驗報告卡片面板組件
+ * 
+ * 此組件顯示單一測驗報告的詳細資訊卡片，提供報告管理功能，包括：
+ * - 顯示報告資訊：報告 ID、狀態、創建時間、更新時間、目標信箱、卡片集合
+ * - 編輯報告名稱：點擊標題旁的編輯圖示可修改報告名稱
+ * - 設定接收信箱：設定或編輯接收測驗連結的信箱地址
+ * - 發送測驗連結：將加密後的測驗連結發送到指定信箱
+ * - 開始測驗：重置測驗流程狀態並導航至測驗頁面
+ * 
+ * @component ExamPanel
+ * 
+ * @props
+ * - report: {Object} 測驗報告物件，必填，包含以下屬性：
+ *   - report_id: 報告 ID
+ *   - crd_id: 卡片記錄 ID
+ *   - report_name: 報告名稱
+ *   - status: 報告狀態（'0': 進行中, '1': 已完成, 其他: 已取消）
+ *   - created_at: 創建時間
+ *   - updated_at: 更新時間
+ *   - target_email: 目標信箱
+ *   - cards_set: 卡片集合陣列（可包含 'goal', 'care', 'ce', 'cj', 'le', 'lj'）
+ * 
+ * @emits
+ * - update-report-name: 更新報告名稱事件，參數：{ reportId, newName }
+ * - update-report-email: 更新報告信箱事件，參數：{ reportId, newEmail }
+ * 
+ * @computed
+ * - statusString: 根據報告狀態返回對應的多語言狀態文字
+ * 
+ * @methods
+ * - openEditDialog(): 打開編輯報告名稱對話視窗
+ * - saveReportName(): 儲存報告名稱並觸發更新事件
+ * - closeEditDialog(): 關閉編輯對話視窗
+ * - openEmailDialog(): 打開設定信箱對話視窗
+ * - validateEmail(email): 驗證信箱格式
+ * - saveEmail(): 儲存信箱並觸發更新事件
+ * - closeEmailDialog(): 關閉信箱對話視窗
+ * - sendEmail(): 發送測驗連結到指定信箱
+ * - startExam(): 重置測驗流程並導航至測驗頁面
+ * - NULLstringFilter(target): 過濾 null 值，返回預設文字
+ * - cardsSetStringFilter(card): 將卡片類型代碼轉換為多語言文字
+ * 
+ * @features
+ * - 報告資訊完整顯示，包含狀態、時間戳記、卡片集合等
+ * - 卡片集合以不同顏色的 chip 標籤顯示
+ * - 報告名稱可點擊編輯圖示進行修改
+ * - 信箱格式驗證，確保輸入正確的信箱地址
+ * - 測驗連結自動加密，保護參與者隱私
+ * - 發送信箱成功/失敗時顯示對應提示訊息
+ * - 開始測驗前自動重置測驗流程狀態
+ * - 支援多語言顯示（使用 vue-i18n）
+ * 
+ * @dependencies
+ * - @/stores/examProcess - 測驗流程狀態管理，用於重置測驗狀態
+ * - @/plugins/utils/encryption - 加密工具，用於加密測驗連結
+ * - @/plugins/utils/requests/api/backend - 後端 API，用於發送信箱
+ * - @/plugins/utils/alert - 提示訊息工具
+ * - vue-router - 路由導航
+ * - vue-i18n - 多語言支援
+ * 
+ * @usedBy
+ * - @/pages/exam/index.vue
+ * 
+ * @example
+ * <ExamPanel 
+ *   :report="reportData" 
+ *   @update-report-name="handleUpdateName"
+ *   @update-report-email="handleUpdateEmail"
+ * />
+ */
 import { computed, ref } from 'vue'
 import { encrypt } from '@/plugins/utils/encryption'
 import { useExamProcessStore } from '@/stores/examProcess'
@@ -209,7 +279,9 @@ const statusString = computed(() => {
     </v-card-text>
 
     <v-card-actions>
+      <!-- TODO: 查看按鈕，先隱藏 -->
       <v-btn
+        v-show="false"
         variant="tonal"
         color="#FA5015"
         size="large"

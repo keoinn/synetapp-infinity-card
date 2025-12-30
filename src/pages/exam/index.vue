@@ -1,4 +1,55 @@
 <script setup>
+/**
+ * 測驗項目一覽頁面
+ * 
+ * 此頁面顯示所有可用的測驗項目，包括：
+ * - 進行測驗：顯示所有配置的卡片集合（care, ce, cj, le, lj, goal）
+ * - 卡牌配對：當存在 goal 集合時，顯示配對測驗選項
+ * 
+ * @route /exam
+ * 
+ * @dependencies
+ * - @/components/exam/ExamPanel - 單一測驗面板組件
+ * - @/plugins/utils/requests/api/backend - 後端 API 呼叫
+ * - @/stores/examProcess - 測驗流程狀態管理
+ * - @/stores/app - 應用程式狀態管理
+ * - vue-i18n - 國際化支援
+ * 
+ * @lifecycle
+ * - onMounted: 載入測驗報告列表數據
+ * 
+ * @functions
+ * - handleUpdateReportName(data): 更新報告名稱
+ * - handleUpdateReportEmail(data): 更新報告信箱
+ * 
+ * @computed
+ * - reportList: 測驗報告列表
+ * 
+ * @methods
+ * - handleUpdateReportName(data): 更新報告名稱
+ * - handleUpdateReportEmail(data): 更新報告信箱
+ * 
+ * @watch
+ * - reportList: 監聽測驗報告列表變化
+ * 
+ * @events
+ * - update-report-name: 更新報告名稱事件
+ * - update-report-email: 更新報告信箱事件
+ * 
+ * @example
+ * 訪問路徑：/exam
+ * 組件會自動從 examProcessStore 中載入測驗報告列表數據並顯示
+ * 
+ * @dependencies
+ * - @/components/exam/ExamPanel - 單一測驗面板組件
+ * - @/plugins/utils/requests/api/backend - 後端 API 呼叫
+ * - @/stores/examProcess - 測驗流程狀態管理
+ * - @/stores/app - 應用程式狀態管理
+ * - vue-i18n - 國際化支援
+ * 
+ * @lifecycle
+ * - onMounted: 載入測驗報告列表數據
+ */
 import { ref, onMounted } from 'vue'
 // import { encrypt, decrypt } from '@/plugins/utils/encryption'
 import ExamPanel from '@/components/exam/ExamPanel.vue'

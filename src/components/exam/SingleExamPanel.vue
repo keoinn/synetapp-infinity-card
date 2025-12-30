@@ -1,16 +1,54 @@
 <script setup>
 /**
- * SingleExamPanel 組件顯示單一測驗面板。
- *
- * 此組件根據傳入的 `case` 和 `action` 屬性顯示不同的圖像和文本。
- *
- * 組件接收以下屬性：
- * - case: 字串，表示測驗類型，必填。可選值包括 'care', 'ce', 'cj', 'le', 'lj', 'goal'。
- * - action: 字串，表示操作類型，默認為 'pick'。可選值包括 'pick' 和 'pair'。
- *
- * @component
+ * 單一測驗面板組件
+ * 
+ * 此組件顯示單一測驗項目的卡片面板，根據傳入的測驗類型和操作模式顯示對應的圖像、標題和操作按鈕。
+ * 支援兩種操作模式：
+ * - 進行測驗 (pick)：顯示單一測驗類型的卡片，包括 care, ce, cj, le, lj, goal
+ * - 卡牌配對 (pair)：顯示 goal 與其他測驗類型的配對卡片，包括 care, ce, cj, le, lj
+ * 
+ * @component SingleExamPanel
+ * 
+ * @props
+ * - case: {String} 測驗類型，可選值：'care', 'ce', 'cj', 'le', 'lj', 'goal'，默認為空字串
+ * - action: {String} 操作類型，可選值：'pick'（進行測驗）、'pair'（卡牌配對），默認為 'pick'
+ * - finished: {Boolean} 是否已完成，默認為 false
+ * - token: {String} 參與者 token，用於路由導航，默認為空字串
+ * - stage: {Number} 測驗階段（僅用於 goal 類型），0-2 表示不同階段，默認為 0
+ * 
+ * @computed
+ * - caseImage: 根據 case 和 action 返回對應的測驗類型圖片
+ * - caseName: 根據 case 和 action 返回對應的測驗名稱（多語言）
+ * - caseSubtitle: 根據 case 和 action 返回對應的測驗副標題（多語言）
+ * - chipText: 根據 stage 返回對應的階段標籤文字（僅用於 goal 類型）
+ * - checkFinishedWithGoal: 檢查是否已完成前置條件（pair 模式需要先完成 goal）
+ * - checkFinished: 檢查當前測驗是否已完成
+ * 
+ * @features
+ * - 根據測驗類型動態顯示對應圖片和文字
+ * - 支援多語言顯示（使用 vue-i18n）
+ * - 自動檢查測驗完成狀態，控制按鈕啟用/禁用
+ * - pair 模式會檢查是否已完成 goal 測驗作為前置條件
+ * - goal 類型支援階段標籤顯示（Stage 1-3）
+ * - 根據完成狀態顯示不同的按鈕文字和狀態
+ * 
+ * @dependencies
+ * - @/stores/examProcess - 測驗流程狀態管理，用於檢查各測驗的完成狀態
+ * - vue-i18n - 用於多語言支援
+ * - @/assets/images/case/* - 測驗類型圖片資源
+ * 
+ * @usedBy
+ * - @/pages/exam/[token].vue
+ * 
  * @example
- * <SingleExamPanel case="care" action="pick" />
+ * // 進行測驗模式
+ * <SingleExamPanel case="care" action="pick" :token="participantToken" />
+ * 
+ * // 卡牌配對模式
+ * <SingleExamPanel case="care" action="pair" :token="participantToken" />
+ * 
+ * // goal 類型帶階段標籤
+ * <SingleExamPanel case="goal" action="pick" :token="participantToken" :stage="1" />
  */
 import { computed } from 'vue'
 import caseCare from '@/assets/images/case/case_care.webp'
@@ -253,7 +291,9 @@ const checkFinished = computed(() => {
       v-if="checkFinishedWithGoal"
       class="card-action"
     >
+      <!-- TODO: 查看紀錄按鈕，先隱藏 -->
       <v-btn
+        v-show="false"
         variant="tonal"
         rounded="xl"
         color="#FA5015"
