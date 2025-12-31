@@ -66,6 +66,8 @@ import { useExamProcessStore } from '@/stores/examProcess'
 import { getFinalResult } from '@/plugins/utils/psy_cards'
 import { Chart, registerables } from 'chart.js';
 import { useI18n } from 'vue-i18n'
+import { generateReport, chartToBase64 } from '@/plugins/utils/pdfGenerator'
+import { handleAlert } from '@/plugins/utils/alert'
 Chart.register(...registerables);
 
 const { t } = useI18n()
@@ -169,6 +171,7 @@ onMounted(() => {
   // 初始化時嘗試載入結果
   const hCode = examProcess.calculate_pick.total.h_code
   console.log('onMounted h_code:', hCode)
+  console.log('onMounted examProcess:', examProcess)
   
   if (hCode && hCode !== null && hCode !== undefined) {
     const result = getFinalResult(hCode)
@@ -303,6 +306,40 @@ const findMaxValueInJobs = computed(() => {
   return maxTitle;
 })
 
+// 下載報告函數
+const downloadReport = async () => {
+  try {
+    // 轉換雷達圖為 base64
+    const radarChartImage = radarChartInstance.value 
+      ? chartToBase64(radarChartInstance.value) 
+      : null
+
+    // 生成 PDF
+    await generateReport({
+      type: 'customer',
+      preview: false,
+      examProcessStore: examProcess,
+      radarChartImage,
+      config: {
+        filename: `測驗報告_${new Date().getTime()}.pdf`
+      }
+    })
+
+    handleAlert({
+      auction: 'success',
+      text: '報告下載成功',
+      timer: 2000
+    })
+  } catch (error) {
+    console.error('生成報告失敗:', error)
+    handleAlert({
+      auction: 'error',
+      text: error.message || '報告生成失敗，請稍後再試',
+      timer: 3000
+    })
+  }
+}
+
 
 </script>
 
@@ -341,7 +378,7 @@ const findMaxValueInJobs = computed(() => {
             <v-btn
               text="下載報告"
               variant="text"
-              @click="dialogIsActive = false"
+              @click="downloadReport"
             />
           </v-toolbar-items>
         </v-toolbar>

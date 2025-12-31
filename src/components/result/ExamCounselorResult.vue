@@ -490,7 +490,7 @@ const closeImagePreviewDialog = () => {
 
         <v-window v-model="currentTab">
           <v-window-item value="0">
-            <v-card-text>
+            <v-card-text class="tab-content">
               <h2>分析結果: 特質挑選</h2>
               <v-divider />
               <div class="trait-selection-container">
@@ -564,7 +564,7 @@ const closeImagePreviewDialog = () => {
           </v-window-item>
 
           <v-window-item value="1">
-            <v-card-text>
+            <v-card-text class="tab-content">
               <h2>卡片挑選結果</h2>
               <v-divider />
               <div class="trait-selection-container">
@@ -650,7 +650,7 @@ const closeImagePreviewDialog = () => {
           </v-window-item>
 
           <v-window-item value="2">
-            <v-card-text>
+            <v-card-text class="tab-content">
               <h2>分析結果: 職業配對</h2>
               <v-divider />
               <div class="trait-selection-container">
@@ -713,7 +713,7 @@ const closeImagePreviewDialog = () => {
 
           <v-window-item value="3">
             <v-card>
-              <v-card-text>
+              <v-card-text class="tab-content">
                 <h2>職業卡牌配對結果</h2>
                 <v-divider />
                 <div class="trait-selection-container">
@@ -776,7 +776,7 @@ const closeImagePreviewDialog = () => {
           </v-window-item>
 
           <v-window-item value="4">
-            <v-card-text>
+            <v-card-text class="tab-content">
               <h2>職業卡牌雷達圖</h2>
               <v-divider />
               <div class="trait-selection-container">
@@ -970,6 +970,12 @@ const closeImagePreviewDialog = () => {
 
 .trait-selection-table {
   margin: 5%;
+}
+
+.tab-content {
+  max-height: calc(90vh - 200px);
+  overflow-y: auto;
+  padding: 16px;
 }
 
 .card-ids-container {
