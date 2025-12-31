@@ -9,6 +9,9 @@
  * 
  * @component ExamClientResult
  * 
+ * @usedBy
+ * - @/pages/exam/[token].vue | router: /exam/[token]
+ * 
  * @features
  * - 響應式對話框設計，高度為 90% 視窗高度
  * - 自動監聽測驗流程狀態變化，即時更新結果
@@ -56,7 +59,6 @@
  * 組件會自動從 examProcess store 讀取數據，無需傳入 props
  */
 /* eslint-disable vue/no-v-html */
-/* eslint-disable vue/no-v-text-v-html-on-component */
 /* eslint-disable no-unused-vars */
 
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
@@ -378,30 +380,55 @@ const findMaxValueInJobs = computed(() => {
 
           <v-window-item value="1">
             <v-card-text class="tab-content">
-              <v-card color="primary" class="mb-4">
+              <v-card 
+                color="primary"
+                class="mb-4"
+              >
                 <v-card-title>綜合解析</v-card-title>
                 <v-divider />
-                <v-card-text class="result-text" v-html="finalResult('summary')" />
+                <v-card-text class="result-text">
+                  <div v-html="finalResult('summary')" />
+                </v-card-text>
               </v-card>
-              <v-card color="primary" class="mb-4">
+              <v-card
+                color="primary"
+                class="mb-4"
+              >
                 <v-card-title>活動偏好 - 興趣</v-card-title>
                 <v-divider />
-                <v-card-text class="result-text" v-html="finalResult('interest')" />
+                <v-card-text class="result-text">
+                  <div v-html="finalResult('interest')" />
+                </v-card-text>
               </v-card>
-              <v-card color="primary" class="mb-4">
+              <v-card
+                color="primary"
+                class="mb-4"
+              >
                 <v-card-title>擅長知能 - 能力</v-card-title>
                 <v-divider />
-                <v-card-text class="result-text" v-html="finalResult('ability')" />
+                <v-card-text class="result-text">
+                  <div v-html="finalResult('ability')" />
+                </v-card-text>
               </v-card>
-              <v-card color="primary" class="mb-4">
+              <v-card
+                color="primary"
+                class="mb-4"
+              >
                 <v-card-title>適配職業別</v-card-title>
                 <v-divider />
-                <v-card-text class="result-text" v-html="finalResult('career')" />
+                <v-card-text class="result-text">
+                  <div v-html="finalResult('career')" />
+                </v-card-text>
               </v-card>
-              <v-card color="primary" class="mb-4">
+              <v-card
+                color="primary"
+                class="mb-4"
+              >
                 <v-card-title>補充說明</v-card-title>
                 <v-divider />
-                <v-card-text class="result-text" v-html="finalResult('note')" />
+                <v-card-text class="result-text">
+                  <div v-html="finalResult('note')" />
+                </v-card-text>
               </v-card>
             </v-card-text>
           </v-window-item>
@@ -427,8 +454,9 @@ const findMaxValueInJobs = computed(() => {
                         v-for="(item, index) in filterResultRateForProfession"
                         :key="index"
                         class="text-center"
-                        v-html="paddingNewLineForCol(item.title)"
-                      />
+                      >
+                        <span v-html="paddingNewLineForCol(item.title)" />
+                      </th>
                     </tr>
                   </thead>
                   <tbody>

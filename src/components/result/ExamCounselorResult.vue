@@ -60,6 +60,11 @@ const selectedCardIds = ref([])
 const selectedCardType = ref('')
 const selectedRiasecType = ref('')
 
+// 圖片放大預覽相關狀態
+const showImagePreviewDialog = ref(false)
+const previewImageSrc = ref('')
+const previewImageAlt = ref('')
+
 const stringOfType = (type) => {
   switch (type) {
     case 'goal':
@@ -401,6 +406,20 @@ const getCardImageSrc = (cardId) => {
   const cardCode = getCardImageName(cardId)
   // 使用 getCardImagePath 將代號轉換為當前語言對應的圖片路徑
   return getCardImagePath(cardCode)
+}
+
+// 處理點擊卡片圖片的事件
+const handleCardImageClick = (cardId) => {
+  previewImageSrc.value = getCardImageSrc(cardId)
+  previewImageAlt.value = getCardImageName(cardId)
+  showImagePreviewDialog.value = true
+}
+
+// 關閉圖片預覽對話框
+const closeImagePreviewDialog = () => {
+  showImagePreviewDialog.value = false
+  previewImageSrc.value = ''
+  previewImageAlt.value = ''
 }
 </script>
 
@@ -811,6 +830,7 @@ const getCardImageSrc = (cardId) => {
               :alt="getCardImageName(cardId)"
               class="card-image"
               cover
+              @click="handleCardImageClick(cardId)"
             />
           </div>
           <div
@@ -832,6 +852,28 @@ const getCardImageSrc = (cardId) => {
         </v-btn>
       </v-card-actions>
     </v-card>
+  </v-dialog>
+
+  <!-- 圖片預覽對話框 -->
+  <v-dialog
+    v-model="showImagePreviewDialog"
+    max-width="90vw"
+    max-height="90vh"
+    content-class="image-preview-dialog"
+    @click:outside="closeImagePreviewDialog"
+    @keydown.esc="closeImagePreviewDialog"
+  >
+    <div
+      class="image-preview-container"
+      @click="closeImagePreviewDialog"
+    >
+      <v-img
+        :src="previewImageSrc"
+        :alt="previewImageAlt"
+        class="preview-image"
+        contain
+      />
+    </div>
   </v-dialog>
 </template>
 
@@ -958,5 +1000,52 @@ const getCardImageSrc = (cardId) => {
   height: 168px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
+  }
+}
+
+// 圖片預覽對話框樣式
+:deep(.image-preview-dialog) {
+  .v-overlay__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+  }
+  
+  .v-overlay__scrim {
+    cursor: pointer;
+  }
+}
+
+.image-preview-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.preview-image {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  cursor: default;
+  pointer-events: auto;
 }
 </style>
