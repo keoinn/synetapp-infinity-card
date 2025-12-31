@@ -43,6 +43,8 @@
 import { onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { Chart, registerables } from 'chart.js'
+import { getCardCoverImage, getCardImageName } from '@/plugins/utils/psy_cards'
+import { getCardImagePath } from '@/utils/imageUtils'
 Chart.register(...registerables)
 
 const examProcess = useExamProcessStore()
@@ -51,6 +53,12 @@ const pairResult = ref(null)
 const radarChartRef = ref(null)
 const currentTab = ref(0)
 const radarChartInstance = ref(null)
+
+// 卡片 ID 彈窗相關狀態
+const showCardIdDialog = ref(false)
+const selectedCardIds = ref([])
+const selectedCardType = ref('')
+const selectedRiasecType = ref('')
 
 const stringOfType = (type) => {
   switch (type) {
@@ -75,6 +83,19 @@ const stringOfType = (type) => {
     default:
       return type
   }
+}
+
+// 將 RIASEC 類型代碼轉換為完整的中文說明
+const getRiasecTypeLabel = (riasecType) => {
+  const typeMap = {
+    'r': '實用型(R)',
+    'i': '研究型(I)',
+    'a': '藝術型(A)',
+    's': '社會型(S)',
+    'e': '企業型(E)',
+    'c': '事務型(C)'
+  }
+  return typeMap[riasecType.toLowerCase()] || riasecType.toUpperCase()
 }
 
 // 控制對話框開啟的狀態
@@ -300,6 +321,87 @@ const findMaxValueInJobs = computed(() => {
 
   return maxTitle
 })
+
+// 獲取特定類型和 RIASEC 類型的卡片 ID
+const getCardIdsByTypeAndRiasec = (type, riasecType) => {
+  if (!examProcess.cards_set || !type || !riasecType) {
+    return []
+  }
+
+  // 根據類型獲取對應的 keep_cards
+  // 需要處理 'can' 和 'like' 的映射關係
+  let keepCards = []
+  
+  if (type === 'goal') {
+    keepCards = examProcess.pick_goal.stage1.keep_cards || []
+  } else if (type === 'care') {
+    keepCards = examProcess.pick_care?.keep_cards || []
+  } else if (type === 'can') {
+    // 'can' 可能是 'ce' 或 'cj'，需要從 cards_set 中確定
+    // 合併 'ce' 和 'cj' 的卡片
+    const ceCards = examProcess.pick_ce?.keep_cards || []
+    const cjCards = examProcess.pick_cj?.keep_cards || []
+    keepCards = [...ceCards, ...cjCards]
+  } else if (type === 'like') {
+    // 'like' 可能是 'le' 或 'lj'，需要從 cards_set 中確定
+    // 合併 'le' 和 'lj' 的卡片
+    const leCards = examProcess.pick_le?.keep_cards || []
+    const ljCards = examProcess.pick_lj?.keep_cards || []
+    keepCards = [...leCards, ...ljCards]
+  } else {
+    // 處理其他類型（ce, cj, le, lj）
+    const pickKey = `pick_${type}`
+    if (examProcess[pickKey] && examProcess[pickKey].keep_cards) {
+      keepCards = examProcess[pickKey].keep_cards
+    }
+  }
+
+  // 過濾出符合 RIASEC 類型的卡片 ID
+  const targetRiasecType = `general_${riasecType}`
+  const cardIds = keepCards.filter((cardId) => {
+    let cardType = null
+    if (type === 'goal') {
+      const goalCardType = getCardCoverImage(getCardImageName(cardId))
+      cardType = goalCardType === 'goal_r' ? 'general_r' :
+                 goalCardType === 'goal_i' ? 'general_i' :
+                 goalCardType === 'goal_a' ? 'general_a' :
+                 goalCardType === 'goal_s' ? 'general_s' :
+                 goalCardType === 'goal_e' ? 'general_e' :
+                 goalCardType === 'goal_c' ? 'general_c' : null
+    } else {
+      cardType = getCardCoverImage(getCardImageName(cardId))
+    }
+    return cardType === targetRiasecType
+  })
+
+  return cardIds
+}
+
+// 處理點擊 td 的事件
+const handleCellClick = (type, riasecType) => {
+  const cardIds = getCardIdsByTypeAndRiasec(type, riasecType)
+  selectedCardIds.value = cardIds
+  selectedCardType.value = type
+  selectedRiasecType.value = riasecType
+  showCardIdDialog.value = true
+}
+
+// 關閉卡片 ID 對話框
+const closeCardIdDialog = () => {
+  showCardIdDialog.value = false
+  selectedCardIds.value = []
+  selectedCardType.value = ''
+  selectedRiasecType.value = ''
+}
+
+// 將卡片 ID（可能是路徑或代號）轉換為圖片路徑
+const getCardImageSrc = (cardId) => {
+  if (!cardId) return ''
+  // 如果 cardId 已經是完整路徑，先提取代號
+  const cardCode = getCardImageName(cardId)
+  // 使用 getCardImagePath 將代號轉換為當前語言對應的圖片路徑
+  return getCardImagePath(cardCode)
+}
 </script>
 
 <template>
@@ -485,22 +587,40 @@ const findMaxValueInJobs = computed(() => {
                       :key="key"
                     >
                       <td>{{ stringOfType(key) }}</td>
-                      <td class="raw-cell">
+                      <td 
+                        class="raw-cell clickable-cell"
+                        @click="handleCellClick(key, 'r')"
+                      >
                         {{ item.r }}
                       </td>
-                      <td class="raw-cell">
+                      <td 
+                        class="raw-cell clickable-cell"
+                        @click="handleCellClick(key, 'i')"
+                      >
                         {{ item.i }}
                       </td>
-                      <td class="raw-cell">
+                      <td 
+                        class="raw-cell clickable-cell"
+                        @click="handleCellClick(key, 'a')"
+                      >
                         {{ item.a }}
                       </td>
-                      <td class="raw-cell">
+                      <td 
+                        class="raw-cell clickable-cell"
+                        @click="handleCellClick(key, 's')"
+                      >
                         {{ item.s }}
                       </td>
-                      <td class="raw-cell">
+                      <td 
+                        class="raw-cell clickable-cell"
+                        @click="handleCellClick(key, 'e')"
+                      >
                         {{ item.e }}
                       </td>
-                      <td class="raw-cell">
+                      <td 
+                        class="raw-cell clickable-cell"
+                        @click="handleCellClick(key, 'c')"
+                      >
                         {{ item.c }}
                       </td>
                     </tr>
@@ -663,6 +783,56 @@ const findMaxValueInJobs = computed(() => {
       </v-card>
     </template>
   </v-dialog>
+
+  <!-- 卡片 ID 顯示對話框 -->
+  <v-dialog
+    v-model="showCardIdDialog"
+    max-width="800"
+  >
+    <v-card>
+      <v-card-title class="text-h6">
+        挑選的卡片清單
+      </v-card-title>
+      <v-card-text>
+        <div class="mb-4">
+          <strong>類型：</strong>{{ stringOfType(selectedCardType) }}<br>
+          <strong>荷倫碼類型：</strong>{{ getRiasecTypeLabel(selectedRiasecType) }}<br>
+          <strong>卡片數量：</strong>{{ selectedCardIds.length }}
+        </div>
+        <v-divider class="mb-4" />
+        <div class="card-ids-container">
+          <div
+            v-for="(cardId, index) in selectedCardIds"
+            :key="index"
+            class="card-item"
+          >
+            <v-img
+              :src="getCardImageSrc(cardId)"
+              :alt="getCardImageName(cardId)"
+              class="card-image"
+              cover
+            />
+          </div>
+          <div
+            v-if="selectedCardIds.length === 0"
+            class="text-grey"
+          >
+            無卡片
+          </div>
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn
+          color="primary"
+          variant="tonal"
+          @click="closeCardIdDialog"
+        >
+          關閉
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style lang="scss" scoped>
@@ -693,6 +863,14 @@ const findMaxValueInJobs = computed(() => {
   .raw-cell {
     background-color: rgb(255, 246, 168);
     border-radius: 10px;
+  }
+  .clickable-cell {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    &:hover {
+      background-color: rgb(255, 235, 120) !important;
+      transform: scale(1.05);
+    }
   }
   .high-ratio {
     background-color: #c6efce;
@@ -750,5 +928,35 @@ const findMaxValueInJobs = computed(() => {
 
 .trait-selection-table {
   margin: 5%;
+}
+
+.card-ids-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.card-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.card-image {
+  width: 120px;
+  height: 168px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 </style>
