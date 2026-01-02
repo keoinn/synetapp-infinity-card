@@ -625,6 +625,34 @@ function generateCustomerReportHTML(options) {
 }
 
 /**
+ * 將類型代碼轉換為中文標籤
+ */
+function stringOfType(type) {
+  switch (type) {
+    case 'goal':
+      return '我就是'
+    case 'care':
+      return '我在乎'
+    case 'cj':
+      return '我可以 (社青版)'
+    case 'ce':
+      return '我可以 (國小版)'
+    case 'le':
+      return '我喜歡 (國小版)'
+    case 'lj':
+      return '我喜歡 (社青版)'
+    case 'total':
+      return '總數'
+    case 'can':
+      return '我可以'
+    case 'like':
+      return '我喜歡'
+    default:
+      return type
+  }
+}
+
+/**
  * 根據比率值返回顏色
  */
 function getRatioColor(ratio) {
@@ -1142,6 +1170,659 @@ function addProfessionTable(pdf, pairResult, margin, startY, contentWidth, pageH
 }
 
 /**
+ * 添加特質挑選表格（分析結果: 特質挑選）
+ */
+function addTraitSelectionTable(pdf, pickResult, margin, startY, contentWidth, pageHeight, primaryRgb, fontName) {
+  let currentY = startY
+
+  // 檢查是否需要換頁
+  if (currentY + 50 > pageHeight - margin) {
+    pdf.addPage()
+    currentY = margin
+  }
+
+  // 標題上方預留 1.5 字元高度
+  const fontSize = 18
+  const extraSpacing = fontSize * 1.5 * 0.353
+  currentY += extraSpacing
+
+  // 標題
+  pdf.setFontSize(fontSize)
+  pdf.setFont(fontName, 'bold')
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  
+  const titleText = '分析結果: 特質挑選'
+  pdf.text(titleText, margin, currentY)
+  
+  const titleWidth = pdf.getTextWidth(titleText)
+  
+  // 繪製雙底線
+  const lineY1 = currentY + 2
+  const lineY2 = currentY + 3
+  const lineWidth = 0.3
+  
+  pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  pdf.setLineWidth(lineWidth)
+  pdf.line(margin, lineY1, margin + titleWidth, lineY1)
+  pdf.line(margin, lineY2, margin + titleWidth, lineY2)
+  
+  currentY += 10
+
+  // 引用區塊
+  const sectionBgRgb = hexToRgb(THEME_COLORS.sectionBg)
+  pdf.setFillColor(sectionBgRgb.r, sectionBgRgb.g, sectionBgRgb.b)
+  const cornerRadius = 1.5
+  pdf.roundedRect(margin, currentY, contentWidth, 8, cornerRadius, cornerRadius, 'F')
+  pdf.setFontSize(12)
+  pdf.setFont(fontName, 'normal')
+  pdf.setTextColor(0, 0, 0)
+  pdf.text('預留文字區塊', margin + 5, currentY + 5)
+  currentY += 12
+
+  // 過濾掉 'total' 鍵
+  const types = Object.entries(pickResult)
+    .filter(([key]) => key !== 'total')
+
+  if (types.length === 0) return currentY
+
+  // 表格設定
+  const tableTop = currentY + 5
+  const rowHeight = 8
+  const colWidth = contentWidth / 8 // 類型 + R + I + A + S + E + C + 荷倫碼 = 8 欄
+  const headerHeight = 10
+  const totalRows = types.length
+  const tableHeight = headerHeight + (totalRows * rowHeight)
+
+  // 檢查是否需要換頁
+  if (tableTop + tableHeight > pageHeight - margin) {
+    pdf.addPage()
+    currentY = margin
+    return addTraitSelectionTable(pdf, pickResult, margin, currentY, contentWidth, pageHeight, primaryRgb, fontName)
+  }
+
+  // 設定框線顏色
+  const borderColor = { r: 150, g: 150, b: 150 }
+  pdf.setDrawColor(borderColor.r, borderColor.g, borderColor.b)
+  pdf.setLineWidth(0.2)
+
+  // 表頭背景（白色）
+  pdf.setFillColor(255, 255, 255)
+  pdf.rect(margin, tableTop, contentWidth, headerHeight, 'F')
+
+  // 繪製表頭框線
+  pdf.line(margin, tableTop, margin + contentWidth, tableTop)
+  pdf.line(margin, tableTop + headerHeight, margin + contentWidth, tableTop + headerHeight)
+
+  // 繪製表頭垂直分隔線
+  const headerCols = ['類型', 'R', 'I', 'A', 'S', 'E', 'C', '荷倫碼']
+  for (let i = 0; i <= headerCols.length; i++) {
+    const x = margin + (i * colWidth)
+    pdf.line(x, tableTop, x, tableTop + headerHeight)
+  }
+
+  // 表頭文字
+  pdf.setTextColor(0, 0, 0)
+  pdf.setFontSize(9)
+  pdf.setFont(fontName, 'bold')
+  headerCols.forEach((col, index) => {
+    const x = margin + colWidth * index
+    pdf.text(col, x + colWidth / 2, tableTop + headerHeight / 2 + 2, { align: 'center', maxWidth: colWidth - 2 })
+  })
+
+  // 表格內容
+  types.forEach(([typeKey, typeData], rowIndex) => {
+    currentY = tableTop + headerHeight + (rowIndex * rowHeight)
+
+    // 檢查是否需要換頁
+    if (currentY + rowHeight > pageHeight - margin) {
+      pdf.addPage()
+      currentY = margin + 10
+    }
+
+    // 類型標籤背景（白色）
+    pdf.setFillColor(255, 255, 255)
+    pdf.rect(margin, currentY, colWidth, rowHeight, 'F')
+
+    // 類型標籤（垂直置中）
+    pdf.setFontSize(9)
+    pdf.setFont(fontName, 'normal')
+    pdf.setTextColor(0, 0, 0)
+    const centerY = currentY + rowHeight / 2 + 1.5
+    pdf.text(stringOfType(typeKey), margin + colWidth / 2, centerY, { align: 'center', maxWidth: colWidth - 2 })
+
+    // RIASEC 百分比
+    const riasecTypes = ['r', 'i', 'a', 's', 'e', 'c']
+    riasecTypes.forEach((riasecType, colIndex) => {
+      const x = margin + colWidth * (colIndex + 1)
+      const ratio = typeData.rate?.[riasecType] || 0
+      const ratioText = `${ratio.toFixed(2)} %`
+
+      // 根據比率設定背景顏色
+      const color = getRatioColor(ratio)
+      const colorRgb = hexToRgb(color.bg)
+      const textRgb = hexToRgb(color.text)
+      
+      pdf.setFillColor(colorRgb.r, colorRgb.g, colorRgb.b)
+      pdf.rect(x, currentY, colWidth, rowHeight, 'F')
+
+      pdf.setTextColor(textRgb.r, textRgb.g, textRgb.b)
+      pdf.text(ratioText, x + colWidth / 2, centerY, { align: 'center' })
+    })
+
+    // 荷倫碼
+    const hCodeX = margin + colWidth * 7
+    pdf.setFillColor(255, 255, 255)
+    pdf.rect(hCodeX, currentY, colWidth, rowHeight, 'F')
+    pdf.setTextColor(0, 0, 255)
+    pdf.setFont(fontName, 'bold')
+    pdf.text(typeData.h_code || '', hCodeX + colWidth / 2, centerY, { align: 'center' })
+
+    // 重置文字顏色
+    pdf.setTextColor(0, 0, 0)
+
+    // 繪製框線
+    pdf.setDrawColor(borderColor.r, borderColor.g, borderColor.b)
+    pdf.setLineWidth(0.2)
+    pdf.line(margin, currentY, margin + contentWidth, currentY)
+    pdf.line(margin, currentY + rowHeight, margin + contentWidth, currentY + rowHeight)
+
+    for (let i = 0; i <= headerCols.length; i++) {
+      const x = margin + (i * colWidth)
+      pdf.line(x, currentY, x, currentY + rowHeight)
+    }
+  })
+
+  // 繪製表格外框
+  pdf.line(margin + contentWidth, tableTop, margin + contentWidth, tableTop + tableHeight)
+  pdf.line(margin, tableTop + tableHeight, margin + contentWidth, tableTop + tableHeight)
+
+  return currentY + rowHeight + 10
+}
+
+/**
+ * 添加卡片挑選結果表格
+ */
+function addCardSelectionTable(pdf, pickResult, margin, startY, contentWidth, pageHeight, primaryRgb, fontName) {
+  let currentY = startY
+
+  // 檢查是否需要換頁
+  if (currentY + 50 > pageHeight - margin) {
+    pdf.addPage()
+    currentY = margin
+  }
+
+  // 標題上方預留 1.5 字元高度
+  const fontSize = 18
+  const extraSpacing = fontSize * 1.5 * 0.353
+  currentY += extraSpacing
+
+  // 標題
+  pdf.setFontSize(fontSize)
+  pdf.setFont(fontName, 'bold')
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  
+  const titleText = '卡片挑選結果'
+  pdf.text(titleText, margin, currentY)
+  
+  const titleWidth = pdf.getTextWidth(titleText)
+  
+  // 繪製雙底線
+  const lineY1 = currentY + 2
+  const lineY2 = currentY + 3
+  const lineWidth = 0.3
+  
+  pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  pdf.setLineWidth(lineWidth)
+  pdf.line(margin, lineY1, margin + titleWidth, lineY1)
+  pdf.line(margin, lineY2, margin + titleWidth, lineY2)
+  
+  currentY += 10
+
+  // 引用區塊
+  const sectionBgRgb = hexToRgb(THEME_COLORS.sectionBg)
+  pdf.setFillColor(sectionBgRgb.r, sectionBgRgb.g, sectionBgRgb.b)
+  const cornerRadius = 1.5
+  pdf.roundedRect(margin, currentY, contentWidth, 8, cornerRadius, cornerRadius, 'F')
+  pdf.setFontSize(12)
+  pdf.setFont(fontName, 'normal')
+  pdf.setTextColor(0, 0, 0)
+  pdf.text('預留文字區塊', margin + 5, currentY + 5)
+  currentY += 12
+
+  // 過濾掉 'total' 鍵
+  const types = Object.entries(pickResult)
+    .filter(([key]) => key !== 'total')
+
+  if (types.length === 0) return currentY
+
+  // 表格設定
+  const tableTop = currentY + 5
+  const rowHeight = 8
+  const colWidth = contentWidth / 7 // 類型 + R + I + A + S + E + C = 7 欄
+  const headerHeight = 10
+  const totalRows = types.length
+  const tableHeight = headerHeight + (totalRows * rowHeight)
+
+  // 檢查是否需要換頁
+  if (tableTop + tableHeight > pageHeight - margin) {
+    pdf.addPage()
+    currentY = margin
+    return addCardSelectionTable(pdf, pickResult, margin, currentY, contentWidth, pageHeight, primaryRgb, fontName)
+  }
+
+  // 設定框線顏色
+  const borderColor = { r: 150, g: 150, b: 150 }
+  pdf.setDrawColor(borderColor.r, borderColor.g, borderColor.b)
+  pdf.setLineWidth(0.2)
+
+  // 表頭背景（白色）
+  pdf.setFillColor(255, 255, 255)
+  pdf.rect(margin, tableTop, contentWidth, headerHeight, 'F')
+
+  // 繪製表頭框線
+  pdf.line(margin, tableTop, margin + contentWidth, tableTop)
+  pdf.line(margin, tableTop + headerHeight, margin + contentWidth, tableTop + headerHeight)
+
+  // 繪製表頭垂直分隔線
+  const headerCols = ['類型', 'R', 'I', 'A', 'S', 'E', 'C']
+  for (let i = 0; i <= headerCols.length; i++) {
+    const x = margin + (i * colWidth)
+    pdf.line(x, tableTop, x, tableTop + headerHeight)
+  }
+
+  // 表頭文字
+  pdf.setTextColor(0, 0, 0)
+  pdf.setFontSize(9)
+  pdf.setFont(fontName, 'bold')
+  headerCols.forEach((col, index) => {
+    const x = margin + colWidth * index
+    pdf.text(col, x + colWidth / 2, tableTop + headerHeight / 2 + 2, { align: 'center', maxWidth: colWidth - 2 })
+  })
+
+  // 表格內容
+  types.forEach(([typeKey, typeData], rowIndex) => {
+    currentY = tableTop + headerHeight + (rowIndex * rowHeight)
+
+    // 檢查是否需要換頁
+    if (currentY + rowHeight > pageHeight - margin) {
+      pdf.addPage()
+      currentY = margin + 10
+    }
+
+    // 類型標籤背景（淺黃色）
+    const rawCellRgb = hexToRgb('#FFF6A8')
+    pdf.setFillColor(rawCellRgb.r, rawCellRgb.g, rawCellRgb.b)
+    pdf.rect(margin, currentY, colWidth, rowHeight, 'F')
+
+    // 類型標籤（垂直置中）
+    pdf.setFontSize(9)
+    pdf.setFont(fontName, 'normal')
+    pdf.setTextColor(0, 0, 0)
+    const centerY = currentY + rowHeight / 2 + 1.5
+    pdf.text(stringOfType(typeKey), margin + colWidth / 2, centerY, { align: 'center', maxWidth: colWidth - 2 })
+
+    // RIASEC 計數（淺黃色背景）
+    const riasecTypes = ['r', 'i', 'a', 's', 'e', 'c']
+    riasecTypes.forEach((riasecType, colIndex) => {
+      const x = margin + colWidth * (colIndex + 1)
+      const count = typeData[riasecType] || 0
+
+      pdf.setFillColor(rawCellRgb.r, rawCellRgb.g, rawCellRgb.b)
+      pdf.rect(x, currentY, colWidth, rowHeight, 'F')
+
+      pdf.setTextColor(0, 0, 0)
+      pdf.text(String(count), x + colWidth / 2, centerY, { align: 'center' })
+    })
+
+    // 繪製框線
+    pdf.setDrawColor(borderColor.r, borderColor.g, borderColor.b)
+    pdf.setLineWidth(0.2)
+    pdf.line(margin, currentY, margin + contentWidth, currentY)
+    pdf.line(margin, currentY + rowHeight, margin + contentWidth, currentY + rowHeight)
+
+    for (let i = 0; i <= headerCols.length; i++) {
+      const x = margin + (i * colWidth)
+      pdf.line(x, currentY, x, currentY + rowHeight)
+    }
+  })
+
+  // 繪製表格外框
+  pdf.line(margin + contentWidth, tableTop, margin + contentWidth, tableTop + tableHeight)
+  pdf.line(margin, tableTop + tableHeight, margin + contentWidth, tableTop + tableHeight)
+
+  return currentY + rowHeight + 10
+}
+
+/**
+ * 添加職業卡牌配對結果表格（顯示原始計數）
+ */
+function addProfessionCountTable(pdf, pairResult, margin, startY, contentWidth, pageHeight, primaryRgb, fontName) {
+  let currentY = startY
+
+  // 檢查是否需要換頁
+  if (currentY + 50 > pageHeight - margin) {
+    pdf.addPage()
+    currentY = margin
+  }
+
+  // 標題上方預留 1.5 字元高度
+  const fontSize = 18
+  const extraSpacing = fontSize * 1.5 * 0.353
+  currentY += extraSpacing
+
+  // 標題
+  pdf.setFontSize(fontSize)
+  pdf.setFont(fontName, 'bold')
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  
+  const titleText = '職業卡牌配對結果'
+  pdf.text(titleText, margin, currentY)
+  
+  const titleWidth = pdf.getTextWidth(titleText)
+  
+  // 繪製雙底線
+  const lineY1 = currentY + 2
+  const lineY2 = currentY + 3
+  const lineWidth = 0.3
+  
+  pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  pdf.setLineWidth(lineWidth)
+  pdf.line(margin, lineY1, margin + titleWidth, lineY1)
+  pdf.line(margin, lineY2, margin + titleWidth, lineY2)
+  
+  currentY += 10
+
+  // 引用區塊
+  const sectionBgRgb = hexToRgb(THEME_COLORS.sectionBg)
+  pdf.setFillColor(sectionBgRgb.r, sectionBgRgb.g, sectionBgRgb.b)
+  const cornerRadius = 1.5
+  pdf.roundedRect(margin, currentY, contentWidth, 8, cornerRadius, cornerRadius, 'F')
+  pdf.setFontSize(12)
+  pdf.setFont(fontName, 'normal')
+  pdf.setTextColor(0, 0, 0)
+  pdf.text('預留文字區塊', margin + 5, currentY + 5)
+  currentY += 12
+
+  // 過濾掉 'total' 鍵
+  const professions = Object.entries(pairResult)
+    .filter(([key]) => key !== 'total')
+    .map(([key, value]) => ({ key, ...value }))
+
+  if (professions.length === 0) return currentY
+
+  // 表格設定
+  const tableTop = currentY + 5
+  const rowHeight = 8
+  const colWidth = contentWidth / (professions.length + 1)
+  const headerHeight = 10
+  const totalRows = 3 // 三行數據（我在乎、我可以、我喜歡）
+  const tableHeight = headerHeight + (totalRows * rowHeight)
+
+  // 檢查是否需要換頁
+  if (tableTop + tableHeight > pageHeight - margin) {
+    pdf.addPage()
+    currentY = margin
+    return addProfessionCountTable(pdf, pairResult, margin, currentY, contentWidth, pageHeight, primaryRgb, fontName)
+  }
+
+  // 設定框線顏色
+  const borderColor = { r: 150, g: 150, b: 150 }
+  pdf.setDrawColor(borderColor.r, borderColor.g, borderColor.b)
+  pdf.setLineWidth(0.2)
+
+  // 表頭背景（白色）
+  pdf.setFillColor(255, 255, 255)
+  pdf.rect(margin, tableTop, contentWidth, headerHeight, 'F')
+
+  // 繪製表頭框線
+  pdf.line(margin, tableTop, margin + contentWidth, tableTop)
+  pdf.line(margin, tableTop + headerHeight, margin + contentWidth, tableTop + headerHeight)
+
+  // 繪製表頭垂直分隔線
+  for (let i = 0; i <= professions.length + 1; i++) {
+    const x = margin + (i * colWidth)
+    pdf.line(x, tableTop, x, tableTop + headerHeight)
+  }
+
+  // 表頭文字
+  pdf.setTextColor(0, 0, 0)
+  pdf.setFontSize(10)
+  pdf.setFont(fontName, 'bold')
+  pdf.text('類型', margin + colWidth / 2, tableTop + headerHeight / 2 + 2, { align: 'center' })
+
+  professions.forEach((prof, index) => {
+    const x = margin + colWidth * (index + 1)
+    const title = prof.title || ''
+    pdf.text(title, x + colWidth / 2, tableTop + headerHeight / 2 + 2, { align: 'center', maxWidth: colWidth - 4 })
+  })
+
+  // 表格內容
+  const types = [
+    { label: '我在乎', key: 'care' },
+    { label: '我可以', key: 'can' },
+    { label: '我喜歡', key: 'like' }
+  ]
+
+  types.forEach((type, typeIndex) => {
+    currentY = tableTop + headerHeight + (typeIndex * rowHeight)
+
+    // 檢查是否需要換頁
+    if (currentY + rowHeight > pageHeight - margin) {
+      pdf.addPage()
+      currentY = margin + 10
+    }
+
+    // 類型標籤背景（淺黃色）
+    const rawCellRgb = hexToRgb('#FFF6A8')
+    pdf.setFillColor(rawCellRgb.r, rawCellRgb.g, rawCellRgb.b)
+    pdf.rect(margin, currentY, colWidth, rowHeight, 'F')
+
+    // 類型標籤（垂直置中）
+    pdf.setFontSize(10)
+    pdf.setFont(fontName, 'normal')
+    pdf.setTextColor(0, 0, 0)
+    const centerY = currentY + rowHeight / 2 + 1.5
+    pdf.text(type.label, margin + colWidth / 2, centerY, { align: 'center' })
+
+    // 職業配對計數（淺黃色背景）
+    professions.forEach((prof, profIndex) => {
+      const x = margin + colWidth * (profIndex + 1)
+      const count = prof[type.key] || 0
+
+      pdf.setFillColor(rawCellRgb.r, rawCellRgb.g, rawCellRgb.b)
+      pdf.rect(x, currentY, colWidth, rowHeight, 'F')
+
+      pdf.setTextColor(0, 0, 0)
+      pdf.text(String(count), x + colWidth / 2, centerY, { align: 'center' })
+    })
+
+    // 繪製框線
+    pdf.setDrawColor(borderColor.r, borderColor.g, borderColor.b)
+    pdf.setLineWidth(0.2)
+    pdf.line(margin, currentY, margin + contentWidth, currentY)
+    pdf.line(margin, currentY + rowHeight, margin + contentWidth, currentY + rowHeight)
+
+    for (let i = 0; i <= professions.length + 1; i++) {
+      const x = margin + (i * colWidth)
+      pdf.line(x, currentY, x, currentY + rowHeight)
+    }
+  })
+
+  // 繪製表格外框
+  pdf.line(margin + contentWidth, tableTop, margin + contentWidth, tableTop + tableHeight)
+  pdf.line(margin, tableTop + tableHeight, margin + contentWidth, tableTop + tableHeight)
+
+  return currentY + rowHeight + 10
+}
+
+/**
+ * 生成諮商師報告 PDF
+ * 
+ * @param {Object} options - 報告數據選項
+ * @param {Object} options.pickResult - 特質挑選結果
+ * @param {Object} options.pairResult - 職業配對結果
+ * @param {string} options.radarChartImage - 雷達圖 base64 圖片
+ * @param {Object} options.config - PDF 配置選項
+ * @param {Object} options.examProcessStore - examProcess store 實例
+ * @returns {Promise<void>}
+ */
+async function generateCounselorReportPDF(options) {
+  const { pickResult, pairResult, radarChartImage, config = {}, examProcessStore = null } = options
+  const { filename = `諮商師報告_${new Date().getTime()}.pdf` } = config
+
+  // 初始化 PDF 並載入中文字體（A4 尺寸，縱向）
+  const pdf = await createPDFWithChineseFont()
+  const pageWidth = 210 // A4 寬度 (mm)
+  const pageHeight = 297 // A4 高度 (mm)
+  const margin = 20 // 邊距
+  const contentWidth = pageWidth - (margin * 2)
+  let currentY = margin
+
+  // 獲取字體名稱
+  const fontName = getFontName(pdf)
+
+  // ========== 1. 報告標題 ==========
+  const primaryRgb = hexToRgb(THEME_COLORS.primary)
+  pdf.setFontSize(24)
+  pdf.setFont(fontName, 'bold')
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  pdf.text('無限可能卡-諮商師報告', pageWidth / 2, currentY, { align: 'center' })
+  currentY += 8
+
+  // 報告資訊欄位
+  pdf.setFontSize(9)
+  pdf.setFont(fontName, 'normal')
+  pdf.setTextColor(80, 80, 80)
+  
+  // 從 examProcessStore 獲取資料
+  const examSerial = examProcessStore?.report_id || '未提供'
+  const examTargetName = examProcessStore?.report_name || '未設定'
+  const examEmail = examProcessStore?.target_email || '未設定'
+  const reportDate = new Date().toLocaleDateString('zh-TW')
+
+  // 左側欄位
+  const leftColumnX = margin + 10
+  const rightColumnX = margin + contentWidth / 2 + 10
+  const lineSpacing = 5
+
+  // 第一行：測驗序號（左側）、測驗發送信箱（右側）
+  pdf.text(`測驗序號：${examSerial}`, leftColumnX, currentY)
+  pdf.text(`測驗發送信箱：${examEmail}`, rightColumnX, currentY)
+
+  // 第二行：測驗對象名稱（左側）、報告製表日期（右側）
+  pdf.text(`測驗對象名稱：${examTargetName}`, leftColumnX, currentY + lineSpacing)
+  pdf.text(`報告製表日期：${reportDate}`, rightColumnX, currentY + lineSpacing)
+
+  currentY += 8
+
+  // 繪製分隔線
+  pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+  pdf.setLineWidth(0.5)
+  pdf.line(margin, currentY, margin + contentWidth, currentY)
+  currentY += 10
+
+  // ========== 2. 分析結果: 特質挑選 ==========
+  if (pickResult) {
+    currentY = addTraitSelectionTable(pdf, pickResult, margin, currentY, contentWidth, pageHeight, primaryRgb, fontName)
+  }
+
+  // ========== 3. 卡片挑選結果 ==========
+  if (pickResult) {
+    currentY = addCardSelectionTable(pdf, pickResult, margin, currentY, contentWidth, pageHeight, primaryRgb, fontName)
+  }
+
+  // ========== 4. 分析結果: 職業配對 ==========
+  if (pairResult) {
+    currentY = addProfessionTable(pdf, pairResult, margin, currentY, contentWidth, pageHeight, primaryRgb, fontName)
+  }
+
+  // ========== 5. 職業卡牌配對結果 ==========
+  if (pairResult) {
+    currentY = addProfessionCountTable(pdf, pairResult, margin, currentY, contentWidth, pageHeight, primaryRgb, fontName)
+  }
+
+  // ========== 6. 職業卡牌雷達圖 ==========
+  if (radarChartImage) {
+    // 檢查是否需要換頁
+    if (currentY + 80 > pageHeight - margin) {
+      pdf.addPage()
+      currentY = margin
+    }
+
+    pdf.setFontSize(18)
+    pdf.setFont(fontName, 'bold')
+    pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+    
+    // 繪製標題文字
+    const titleText = '職業卡牌雷達圖'
+    pdf.text(titleText, margin, currentY)
+    
+    // 計算標題文字寬度
+    const titleWidth = pdf.getTextWidth(titleText)
+    
+    // 繪製雙底線
+    const lineY1 = currentY + 2
+    const lineY2 = currentY + 3
+    const lineWidth = 0.3
+    
+    pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+    pdf.setLineWidth(lineWidth)
+    pdf.line(margin, lineY1, margin + titleWidth, lineY1)
+    pdf.line(margin, lineY2, margin + titleWidth, lineY2)
+    
+    currentY += 8
+
+    // 引用區塊
+    const sectionBgRgb = hexToRgb(THEME_COLORS.sectionBg)
+    pdf.setFillColor(sectionBgRgb.r, sectionBgRgb.g, sectionBgRgb.b)
+    const cornerRadius = 1.5
+    pdf.roundedRect(margin, currentY, contentWidth, 8, cornerRadius, cornerRadius, 'F')
+    pdf.setFontSize(12)
+    pdf.setFont(fontName, 'normal')
+    pdf.setTextColor(0, 0, 0)
+    pdf.text('預留文字區塊', margin + 5, currentY + 5)
+    currentY += 12
+
+    // 計算圖片尺寸（保持比例，最大寬度為內容寬度）
+    const imgWidth = contentWidth
+    const imgHeight = (imgWidth * 0.75) // 假設圖片比例為 4:3
+
+    // 檢查是否需要換頁
+    if (currentY + imgHeight > pageHeight - margin) {
+      pdf.addPage()
+      currentY = margin
+    }
+
+    try {
+      pdf.addImage(radarChartImage, 'PNG', margin, currentY, imgWidth, imgHeight)
+      currentY += imgHeight + 10
+    } catch (error) {
+      console.error('添加圖片失敗:', error)
+      currentY += 10
+    }
+  }
+
+  // ========== 7. 頁尾 ==========
+  const totalPages = pdf.internal.pages.length - 1
+  
+  for (let i = 1; i <= totalPages; i++) {
+    pdf.setPage(i)
+    pdf.setFontSize(10)
+    pdf.setFont(fontName, 'normal')
+    pdf.setTextColor(100, 100, 100)
+    pdf.text(
+      `第 ${i} 頁 / 共 ${totalPages} 頁`,
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: 'center' }
+    )
+  }
+
+  // 下載 PDF
+  pdf.save(filename)
+}
+
+/**
  * 生成報告（主要入口函數）
  * 
  * @param {Object} options - 報告選項
@@ -1166,36 +1847,52 @@ export async function generateReport(options = {}) {
     throw new Error('examProcessStore 是必需的參數')
   }
 
-  // 從 store 獲取數據
-  const hCode = examProcessStore.calculate_pick?.total?.h_code
-  const pairResult = examProcessStore.calculatePairResult
-
-  if (!hCode) {
-    throw new Error('無法獲取測驗結果數據，請確保已完成測驗')
-  }
-
-  // 獲取最終結果
-  const finalResult = getFinalResult(hCode)
-
-  const reportData = {
-    finalResult,
-    pairResult,
-    radarChartImage
-  }
-
   // 根據類型生成報告
   switch (type) {
-    case 'customer':
+    case 'customer': {
+      // 從 store 獲取數據
+      const hCode = examProcessStore.calculate_pick?.total?.h_code
+      const pairResult = examProcessStore.calculatePairResult
+
+      if (!hCode) {
+        throw new Error('無法獲取測驗結果數據，請確保已完成測驗')
+      }
+
+      // 獲取最終結果
+      const finalResult = getFinalResult(hCode)
+
+      const reportData = {
+        finalResult,
+        pairResult,
+        radarChartImage
+      }
+
       if (preview) {
         return generateCustomerReportHTML(reportData)
       } else {
         await generateCustomerReportPDF({ ...reportData, examProcessStore, config })
       }
       break
+    }
 
-    case 'counselor':
-      // TODO: 實作 counselor 版面配置
-      throw new Error('counselor 版面配置尚未實作')
+    case 'counselor': {
+      // 從 store 獲取數據
+      const pickResult = examProcessStore.calculatePickResult
+      const pairResult = examProcessStore.calculatePairResult
+
+      if (!pickResult || !pairResult) {
+        throw new Error('無法獲取測驗結果數據，請確保已完成測驗')
+      }
+
+      const reportData = {
+        pickResult,
+        pairResult,
+        radarChartImage
+      }
+
+      await generateCounselorReportPDF({ ...reportData, examProcessStore, config })
+      break
+    }
 
     case 'full':
       // TODO: 實作 full 版面配置

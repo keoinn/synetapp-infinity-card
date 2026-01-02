@@ -45,6 +45,8 @@ import { useExamProcessStore } from '@/stores/examProcess'
 import { Chart, registerables } from 'chart.js'
 import { getCardCoverImage, getCardImageName } from '@/plugins/utils/psy_cards'
 import { getCardImagePath } from '@/utils/imageUtils'
+import { generateReport, chartToBase64 } from '@/plugins/utils/pdfGenerator'
+import { handleAlert } from '@/plugins/utils/alert'
 Chart.register(...registerables)
 
 const examProcess = useExamProcessStore()
@@ -421,6 +423,54 @@ const closeImagePreviewDialog = () => {
   previewImageSrc.value = ''
   previewImageAlt.value = ''
 }
+
+// 下載報告函數
+const downloadReport = async () => {
+  try {
+    // 確保雷達圖已經繪製（如果還沒有繪製的話）
+    // 先切換到雷達圖標籤頁，確保 canvas 元素存在
+    if (currentTab.value !== '4') {
+      currentTab.value = '4'
+      await nextTick()
+    }
+    
+    // 如果雷達圖還沒有繪製，現在繪製它
+    if (!radarChartInstance.value && radarChartRef.value) {
+      drawRadarChart()
+      // 等待圖表渲染完成
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+
+    // 轉換雷達圖為 base64
+    const radarChartImage = radarChartInstance.value 
+      ? chartToBase64(radarChartInstance.value) 
+      : null
+
+    // 生成 PDF
+    await generateReport({
+      type: 'counselor',
+      preview: false,
+      examProcessStore: examProcess,
+      radarChartImage,
+      config: {
+        filename: `諮商師報告_${new Date().getTime()}.pdf`
+      }
+    })
+
+    handleAlert({
+      auction: 'success',
+      text: '報告下載成功',
+      timer: 2000
+    })
+  } catch (error) {
+    console.error('生成報告失敗:', error)
+    handleAlert({
+      auction: 'error',
+      text: error.message || '報告生成失敗，請稍後再試',
+      timer: 3000
+    })
+  }
+}
 </script>
 
 <template>
@@ -461,7 +511,7 @@ const closeImagePreviewDialog = () => {
             <v-btn
               text="下載報告"
               variant="text"
-              @click="dialogIsActive = false"
+              @click="downloadReport"
             />
           </v-toolbar-items>
         </v-toolbar>
