@@ -70,8 +70,6 @@ const stage = (target) => {
               <div class="button-group">
                 <ExamCounselorResult />
                 <ExamClientResult />
-                <ExamResultView />
-                <ExamResultTextView />
               </div>
             </v-col>
             <v-col

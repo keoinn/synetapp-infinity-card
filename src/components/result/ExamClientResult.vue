@@ -358,7 +358,8 @@ const downloadReport = async () => {
         size="small"
         color="primary"
         rounded="xl"
-        :text="t('playground.viewReport')"
+        :disabled="examProcess.status === 0"
+        :text="examProcess.status === 0 ? t('playground.viewReportEmpty') : t('playground.viewReport')"
       />
     </template>
 

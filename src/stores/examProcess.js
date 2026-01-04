@@ -394,6 +394,9 @@ export const useExamProcessStore = defineStore('examProcess', {
           }
         }
       })
+
+      // 更新狀態
+      this.updateStatus()
     },
     /**
      * 保存報告到後端
@@ -473,6 +476,9 @@ export const useExamProcessStore = defineStore('examProcess', {
         }
       })
       
+      // 更新狀態
+      this.updateStatus()
+      
       // 只有在已登入狀態下才調用 API 請求
       // TODO: 都要儲存至後端
       if (!this.own_id) {
@@ -500,12 +506,62 @@ export const useExamProcessStore = defineStore('examProcess', {
         state[targetRef].isFinished = data.isFinished
       })
       
+      // 更新狀態
+      this.updateStatus()
+      
       // 只有在已登入狀態下才調用 API 請求
       if (!this.own_id) {
         this.own_id = 'guest'
         console.log('own_id:', this.own_id, 'saveReportBackend')
       }
       await this.saveReportBackend()
+    },
+    /**
+     * 更新測驗狀態
+     * 檢查所有需要完成的測驗和配對是否都已完成
+     */
+    updateStatus() {
+      // 如果 cards_set 為空，設為未完成
+      if (!this.cards_set || this.cards_set.length === 0) {
+        this.status = 0
+        return
+      }
+
+      // 檢查所有 pick_* 測驗是否完成
+      for (const cardSet of this.cards_set) {
+        if (cardSet === 'goal') {
+          // 檢查 pick_goal 是否完成
+          if (!this.pick_goal || !this.pick_goal.isFinished) {
+            this.status = 0
+            return
+          }
+        } else {
+          // 檢查其他 pick_* 測驗是否完成
+          const pickKey = `pick_${cardSet}`
+          if (!this[pickKey] || !this[pickKey].isFinished) {
+            this.status = 0
+            return
+          }
+        }
+      }
+
+      // 如果 cards_set 包含 'goal'，檢查所有配對是否完成
+      if (this.cards_set.includes('goal')) {
+        // 過濾出除了 'goal' 以外的項目
+        const otherSets = this.cards_set.filter(set => set !== 'goal')
+        
+        for (const otherSet of otherSets) {
+          // 檢查對應的 pair_* 是否完成
+          const pairKey = `pair_${otherSet}`
+          if (!this[pairKey] || !this[pairKey].isFinished) {
+            this.status = 0
+            return
+          }
+        }
+      }
+
+      // 所有檢查都通過，設為完成
+      this.status = 1
     }
   },
   getters: {
@@ -1129,12 +1185,16 @@ export const useExamProcessStore = defineStore('examProcess', {
       if(state.pick_goal.final_cards.length === 0) {
         return state.calculate_pair
       } else {
-        state.pick_goal.final_cards.map((card, idx) => {
+        // 只處理前 3 個卡片（job1, job2, job3）
+        state.pick_goal.final_cards.slice(0, 3).map((card, idx) => {
           let card_type = getCardImageName(card)
           const profession_data = getGoalCardData(card_type)
-          state.calculate_pair[`job${idx + 1}`].title = profession_data.title
-          state.calculate_pair[`job${idx + 1}`].img = card
-          state.calculate_pair[`job${idx + 1}`].hcode = profession_data.hcode
+          const jobKey = `job${idx + 1}`
+          if (state.calculate_pair[jobKey] && profession_data) {
+            state.calculate_pair[jobKey].title = profession_data.title
+            state.calculate_pair[jobKey].img = card
+            state.calculate_pair[jobKey].hcode = profession_data.hcode
+          }
         })
       }
 
@@ -1168,20 +1228,26 @@ export const useExamProcessStore = defineStore('examProcess', {
           card_type = 'can'
         }
 
-        state[target].professions.map((profession, idx) => {
-          state.calculate_pair[`job${idx + 1}`][card_type] = profession.cards.length
-          state.calculate_pair[`job${idx + 1}`]['total'] += profession.cards.length
-          if(card_type === 'care') {
-            care_total += profession.cards.length
-          }
-          if(card_type === 'can') {
-            can_total += profession.cards.length
-          }
-          if(card_type === 'like') {
-            like_total += profession.cards.length
-          }
-          all_total += profession.cards.length
-        })
+        // 只處理前 3 個職業（job1, job2, job3）
+        if (state[target] && Array.isArray(state[target].professions)) {
+          state[target].professions.slice(0, 3).map((profession, idx) => {
+            const jobKey = `job${idx + 1}`
+            if (state.calculate_pair[jobKey] && profession && Array.isArray(profession.cards)) {
+              state.calculate_pair[jobKey][card_type] = profession.cards.length
+              state.calculate_pair[jobKey]['total'] += profession.cards.length
+              if(card_type === 'care') {
+                care_total += profession.cards.length
+              }
+              if(card_type === 'can') {
+                can_total += profession.cards.length
+              }
+              if(card_type === 'like') {
+                like_total += profession.cards.length
+              }
+              all_total += profession.cards.length
+            }
+          })
+        }
       })
 
       state.calculate_pair.total.care = care_total

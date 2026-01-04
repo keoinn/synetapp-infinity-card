@@ -47,6 +47,8 @@ import { getCardCoverImage, getCardImageName } from '@/plugins/utils/psy_cards'
 import { getCardImagePath } from '@/utils/imageUtils'
 import { generateReport, chartToBase64 } from '@/plugins/utils/pdfGenerator'
 import { handleAlert } from '@/plugins/utils/alert'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 Chart.register(...registerables)
 
 const examProcess = useExamProcessStore()
@@ -490,7 +492,8 @@ const downloadReport = async () => {
         color="primary"
         rounded="xl"
         class="mb-1"
-        text="諮商師報告"
+        :text="examProcess.status === 0 ? t('playground.viewCounselorReportEmpty') : t('playground.viewCounselorReport')"
+        :disabled="examProcess.status === 0"
       />
     </template>
 
