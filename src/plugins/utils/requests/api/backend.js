@@ -441,3 +441,10 @@ export const getCounselorReportListAPI = (target_id, type = '0') => {
   const request = requestInstance.post(`psycard/counselor/report/list`, data, JSONAPI_HEADER)
   return request
 }
+
+// 查詢機構用戶資訊
+export const getOrgUserAPI = (user_id) => {
+  const data = jsonapiEnc('organization', Date.now())
+  const request = requestInstance.post(`psycard/org/user/${user_id}`, data, JSONAPI_HEADER)
+  return request
+}
