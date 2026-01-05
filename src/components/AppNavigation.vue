@@ -113,22 +113,9 @@ const isMember = computed(() => {
   return currentRole.value === 'member'
 })
 
-// 判斷是否為諮商師角色
+// 判斷是否為諮商師角色（只檢查選擇的身份）
 const isCounselor = computed(() => {
-  // 檢查 appStore.role 數組中是否包含 'counselor'
-  let roles = appStore.role || []
-  
-  // 如果是字符串，轉換為數組
-  if (typeof roles === 'string') {
-    roles = [roles]
-  }
-  
-  // 如果不是數組，返回 false
-  if (!Array.isArray(roles)) {
-    return false
-  }
-  
-  return roles.includes('counselor')
+  return appStore.selectedRole === 'counselor'
 })
 
 const navItems = computed(() => [

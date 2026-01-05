@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useI18n } from 'vue-i18n'
@@ -19,7 +19,92 @@ const { t } = useI18n()
 
 const activeTab = ref('dashboard')
 
-const menuItems = [
+// 所有可用的身份列表（管理後台專用，移除會員、子帳號和諮商師）
+const allUserRoles = [
+  {
+    value: 'user',
+    title: t('admin.userRole'),
+    icon: 'mdi-account'
+  },
+  {
+    value: 'org',
+    title: t('admin.orgRole'),
+    icon: 'mdi-office-building'
+  },
+  {
+    value: 'organization',
+    title: t('admin.orgRole'),
+    icon: 'mdi-office-building'
+  },
+  {
+    value: 'admin',
+    title: '管理員',
+    icon: 'mdi-shield-account'
+  },
+  {
+    value: 'demo_account',
+    title: '展演帳號',
+    icon: 'mdi-account-star'
+  }
+]
+
+// 獲取用戶實際擁有的角色（處理數組格式）
+const userAvailableRoles = computed(() => {
+  let roles = appStore.role || []
+  
+  // 如果是字符串，轉換為數組
+  if (typeof roles === 'string') {
+    roles = [roles]
+  }
+  
+  // 如果不是數組，返回空數組
+  if (!Array.isArray(roles)) {
+    return []
+  }
+  
+  return roles
+})
+
+// 過濾出用戶可用的角色列表（管理後台允許顯示管理員）
+const userRoles = computed(() => {
+  return allUserRoles.filter(role => 
+    userAvailableRoles.value.includes(role.value)
+  )
+})
+
+// 當前選擇的身份別（優先使用 selectedRole，否則使用 role）
+const currentRole = computed(() => {
+  // 處理 role 可能是數組的情況
+  let roleValue = appStore.selectedRole || appStore.role || 'user'
+  
+  // 如果是數組，取第一個元素
+  if (Array.isArray(roleValue)) {
+    roleValue = roleValue.length > 0 ? roleValue[0] : 'user'
+  }
+  
+  // 確保返回字符串
+  return String(roleValue || 'user')
+})
+
+// 獲取當前身份的顯示文字
+const currentRoleTitle = computed(() => {
+  const role = userRoles.value.find(r => r.value === currentRole.value)
+  return role ? role.title : String(currentRole.value)
+})
+
+// 獲取當前身份的圖標
+const currentRoleIcon = computed(() => {
+  const role = userRoles.value.find(r => r.value === currentRole.value)
+  return role ? role.icon : 'mdi-account'
+})
+
+// 切換角色
+const switchRole = (role) => {
+  appStore.selectedRole = role
+  console.log('切換身份為:', role)
+}
+
+const allMenuItems = [
   {
     title: t('admin.dashboard'),
     icon: 'mdi-view-dashboard',
@@ -67,6 +152,26 @@ const menuItems = [
   }
 ]
 
+// 根據當前身份過濾功能按鈕
+const menuItems = computed(() => {
+  // 判斷是否為機構身份
+  const isOrganization = currentRole.value === 'organization' || currentRole.value === 'org'
+  
+  if (isOrganization) {
+    // 機構身份只顯示：儀表板、機構管理、附屬帳號管理、附屬帳號卡片庫存、統計數據
+    return allMenuItems.filter(item => 
+      item.value === 'dashboard' ||
+      item.value === 'organizations' ||
+      item.value === 'subAccounts' ||
+      item.value === 'subAccountCards' ||
+      item.value === 'statistics'
+    )
+  }
+  
+  // 其他身份顯示所有功能
+  return allMenuItems
+})
+
 // 權限驗證
 const isAdmin = ref(false)
 
@@ -78,14 +183,89 @@ const checkAdminAccess = () => {
   }
 }
 
+// 自動設定管理後台身份
+const autoSetAdminRole = () => {
+  // 獲取當前選擇的身份（優先使用 selectedRole，否則使用 role 的第一個）
+  let currentSelectedRole = appStore.selectedRole
+  if (!currentSelectedRole) {
+    const roles = userAvailableRoles.value
+    currentSelectedRole = roles.length > 0 ? roles[0] : null
+  }
+  
+  const availableRoles = userAvailableRoles.value
+  
+  // 如果當前身份已經是機構或管理者，則不需要重置
+  if (currentSelectedRole === 'organization' || 
+      currentSelectedRole === 'org' || 
+      currentSelectedRole === 'admin') {
+    return
+  }
+  
+  // 如果當前選擇的是會員、諮商師、附屬帳號時，需要自動切換
+  if (currentSelectedRole === 'member' || 
+      currentSelectedRole === 'counselor' || 
+      currentSelectedRole === 'subaccount') {
+    
+    // 優先設定為管理員（如果擁有管理員權限）
+    if (availableRoles.includes('admin')) {
+      appStore.selectedRole = 'admin'
+      console.log('自動切換身份為: 管理員')
+    } 
+    // 如果沒有管理員權限，則設定為機構
+    else if (availableRoles.includes('organization') || availableRoles.includes('org')) {
+      appStore.selectedRole = availableRoles.includes('organization') ? 'organization' : 'org'
+      console.log('自動切換身份為: 機構')
+    }
+  }
+}
+
+// 監聽身份變化，如果當前 activeTab 不在新的 menuItems 中，重置為 dashboard
+watch([currentRole, menuItems], () => {
+  const availableValues = menuItems.value.map(item => item.value)
+  if (!availableValues.includes(activeTab.value)) {
+    activeTab.value = 'dashboard'
+  }
+})
+
 onMounted(() => {
   checkAdminAccess()
+  // 自動設定管理後台身份
+  if (isAdmin.value) {
+    autoSetAdminRole()
+  }
 })
 
 const handleLogout = () => {
   appStore.logout()
   router.push('/')
 }
+
+// 處理返回首頁時的邏輯
+const handleBackToHome = () => {
+  // 如果當前選擇的身份是管理員，則重新設定為會員
+  if (appStore.selectedRole === 'admin') {
+    const availableRoles = userAvailableRoles.value
+    // 檢查是否有會員權限
+    if (availableRoles.includes('member')) {
+      appStore.selectedRole = 'member'
+      console.log('從管理後台返回首頁，自動切換身份為: 會員')
+    }
+  }
+  router.push('/')
+}
+
+// 組件卸載前處理身份切換
+onBeforeUnmount(() => {
+  // 如果當前選擇的身份是管理員，則重新設定為會員
+  if (appStore.selectedRole === 'admin') {
+    const availableRoles = userAvailableRoles.value
+    // 檢查是否有會員權限
+    if (availableRoles.includes('member')) {
+      appStore.selectedRole = 'member'
+      console.log('離開管理後台，自動切換身份為: 會員')
+    }
+  }
+})
 </script>
 
 <template>
@@ -109,9 +289,48 @@ const handleLogout = () => {
         <LanguageSwitcher />
       </div>
 
+      <!-- 身份選擇器 (已登入且有可用角色時顯示) -->
+      <v-menu
+        v-if="appStore.isLogin && userRoles.length > 0"
+        location="bottom end"
+        class="mr-6"
+      >
+        <template #activator="{ props }">
+          <v-chip
+            v-bind="props"
+            :prepend-icon="currentRoleIcon"
+            color="white"
+            variant="outlined"
+            size="small"
+            class="cursor-pointer admin-role-chip"
+          >
+            {{ currentRoleTitle }}
+            <v-icon
+              size="small"
+              class="ml-1"
+            >
+              mdi-chevron-down
+            </v-icon>
+          </v-chip>
+        </template>
+        <v-list>
+          <v-list-item
+            v-for="role in userRoles"
+            :key="role.value"
+            :value="role.value"
+            @click="switchRole(role.value)"
+          >
+            <template #prepend>
+              <v-icon>{{ role.icon }}</v-icon>
+            </template>
+            <v-list-item-title>{{ role.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+
       <v-btn
         :prepend-icon="'mdi-home'"
-        @click="router.push('/')"
+        @click="handleBackToHome"
         class="mr-4"
       >
         {{ t('common.backToHome') }}
@@ -219,6 +438,16 @@ const handleLogout = () => {
   // 管理後台語言切換器使用白色 icon
   .admin-language-switcher :deep(.v-icon) {
     color: white !important;
+  }
+
+  // 管理後台角色選擇器樣式
+  .admin-role-chip {
+    :deep(.v-chip__content) {
+      color: white !important;
+    }
+    :deep(.v-icon) {
+      color: white !important;
+    }
   }
 }
 </style>
