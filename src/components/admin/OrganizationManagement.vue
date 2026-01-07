@@ -1,10 +1,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAppStore } from '@/stores/app'
 import { handleAlert } from '@/plugins/utils/alert'
 import { listOrgAdminAPI, updateOrgAdminAPI, createOrgAdminAPI, optionsCounselorList } from '@/plugins/utils/requests/api/backend'
 
 const { t } = useI18n()
+const appStore = useAppStore()
+
+// 檢查是否為機構角色
+const isOrganizationRole = computed(() => {
+  return appStore.selectedRole === 'organization' || appStore.selectedRole === 'org'
+})
 
 const search = ref('')
 const headers = ref([
@@ -90,7 +97,7 @@ const loadCounselorOptions = async () => {
 // 將後端組織資料映射到前端格式
 const mapOrgData = (backendOrg) => {
   return {
-    id: backendOrg.id,
+    id: backendOrg.id || backendOrg.org_id,
     name: backendOrg.org_name || '',
     code: backendOrg.org_code || '',
     contact: backendOrg.contact_person || '',
@@ -101,7 +108,8 @@ const mapOrgData = (backendOrg) => {
     statusValue: backendOrg.st || '0', // 保存原始狀態值供編輯使用
     address: backendOrg.contact_address || '',
     description: backendOrg.description || '',
-    defaultCounselors: backendOrg.org_default_counselors || backendOrg.default_counselors || []
+    defaultCounselors: backendOrg.org_default_counselors || backendOrg.default_counselors || [],
+    is_admin: backendOrg.is_admin || '0' // 保存 is_admin 資訊
   }
 }
 
@@ -109,6 +117,45 @@ const mapOrgData = (backendOrg) => {
 const loadOrganizations = async () => {
   loading.value = true
   try {
+    // 如果是機構角色，從 appStore.myOrg 讀取
+    if (isOrganizationRole.value) {
+      console.log('機構角色：從 appStore.myOrg 讀取組織列表')
+      console.log('appStore.myOrg:', appStore.myOrg)
+      
+      if (Array.isArray(appStore.myOrg) && appStore.myOrg.length > 0) {
+        // 將 appStore.myOrg 轉換為表格格式
+        // 需要根據 org_id 查詢完整的組織資訊，這裡先使用 myOrg 的資料
+        // 注意：myOrg 只有 org_id, org_name, org_code, is_admin
+        // 需要從 API 獲取完整資訊或使用現有資料
+        const orgList = appStore.myOrg.map(org => ({
+          id: org.org_id,
+          org_id: org.org_id,
+          org_name: org.org_name,
+          org_code: org.org_code,
+          is_admin: org.is_admin,
+          // 其他欄位設為空值，因為 myOrg 沒有這些資訊
+          contact_person: '',
+          contact_email: '',
+          contact_phone: '',
+          contact_address: '',
+          description: '',
+          st: '1', // 預設為啟用
+          org_default_counselors: []
+        }))
+        
+        organizations.value = orgList.map(mapOrgData)
+        // 保存 is_admin 資訊供模板使用
+        organizations.value.forEach((org, index) => {
+          org.is_admin = appStore.myOrg[index].is_admin
+        })
+        
+        console.log('載入完成，共', organizations.value.length, '筆組織資料')
+      } else {
+        console.log('appStore.myOrg 為空或不是陣列')
+        organizations.value = []
+      }
+    } else {
+      // 管理員角色：從 API 讀取
     console.log('載入組織列表...')
     const response = await listOrgAdminAPI()
     
@@ -144,6 +191,7 @@ const loadOrganizations = async () => {
         text: t('admin.loadOrganizationsError')
       })
       organizations.value = []
+      }
     }
   } catch (error) {
     console.error('載入組織列表錯誤:', error)
@@ -369,8 +417,11 @@ const getCounselorDisplayText = (counselorId) => {
 
 <template>
   <div class="organization-management">
-    <!-- 統計卡片 -->
-    <v-row class="mb-4">
+    <!-- 統計卡片（機構角色時隱藏） -->
+    <v-row
+      v-if="!isOrganizationRole"
+      class="mb-4"
+    >
       <v-col
         v-for="stat in stats"
         :key="stat.title"
@@ -401,8 +452,11 @@ const getCounselorDisplayText = (counselorId) => {
       </v-col>
     </v-row>
 
-    <!-- 搜尋和新增按鈕 -->
-    <v-row class="mb-4">
+    <!-- 搜尋和新增按鈕（機構角色時隱藏） -->
+    <v-row
+      v-if="!isOrganizationRole"
+      class="mb-4"
+    >
       <v-col
         cols="12"
         md="6"
@@ -449,13 +503,17 @@ const getCounselorDisplayText = (counselorId) => {
       </template>
 
       <template #item.actions="{ item }">
+        <!-- 編輯按鈕：機構角色時只有 is_admin === '1' 才顯示 -->
         <v-btn
+          v-if="!isOrganizationRole || item.is_admin === '1'"
           icon="mdi-pencil"
           size="small"
           variant="text"
           @click="editOrganization(item)"
         />
+        <!-- 刪除按鈕：機構角色時隱藏 -->
         <v-btn
+          v-if="!isOrganizationRole"
           icon="mdi-delete"
           size="small"
           variant="text"
@@ -592,6 +650,9 @@ const getCounselorDisplayText = (counselorId) => {
                 :items="[t('admin.active'), t('admin.inactive')]"
                 :label="t('admin.status')"
                 variant="outlined"
+                :readonly="isOrganizationRole"
+                :disabled="isOrganizationRole"
+                :class="isOrganizationRole ? 'readonly-field' : ''"
               />
             </v-col>
           </v-row>

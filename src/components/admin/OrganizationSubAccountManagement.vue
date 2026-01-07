@@ -1,10 +1,33 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAppStore } from '@/stores/app'
 import { handleAlert, handleConfirm } from '@/plugins/utils/alert'
 import { listOrgAdminAPI, listOrSubAccountAdminAPI, createSubAccountAdminAPI, updateSubAccountAdminAPI, deleteSubAccountAdminAPI } from '@/plugins/utils/requests/api/backend'
 
 const { t } = useI18n()
+const appStore = useAppStore()
+
+// 檢查是否為機構角色
+const isOrganizationRole = computed(() => {
+  return appStore.selectedRole === 'organization' || appStore.selectedRole === 'org'
+})
+
+// 檢查是否只有 1 個組織
+const hasSingleOrg = computed(() => {
+  return organizations.value.length === 1
+})
+
+// 檢查當前選擇的組織是否有管理員權限
+const hasAdminPermission = computed(() => {
+  if (!isOrganizationRole.value || !selectedOrg.value) {
+    return true // 非機構角色或未選擇組織時，預設有權限
+  }
+  
+  // 從 appStore.myOrg 中查找對應的組織
+  const org = appStore.myOrg.find(o => o.org_id === selectedOrg.value.id)
+  return org ? org.is_admin === '1' : false
+})
 
 // 機構列表
 const selectedOrg = ref(null)
@@ -59,37 +82,66 @@ const mapSubAccountData = (backendAccount) => {
 const loadOrganizations = async () => {
   orgLoading.value = true
   try {
-    console.log('載入組織列表...')
-    const response = await listOrgAdminAPI()
-    
-    // 解析 API 回應
-    let orgList = []
-    
-    if (response?.data?.attributes?.organization_list) {
-      orgList = response.data.attributes.organization_list
-    } else if (response?.attributes?.organization_list) {
-      orgList = response.attributes.organization_list
-    } else if (response?.organization_list) {
-      orgList = response.organization_list
-    } else if (Array.isArray(response)) {
-      orgList = response
-    }
-    
-    if (Array.isArray(orgList) && orgList.length > 0) {
-      organizations.value = orgList.map(mapOrgData)
-      console.log('載入完成，共', organizations.value.length, '筆組織資料')
+    // 如果是機構角色，從 appStore.myOrg 讀取
+    if (isOrganizationRole.value) {
+      console.log('機構角色：從 appStore.myOrg 讀取組織列表')
+      console.log('appStore.myOrg:', appStore.myOrg)
       
-      // 如果有組織且未選擇，自動選擇第一個
-      if (organizations.value.length > 0 && !selectedOrg.value) {
-        selectOrganization(organizations.value[0])
+      if (Array.isArray(appStore.myOrg) && appStore.myOrg.length > 0) {
+        // 將 myOrg 轉換為組織格式
+        organizations.value = appStore.myOrg.map(org => ({
+          id: org.org_id,
+          name: org.org_name,
+          code: org.org_code,
+          contact: '',
+          email: '',
+          phone: ''
+        }))
+        
+        console.log('載入完成，共', organizations.value.length, '筆組織資料')
+        
+        // 如果有組織且未選擇，自動選擇第一個
+        if (organizations.value.length > 0 && !selectedOrg.value) {
+          await selectOrganization(organizations.value[0])
+        }
+      } else {
+        console.log('appStore.myOrg 為空或不是陣列')
+        organizations.value = []
       }
     } else {
-      console.warn('API 回應格式不符合預期:', response)
-      handleAlert({
-        auction: 'error',
-        text: t('admin.loadOrganizationsError') || '載入組織資料失敗'
-      })
-      organizations.value = []
+      // 管理員角色：從 API 讀取所有組織
+      console.log('載入組織列表...')
+      const response = await listOrgAdminAPI()
+      
+      // 解析 API 回應
+      let orgList = []
+      
+      if (response?.data?.attributes?.organization_list) {
+        orgList = response.data.attributes.organization_list
+      } else if (response?.attributes?.organization_list) {
+        orgList = response.attributes.organization_list
+      } else if (response?.organization_list) {
+        orgList = response.organization_list
+      } else if (Array.isArray(response)) {
+        orgList = response
+      }
+      
+      if (Array.isArray(orgList) && orgList.length > 0) {
+        organizations.value = orgList.map(mapOrgData)
+        console.log('載入完成，共', organizations.value.length, '筆組織資料')
+        
+        // 如果有組織且未選擇，自動選擇第一個
+        if (organizations.value.length > 0 && !selectedOrg.value) {
+          await selectOrganization(organizations.value[0])
+        }
+      } else {
+        console.warn('API 回應格式不符合預期:', response)
+        handleAlert({
+          auction: 'error',
+          text: t('admin.loadOrganizationsError') || '載入組織資料失敗'
+        })
+        organizations.value = []
+      }
     }
   } catch (error) {
     console.error('載入組織列表錯誤:', error)
@@ -605,6 +657,9 @@ onMounted(async () => {
           :model-value="selectedOrg?.id"
           :items="organizations.map(org => ({ title: `${org.name} (${org.code})`, value: org.id }))"
           :loading="orgLoading"
+          :readonly="hasSingleOrg"
+          :disabled="hasSingleOrg"
+          :class="hasSingleOrg ? 'readonly-field' : ''"
           variant="outlined"
           @update:model-value="(id) => selectOrganization(organizations.find(o => o.id === id))"
         />
@@ -612,8 +667,30 @@ onMounted(async () => {
     </v-card>
 
     <template v-if="selectedOrg">
+      <!-- 權限提示 -->
+      <v-card
+        v-if="!hasAdminPermission"
+        class="mb-4"
+        color="warning"
+        variant="tonal"
+      >
+        <v-card-text class="text-center py-8">
+          <v-icon
+            size="64"
+            icon="mdi-alert-circle"
+            class="mb-4"
+          />
+          <div class="text-h6">
+            當前帳號沒有該功能的權限，請聯絡組織管理員
+          </div>
+        </v-card-text>
+      </v-card>
+
       <!-- 統計卡片 -->
-      <v-row class="mb-4">
+      <v-row
+        v-if="hasAdminPermission"
+        class="mb-4"
+      >
         <v-col
           v-for="stat in stats"
           :key="stat.title"
@@ -646,7 +723,10 @@ onMounted(async () => {
       </v-row>
 
       <!-- 搜尋和新增 -->
-      <v-row class="mb-4">
+      <v-row
+        v-if="hasAdminPermission"
+        class="mb-4"
+      >
         <v-col
           cols="12"
           md="6"
@@ -677,6 +757,7 @@ onMounted(async () => {
 
       <!-- 子帳號表格 -->
       <v-data-table
+        v-if="hasAdminPermission"
         :headers="headers"
         :items="filteredAccounts"
         :search="search"
@@ -820,6 +901,45 @@ onMounted(async () => {
 
   .v-card:hover {
     transform: translateY(-2px);
+  }
+
+  // 唯讀欄位樣式
+  :deep(.readonly-field) {
+    .v-field__input {
+      color: rgba(0, 0, 0, 0.87) !important;
+      cursor: default;
+    }
+
+    .v-field__outline {
+      color: rgba(0, 0, 0, 0.38) !important;
+      opacity: 1 !important;
+    }
+
+    .v-field__outline__start,
+    .v-field__outline__notch,
+    .v-field__outline__end {
+      border-color: rgba(0, 0, 0, 0.38) !important;
+    }
+
+    .v-label {
+      color: rgba(0, 0, 0, 0.6) !important;
+    }
+
+    // 禁用狀態下的樣式覆蓋
+    &.v-input--disabled {
+      .v-field__input {
+        color: rgba(0, 0, 0, 0.87) !important;
+      }
+
+      .v-field__outline {
+        color: rgba(0, 0, 0, 0.38) !important;
+        opacity: 1 !important;
+      }
+
+      .v-label {
+        color: rgba(0, 0, 0, 0.6) !important;
+      }
+    }
   }
 }
 </style>

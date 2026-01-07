@@ -1235,18 +1235,18 @@ export const useExamProcessStore = defineStore('examProcess', {
             if (state.calculate_pair[jobKey] && profession && Array.isArray(profession.cards)) {
               state.calculate_pair[jobKey][card_type] = profession.cards.length
               state.calculate_pair[jobKey]['total'] += profession.cards.length
-              if(card_type === 'care') {
-                care_total += profession.cards.length
-              }
-              if(card_type === 'can') {
-                can_total += profession.cards.length
-              }
-              if(card_type === 'like') {
-                like_total += profession.cards.length
-              }
-              all_total += profession.cards.length
+          if(card_type === 'care') {
+            care_total += profession.cards.length
+          }
+          if(card_type === 'can') {
+            can_total += profession.cards.length
+          }
+          if(card_type === 'like') {
+            like_total += profession.cards.length
+          }
+          all_total += profession.cards.length
             }
-          })
+        })
         }
       })
 

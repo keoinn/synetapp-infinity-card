@@ -1,11 +1,34 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAppStore } from '@/stores/app'
 import { handleAlert } from '@/plugins/utils/alert'
 import { optionsOrgList, optionsSubAccountWithInventoryList, updateSubAccountInventoryAdminAPI, getOrgCardInventoryAdminAPI, createOrgReportAPI } from '@/plugins/utils/requests/api/backend'
 import CardCaseInventory from '@/components/inventory/CardCaseInventory.vue'
 
 const { t } = useI18n()
+const appStore = useAppStore()
+
+// 檢查是否為機構角色
+const isOrganizationRole = computed(() => {
+  return appStore.selectedRole === 'organization' || appStore.selectedRole === 'org'
+})
+
+// 檢查是否只有 1 個組織
+const hasSingleOrg = computed(() => {
+  return organizations.value.length === 1
+})
+
+// 檢查當前選擇的組織是否有管理員權限
+const hasAdminPermission = computed(() => {
+  if (!isOrganizationRole.value || !selectedOrg.value) {
+    return true // 非機構角色或未選擇組織時，預設有權限
+  }
+  
+  // 從 appStore.myOrg 中查找對應的組織
+  const org = appStore.myOrg.find(o => o.org_id === selectedOrg.value.id)
+  return org ? org.is_admin === '1' : false
+})
 
 // 機構選擇
 const selectedOrg = ref(null)
@@ -25,40 +48,66 @@ const mapOrgData = (backendOrg) => {
 const loadOrganizations = async () => {
   orgLoading.value = true
   try {
-    console.log('載入機構列表...')
-    const response = await optionsOrgList('all')
-    console.log('載入機構列表回應:', response)
-    
-    // 解析 API 回應（支援多種格式）
-    let orgList = []
-    
-    if (response?.data?.attributes?.org_list || response?.data?.attributes?.organization_list) {
-      orgList = response.data.attributes.org_list || response.data.attributes.organization_list
-    } else if (response?.attributes?.org_list || response?.attributes?.organization_list) {
-      orgList = response.attributes.org_list || response.attributes.organization_list
-    } else if (response?.org_list || response?.organization_list) {
-      orgList = response.org_list || response.organization_list
-    } else if (Array.isArray(response)) {
-      orgList = response
-    } else if (response?.data && Array.isArray(response.data)) {
-      orgList = response.data
-    }
-    
-    if (Array.isArray(orgList) && orgList.length > 0) {
-      organizations.value = orgList.map(mapOrgData)
-      console.log('載入完成，共', organizations.value.length, '筆機構資料')
+    // 如果是機構角色，從 appStore.myOrg 讀取
+    if (isOrganizationRole.value) {
+      console.log('機構角色：從 appStore.myOrg 讀取組織列表')
+      console.log('appStore.myOrg:', appStore.myOrg)
       
-      // 如果有機構且未選擇，自動選擇第一個
-      if (organizations.value.length > 0 && !selectedOrg.value) {
-        selectOrganization(organizations.value[0])
+      if (Array.isArray(appStore.myOrg) && appStore.myOrg.length > 0) {
+        // 將 myOrg 轉換為組織格式
+        organizations.value = appStore.myOrg.map(org => ({
+          id: org.org_id,
+          name: org.org_name,
+          code: org.org_code
+        }))
+        
+        console.log('載入完成，共', organizations.value.length, '筆機構資料')
+        
+        // 如果有機構且未選擇，自動選擇第一個
+        if (organizations.value.length > 0 && !selectedOrg.value) {
+          await selectOrganization(organizations.value[0])
+        }
+      } else {
+        console.log('appStore.myOrg 為空或不是陣列')
+        organizations.value = []
       }
     } else {
-      console.warn('API 回應格式不符合預期:', response)
-      handleAlert({
-        auction: 'error',
-        text: t('admin.loadOrganizationsError') || '載入機構資料失敗'
-      })
-      organizations.value = []
+      // 管理員角色：從 API 讀取所有機構
+      console.log('載入機構列表...')
+      const response = await optionsOrgList('all')
+      console.log('載入機構列表回應:', response)
+      
+      // 解析 API 回應（支援多種格式）
+      let orgList = []
+      
+      if (response?.data?.attributes?.org_list || response?.data?.attributes?.organization_list) {
+        orgList = response.data.attributes.org_list || response.data.attributes.organization_list
+      } else if (response?.attributes?.org_list || response?.attributes?.organization_list) {
+        orgList = response.attributes.org_list || response.attributes.organization_list
+      } else if (response?.org_list || response?.organization_list) {
+        orgList = response.org_list || response.organization_list
+      } else if (Array.isArray(response)) {
+        orgList = response
+      } else if (response?.data && Array.isArray(response.data)) {
+        orgList = response.data
+      }
+      
+      if (Array.isArray(orgList) && orgList.length > 0) {
+        organizations.value = orgList.map(mapOrgData)
+        console.log('載入完成，共', organizations.value.length, '筆機構資料')
+        
+        // 如果有機構且未選擇，自動選擇第一個
+        if (organizations.value.length > 0 && !selectedOrg.value) {
+          await selectOrganization(organizations.value[0])
+        }
+      } else {
+        console.warn('API 回應格式不符合預期:', response)
+        handleAlert({
+          auction: 'error',
+          text: t('admin.loadOrganizationsError') || '載入機構資料失敗'
+        })
+        organizations.value = []
+      }
     }
   } catch (error) {
     console.error('載入機構列表錯誤:', error)
@@ -667,6 +716,9 @@ onMounted(async () => {
           :model-value="selectedOrg?.id"
           :items="organizations.map(org => ({ title: `${org.name} (${org.code})`, value: org.id }))"
           :loading="orgLoading"
+          :readonly="hasSingleOrg"
+          :disabled="hasSingleOrg"
+          :class="hasSingleOrg ? 'readonly-field' : ''"
           variant="outlined"
           @update:model-value="(id) => selectOrganization(organizations.find(o => o.id === id))"
         />
@@ -674,8 +726,30 @@ onMounted(async () => {
     </v-card>
 
     <template v-if="selectedOrg">
+      <!-- 權限提示 -->
+      <v-card
+        v-if="!hasAdminPermission"
+        class="mb-4"
+        color="warning"
+        variant="tonal"
+      >
+        <v-card-text class="text-center py-8">
+          <v-icon
+            size="64"
+            icon="mdi-alert-circle"
+            class="mb-4"
+          />
+          <div class="text-h6">
+            當前帳號沒有該功能的權限，請聯絡組織管理員
+          </div>
+        </v-card-text>
+      </v-card>
+
       <!-- 機構庫存顯示 -->
-      <v-card class="mb-4">
+      <v-card
+        v-if="hasAdminPermission"
+        class="mb-4"
+      >
         <v-card-title>{{ t('admin.orgCardInventory') }}</v-card-title>
         <v-card-text>
           <v-row v-if="orgInventoryLoading">
@@ -721,7 +795,10 @@ onMounted(async () => {
       </v-card>
 
       <!-- 附屬帳號選擇 -->
-      <v-card class="mb-4">
+      <v-card
+        v-if="hasAdminPermission"
+        class="mb-4"
+      >
         <v-card-title>{{ t('admin.selectSubAccount') }}</v-card-title>
         <v-card-text>
           <v-select
@@ -739,7 +816,7 @@ onMounted(async () => {
         </v-card-text>
       </v-card>
 
-      <template v-if="selectedSubAccount">
+      <template v-if="selectedSubAccount && hasAdminPermission">
         <!-- 統計資訊 -->
         <v-row class="mb-4">
           <v-col
@@ -1042,7 +1119,9 @@ onMounted(async () => {
       </template>
 
       <!-- 未選擇子帳號提示 -->
-      <v-card v-else>
+      <v-card
+        v-else-if="hasAdminPermission"
+      >
         <v-card-text class="text-center py-10">
           <v-icon
             size="64"
@@ -1118,6 +1197,45 @@ onMounted(async () => {
 
   .cursor-default {
     cursor: default;
+  }
+
+  // 唯讀欄位樣式
+  :deep(.readonly-field) {
+    .v-field__input {
+      color: rgba(0, 0, 0, 0.87) !important;
+      cursor: default;
+    }
+
+    .v-field__outline {
+      color: rgba(0, 0, 0, 0.38) !important;
+      opacity: 1 !important;
+    }
+
+    .v-field__outline__start,
+    .v-field__outline__notch,
+    .v-field__outline__end {
+      border-color: rgba(0, 0, 0, 0.38) !important;
+    }
+
+    .v-label {
+      color: rgba(0, 0, 0, 0.6) !important;
+    }
+
+    // 禁用狀態下的樣式覆蓋
+    &.v-input--disabled {
+      .v-field__input {
+        color: rgba(0, 0, 0, 0.87) !important;
+      }
+
+      .v-field__outline {
+        color: rgba(0, 0, 0, 0.38) !important;
+        opacity: 1 !important;
+      }
+
+      .v-label {
+        color: rgba(0, 0, 0, 0.6) !important;
+      }
+    }
   }
 }
 </style>
