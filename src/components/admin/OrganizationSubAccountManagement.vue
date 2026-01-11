@@ -110,37 +110,37 @@ const loadOrganizations = async () => {
       }
     } else {
       // 管理員角色：從 API 讀取所有組織
-      console.log('載入組織列表...')
-      const response = await listOrgAdminAPI()
+    console.log('載入組織列表...')
+    const response = await listOrgAdminAPI()
+    
+    // 解析 API 回應
+    let orgList = []
+    
+    if (response?.data?.attributes?.organization_list) {
+      orgList = response.data.attributes.organization_list
+    } else if (response?.attributes?.organization_list) {
+      orgList = response.attributes.organization_list
+    } else if (response?.organization_list) {
+      orgList = response.organization_list
+    } else if (Array.isArray(response)) {
+      orgList = response
+    }
+    
+    if (Array.isArray(orgList) && orgList.length > 0) {
+      organizations.value = orgList.map(mapOrgData)
+      console.log('載入完成，共', organizations.value.length, '筆組織資料')
       
-      // 解析 API 回應
-      let orgList = []
-      
-      if (response?.data?.attributes?.organization_list) {
-        orgList = response.data.attributes.organization_list
-      } else if (response?.attributes?.organization_list) {
-        orgList = response.attributes.organization_list
-      } else if (response?.organization_list) {
-        orgList = response.organization_list
-      } else if (Array.isArray(response)) {
-        orgList = response
-      }
-      
-      if (Array.isArray(orgList) && orgList.length > 0) {
-        organizations.value = orgList.map(mapOrgData)
-        console.log('載入完成，共', organizations.value.length, '筆組織資料')
-        
-        // 如果有組織且未選擇，自動選擇第一個
-        if (organizations.value.length > 0 && !selectedOrg.value) {
+      // 如果有組織且未選擇，自動選擇第一個
+      if (organizations.value.length > 0 && !selectedOrg.value) {
           await selectOrganization(organizations.value[0])
-        }
-      } else {
-        console.warn('API 回應格式不符合預期:', response)
-        handleAlert({
-          auction: 'error',
-          text: t('admin.loadOrganizationsError') || '載入組織資料失敗'
-        })
-        organizations.value = []
+      }
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      handleAlert({
+        auction: 'error',
+        text: t('admin.loadOrganizationsError') || '載入組織資料失敗'
+      })
+      organizations.value = []
       }
     }
   } catch (error) {

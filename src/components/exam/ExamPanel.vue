@@ -8,6 +8,7 @@
  * - 設定接收信箱：設定或編輯接收測驗連結的信箱地址
  * - 發送測驗連結：將加密後的測驗連結發送到指定信箱
  * - 開始測驗：重置測驗流程狀態並導航至測驗頁面
+ * - 查看報告：在諮商師模式下可查看諮商師報告和客戶報告
  * 
  * @component ExamPanel
  * 
@@ -21,6 +22,7 @@
  *   - updated_at: 更新時間
  *   - target_email: 目標信箱
  *   - cards_set: 卡片集合陣列（可包含 'goal', 'care', 'ce', 'cj', 'le', 'lj'）
+ * - viewMode: {String} 視圖模式，可選，預設為 'user'，可選值：'user'（用戶模式）、'counselor'（諮商師模式）
  * 
  * @emits
  * - update-report-name: 更新報告名稱事件，參數：{ reportId, newName }
@@ -28,6 +30,8 @@
  * 
  * @computed
  * - statusString: 根據報告狀態返回對應的多語言狀態文字
+ * - currentViewMode: 確保 viewMode 的值正確，只接受 'user' 或 'counselor'，預設為 'user'
+ * - isReportIncomplete: 檢查報告是否未完成（status = '0' 或 0）
  * 
  * @methods
  * - openEditDialog(): 打開編輯報告名稱對話視窗
@@ -39,8 +43,14 @@
  * - closeEmailDialog(): 關閉信箱對話視窗
  * - sendEmail(): 發送測驗連結到指定信箱
  * - startExam(): 重置測驗流程並導航至測驗頁面
+ * - openCounselorReport(): 在諮商師模式下，載入報告數據並打開諮商師報告對話框
+ * - openClientReport(): 在諮商師模式下，載入報告數據並打開客戶報告對話框
  * - NULLstringFilter(target): 過濾 null 值，返回預設文字
  * - cardsSetStringFilter(card): 將卡片類型代碼轉換為多語言文字
+ * 
+ * @watch
+ * - counselorReportRef.value?.dialogIsActive: 監聽諮商師報告對話框關閉事件，關閉時清除 examProcessStore
+ * - clientReportRef.value?.dialogIsActive: 監聽客戶報告對話框關閉事件，關閉時清除 examProcessStore
  * 
  * @features
  * - 報告資訊完整顯示，包含狀態、時間戳記、卡片集合等
@@ -51,17 +61,24 @@
  * - 發送信箱成功/失敗時顯示對應提示訊息
  * - 開始測驗前自動重置測驗流程狀態
  * - 支援多語言顯示（使用 vue-i18n）
+ * - 支援兩種視圖模式：用戶模式和諮商師模式
+ * - 在諮商師模式下，根據報告狀態動態顯示按鈕文字和禁用狀態
+ * - 在諮商師模式下，報告未完成時按鈕顯示「未完成」並禁用
+ * - 自動管理報告數據載入和清除，確保數據一致性
  * 
  * @dependencies
- * - @/stores/examProcess - 測驗流程狀態管理，用於重置測驗狀態
+ * - @/stores/examProcess - 測驗流程狀態管理，用於重置測驗狀態、載入報告數據
  * - @/plugins/utils/encryption - 加密工具，用於加密測驗連結
  * - @/plugins/utils/requests/api/backend - 後端 API，用於發送信箱
  * - @/plugins/utils/alert - 提示訊息工具
+ * - @/components/result/ExamCounselorResult - 諮商師報告組件
+ * - @/components/result/ExamClientResult - 客戶報告組件
  * - vue-router - 路由導航
  * - vue-i18n - 多語言支援
  * 
  * @usedBy
  * - @/pages/exam/index.vue
+ * - @/pages/exam/counselor-view.vue
  * 
  * @example
  * <ExamPanel 
@@ -69,20 +86,47 @@
  *   @update-report-name="handleUpdateName"
  *   @update-report-email="handleUpdateEmail"
  * />
+ * 
+ * @example
+ * <ExamPanel 
+ *   :report="reportData"
+ *   view-mode="counselor"
+ *   @update-report-name="handleUpdateName"
+ *   @update-report-email="handleUpdateEmail"
+ * />
+ * 
+ * 在諮商師模式下使用，會顯示「諮商師報告」和「客戶報告」按鈕
  */
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { encrypt } from '@/plugins/utils/encryption'
 import { useExamProcessStore } from '@/stores/examProcess'
 import { useRouter } from 'vue-router'
 import { sendEmailAPI } from '@/plugins/utils/requests/api/backend'
 import { handleAlert } from '@/plugins/utils/alert'
 import { useI18n } from 'vue-i18n'
+import ExamCounselorResult from '@/components/result/ExamCounselorResult.vue'
+import ExamClientResult from '@/components/result/ExamClientResult.vue'
 
 const props = defineProps({
   report: {
     type: Object,
     required: true
+  },
+  viewMode: {
+    type: String,
+    default: 'user' // 'user' 或 'counselor'
   }
+})
+
+// 計算屬性來確保 viewMode 的值正確
+const currentViewMode = computed(() => {
+  const mode = props.viewMode || 'user'
+  return ['user', 'counselor'].includes(mode) ? mode : 'user'
+})
+
+// 檢查報告是否未完成（status = 0）
+const isReportIncomplete = computed(() => {
+  return props.report.status === '0' || props.report.status === 0
 })
 const emit = defineEmits(['update-report-name', 'update-report-email'])
 
@@ -98,6 +142,10 @@ const editingReportName = ref('')
 const showEmailDialog = ref(false)
 const editingEmail = ref('')
 const emailError = ref('')
+
+// 報告組件引用
+const counselorReportRef = ref(null)
+const clientReportRef = ref(null)
 
 const openEditDialog = () => {
   editingReportName.value = props.report.report_name || ''
@@ -211,6 +259,64 @@ const startExam = () => {
   router.push(`/exam/${encrypt(props.report.report_id.toString())}`)
 }
 
+// 打開諮商師報告
+const openCounselorReport = async () => {
+  try {
+    // 先載入報告數據到 examProcessStore
+    await examProcessStore.getReportBackend(props.report.report_id)
+    // 然後打開對話框
+    if (counselorReportRef.value && counselorReportRef.value.dialogIsActive !== undefined) {
+      counselorReportRef.value.dialogIsActive = true
+    }
+  } catch (error) {
+    console.error('載入諮商師報告失敗:', error)
+    handleAlert({
+      auction: 'error',
+      text: '載入報告失敗，請稍後再試'
+    })
+  }
+}
+
+// 打開客戶報告
+const openClientReport = async () => {
+  try {
+    // 先載入報告數據到 examProcessStore
+    await examProcessStore.getReportBackend(props.report.report_id)
+    // 然後打開對話框
+    if (clientReportRef.value && clientReportRef.value.dialogIsActive !== undefined) {
+      clientReportRef.value.dialogIsActive = true
+    }
+  } catch (error) {
+    console.error('載入客戶報告失敗:', error)
+    handleAlert({
+      auction: 'error',
+      text: '載入報告失敗，請稍後再試'
+    })
+  }
+}
+
+// 監聽諮商師報告對話框關閉事件
+watch(
+  () => counselorReportRef.value?.dialogIsActive,
+  (newVal, oldVal) => {
+    // 當對話框從開啟變為關閉時，清除 store
+    if (oldVal === true && newVal === false) {
+      examProcessStore.resetStore()
+    }
+  }
+)
+
+// 監聽客戶報告對話框關閉事件
+watch(
+  () => clientReportRef.value?.dialogIsActive,
+  (newVal, oldVal) => {
+    // 當對話框從開啟變為關閉時，清除 store
+    if (oldVal === true && newVal === false) {
+      examProcessStore.resetStore()
+    }
+  }
+)
+
 const NULLstringFilter = (target) => {
   return target === null ? `${t('exam.examPanelEmptyEmail')}` : target
 }
@@ -279,40 +385,59 @@ const statusString = computed(() => {
     </v-card-text>
 
     <v-card-actions>
-      <!-- TODO: 查看按鈕，先隱藏 -->
-      <v-btn
-        v-show="false"
-        variant="tonal"
-        color="#FA5015"
-        size="large"
-        rounded="xl"
-      >
-        <v-icon>mdi-eye</v-icon>
-        {{ t('exam.examPanelView') }}
-      </v-btn>
+      <!-- 用戶模式：顯示設定信箱和開始測驗 -->
+      <template v-if="currentViewMode === 'user'">
+        <v-btn
+          variant="tonal"
+          color="#1976D2"
+          size="large"
+          rounded="xl"
+          @click="openEmailDialog"
+        >
+          <v-icon>mdi-email</v-icon>
+          {{ t('exam.examPanelSetEmail') }}
+        </v-btn>
 
-      <v-btn
-        variant="tonal"
-        color="#1976D2"
-        size="large"
-        rounded="xl"
-        @click="openEmailDialog"
-      >
-        <v-icon>mdi-email</v-icon>
-        {{ t('exam.examPanelSetEmail') }}
-      </v-btn>
+        <v-spacer />
+        <v-btn
+          variant="tonal"
+          color="#FA5015"
+          size="large"
+          rounded="xl"
+          @click="startExam"
+        >
+          <v-icon>mdi-pencil</v-icon>
+          {{ t('exam.examPanelStartExam') }}
+        </v-btn>
+      </template>
 
-      <v-spacer />
-      <v-btn
-        variant="tonal"
-        color="#FA5015"
-        size="large"
-        rounded="xl"
-        @click="startExam"
-      >
-        <v-icon>mdi-pencil</v-icon>
-        {{ t('exam.examPanelStartExam') }}
-      </v-btn>
+      <!-- 諮商師模式：顯示諮商師報告和客戶報告 -->
+      <template v-else-if="currentViewMode === 'counselor'">
+        <v-btn
+          variant="tonal"
+          color="#1976D2"
+          size="large"
+          rounded="xl"
+          :disabled="isReportIncomplete"
+          @click="openCounselorReport"
+        >
+          <v-icon>mdi-file-document-edit</v-icon>
+          {{ isReportIncomplete ? '諮商師報告: 未完成' : '諮商師報告' }}
+        </v-btn>
+
+        <v-spacer />
+        <v-btn
+          variant="tonal"
+          color="#FA5015"
+          size="large"
+          rounded="xl"
+          :disabled="isReportIncomplete"
+          @click="openClientReport"
+        >
+          <v-icon>mdi-file-document</v-icon>
+          {{ isReportIncomplete ? '客戶報告: 未完成' : '客戶報告' }}
+        </v-btn>
+      </template>
     </v-card-actions>
 
     <!-- 編輯報告名稱對話視窗 -->
@@ -409,6 +534,20 @@ const statusString = computed(() => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- 諮商師報告組件（僅在 counselor 模式下顯示） -->
+    <ExamCounselorResult
+      v-if="currentViewMode === 'counselor'"
+      ref="counselorReportRef"
+      :hide-activator="true"
+    />
+
+    <!-- 客戶報告組件（僅在 counselor 模式下顯示） -->
+    <ExamClientResult
+      v-if="currentViewMode === 'counselor'"
+      ref="clientReportRef"
+      :hide-activator="true"
+    />
   </v-card>
 </template>
 

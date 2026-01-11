@@ -4,37 +4,98 @@
  * 
  * 此組件提供一個全螢幕對話框，顯示完整的測驗結果統計報告，包括：
  * - 分析結果: 特質挑選：顯示各類型（goal, care, ce, cj, le, lj）的 RIASEC 類型百分比和荷倫碼
- * - 卡片挑選結果：顯示各類型的原始卡片計數（R, I, A, S, E, C）
+ * - 卡片挑選結果：顯示各類型的原始卡片計數（R, I, A, S, E, C），可點擊查看詳細卡片清單
  * - 分析結果: 職業配對：顯示各職業在「我在乎」、「我可以」、「我喜歡」三個維度的配對百分比
  * - 職業卡牌配對結果：顯示各職業配對的原始計數
  * - 職業卡牌雷達圖：使用 Chart.js 繪製三維度（我重視、我喜歡、我可以）的雷達圖，預設顯示最高分職業
  * 
  * @component ExamCounselorResult
  * 
+ * @props
+ * - hideActivator: {Boolean} 是否隱藏預設的觸發按鈕，預設為 false
+ * 
  * @usedBy 
  * - @/pages/exam/[token].vue | router: /exam/[token]
+ * - @/components/exam/ExamPanel.vue
  * 
  * @example
  * 使用方式：
  * <ExamCounselorResult />
  * 組件會自動從 examProcess store 讀取計算結果並顯示
  * 
+ * @example
+ * <ExamCounselorResult :hide-activator="true" />
+ * 
+ * 隱藏預設觸發按鈕，由父組件控制對話框開啟
+ * 
  * @dependencies
  * - @/stores/examProcess - 測驗流程狀態管理（提供 calculatePickResult 和 calculatePairResult）
+ * - @/plugins/utils/psy_cards - 提供 getCardCoverImage 和 getCardImageName 函數，用於處理卡片資訊
+ * - @/utils/imageUtils - 提供 getCardImagePath 函數，用於獲取卡片圖片路徑
+ * - @/plugins/utils/pdfGenerator - 提供 generateReport 和 chartToBase64 函數，用於生成 PDF 報告
+ * - @/plugins/utils/alert - 提供 handleAlert 函數，用於顯示提示訊息
  * - chart.js - 圖表繪製庫（用於繪製雷達圖）
+ * - vue-i18n - 用於多語言支援
  * - vue - Vue 3 Composition API（onMounted, ref, watch, computed, nextTick）
  * 
  * @features
  * - 響應式對話框，高度為 90% 視窗高度
- * - 標籤頁切換顯示不同統計結果
+ * - 標籤頁切換顯示不同統計結果（5 個標籤頁）
  * - 自動計算並高亮顯示最高分職業（雷達圖預設顯示）
  * - 數據格式化：百分比顯示、長標題自動換行
  * - 顏色編碼：根據百分比區間顯示不同背景色（高/中高/中/低）
+ * - 卡片詳細資訊：點擊卡片挑選結果表格中的數值可查看對應的卡片清單和圖片
+ * - 圖片預覽：點擊卡片圖片可放大預覽
+ * - 支援 PDF 報告下載功能
+ * 
+ * @data
+ * - dialogIsActive: 控制對話框顯示/隱藏，可通過 defineExpose 暴露給父組件控制
+ * - pickResult: 儲存特質挑選結果
+ * - pairResult: 儲存職業配對結果
+ * - radarChartRef: Canvas 元素引用，用於繪製雷達圖
+ * - currentTab: 當前選中的標籤頁索引（0-4）
+ * - radarChartInstance: Chart.js 圖表實例
+ * - showCardIdDialog: 控制卡片 ID 顯示對話框的顯示/隱藏
+ * - selectedCardIds: 選中的卡片 ID 陣列
+ * - selectedCardType: 選中的卡片類型
+ * - selectedRiasecType: 選中的 RIASEC 類型
+ * - showImagePreviewDialog: 控制圖片預覽對話框的顯示/隱藏
+ * - previewImageSrc: 預覽圖片的來源路徑
+ * - previewImageAlt: 預覽圖片的替代文字
+ * 
+ * @computed
+ * - filterResultRateForProfession: 過濾掉 'total' 鍵後的職業配對結果（用於職業配對表格）
+ * - filteredPickResult: 過濾掉 'total' 鍵後的特質挑選結果（用於卡片挑選結果表格）
+ * - filteredPairResult: 過濾掉 'total' 鍵後的職業配對結果（用於職業卡牌配對結果表格）
+ * - findMaxValueInJobs: 找出配對率最高的職業標題
+ * 
+ * @methods
+ * - stringOfType(type): 將類型代碼轉換為中文說明
+ * - getRiasecTypeLabel(riasecType): 將 RIASEC 類型代碼轉換為完整的中文說明
+ * - paddingNewLineForCol(col): 對超過 4 個字符的字符串插入換行標籤
+ * - formatRatio(ratio): 格式化比率值為百分比字串
+ * - getRatioClass(ratio): 根據比率值返回對應的 CSS class
+ * - filterResultForProfessionCount(card_type, index, result): 獲取特定職業的特定類型配對計數
+ * - filterResultForProfessionRate(card_type, index, result): 獲取特定職業的特定類型配對率
+ * - drawRadarChart(): 繪製雷達圖，如果已有圖表實例會先銷毀再重新繪製
+ * - radarChartData(): 生成雷達圖數據，返回包含 labels 和 datasets 的物件
+ * - getCardIdsByTypeAndRiasec(type, riasecType): 根據類型和 RIASEC 類型獲取對應的卡片 ID 陣列
+ * - handleCellClick(type, riasecType): 處理點擊卡片挑選結果表格單元格的事件
+ * - closeCardIdDialog(): 關閉卡片 ID 顯示對話框
+ * - getCardImageSrc(cardId): 將卡片 ID 轉換為圖片路徑
+ * - handleCardImageClick(cardId): 處理點擊卡片圖片的事件
+ * - closeImagePreviewDialog(): 關閉圖片預覽對話框
+ * - downloadReport(): 下載 PDF 報告，包含雷達圖和統計數據
+ * 
+ * @watch
+ * - dialogIsActive: 當對話框開啟時載入數據並繪製雷達圖（如果當前標籤為雷達圖）
+ * - currentTab: 當切換到雷達圖標籤時自動繪製圖表
+ * 
+ * @expose
+ * - dialogIsActive: 暴露給父組件，允許父組件控制對話框的顯示/隱藏狀態
  * 
  * @lifecycle
  * - onMounted: 從 examProcess store 載入 pickResult 和 pairResult
- * - watch(dialogIsActive): 當對話框開啟時載入數據並繪製雷達圖（如果當前標籤為雷達圖）
- * - watch(currentTab): 當切換到雷達圖標籤時自動繪製圖表
  */
 
 /* eslint-disable vue/no-v-html */
@@ -50,6 +111,13 @@ import { handleAlert } from '@/plugins/utils/alert'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 Chart.register(...registerables)
+
+const props = defineProps({
+  hideActivator: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const examProcess = useExamProcessStore()
 const pickResult = ref(null)
@@ -109,6 +177,11 @@ const getRiasecTypeLabel = (riasecType) => {
 
 // 控制對話框開啟的狀態
 const dialogIsActive = ref(false)
+
+// 暴露 dialogIsActive 以便父組件可以控制
+defineExpose({
+  dialogIsActive
+})
 
 watch(dialogIsActive, async (newVal) => {
   if (newVal) {
@@ -484,7 +557,10 @@ const downloadReport = async () => {
     height="90%"
     class="report-dialog"
   >
-    <template #activator="{ props: activatorProps }">
+    <template
+      v-if="!hideActivator"
+      #activator="{ props: activatorProps }"
+    >
       <v-btn
         v-bind="activatorProps"
         variant="flat"

@@ -9,8 +9,12 @@
  * 
  * @component ExamClientResult
  * 
+ * @props
+ * - hideActivator: {Boolean} 是否隱藏預設的觸發按鈕，預設為 false
+ * 
  * @usedBy
  * - @/pages/exam/[token].vue | router: /exam/[token]
+ * - @/components/exam/ExamPanel.vue
  * 
  * @features
  * - 響應式對話框設計，高度為 90% 視窗高度
@@ -18,18 +22,22 @@
  * - 雷達圖自動顯示配對率最高的職業
  * - 職業配對表格根據比率值顯示不同顏色（高/中高/中/低）
  * - 支援多語言顯示（使用 vue-i18n）
+ * - 支援 PDF 報告下載功能
  * 
  * @dependencies
  * - @/stores/examProcess - 測驗流程狀態管理，提供 calculatePairResult 和 calculate_pick.total.h_code
  * - @/plugins/utils/psy_cards - 提供 getFinalResult 函數，根據 h_code 獲取最終結果
+ * - @/plugins/utils/pdfGenerator - 提供 generateReport 和 chartToBase64 函數，用於生成 PDF 報告
+ * - @/plugins/utils/alert - 提供 handleAlert 函數，用於顯示提示訊息
  * - chart.js - 用於繪製雷達圖
  * - vue-i18n - 用於多語言支援
  * 
  * @data
- * - dialogIsActive: 控制對話框顯示/隱藏
+ * - dialogIsActive: 控制對話框顯示/隱藏，可通過 defineExpose 暴露給父組件控制
  * - finalResultObj: 儲存最終測驗結果物件
  * - pairResult: 儲存職業配對結果
  * - currentTab: 當前選中的標籤頁索引（0: 職業雷達圖, 1: 綜合解析, 2: 職業配對）
+ * - radarChartRef: Canvas 元素引用，用於繪製雷達圖
  * - radarChartInstance: Chart.js 圖表實例
  * 
  * @computed
@@ -42,13 +50,17 @@
  * - formatRatio(ratio): 格式化比率值為百分比字串
  * - paddingNewLineForCol(col): 對超過 4 個字符的字符串插入換行標籤
  * - filterResultForProfessionRate(card_type, index, result): 獲取特定職業的特定類型配對率
- * - drawRadarChart(): 繪製雷達圖
- * - radarChartData(): 生成雷達圖數據
+ * - drawRadarChart(): 繪製雷達圖，如果已有圖表實例會先銷毀再重新繪製
+ * - radarChartData(): 生成雷達圖數據，返回包含 labels 和 datasets 的物件
+ * - downloadReport(): 下載 PDF 報告，包含雷達圖和文字解析內容
  * 
  * @watch
- * - dialogIsActive: 當對話框打開時，載入配對結果並繪製雷達圖
+ * - dialogIsActive: 當對話框打開時，載入配對結果並繪製雷達圖（如果當前標籤為職業雷達圖）
  * - currentTab: 當切換到職業雷達圖標籤頁時，重新繪製雷達圖
  * - examProcess.calculate_pick.total.h_code: 監聽 h_code 變化，即時更新文字結果
+ * 
+ * @expose
+ * - dialogIsActive: 暴露給父組件，允許父組件控制對話框的顯示/隱藏狀態
  * 
  * @lifecycle
  * - onMounted: 初始化時嘗試載入測驗結果
@@ -57,6 +69,11 @@
  * <ExamClientResult />
  * 
  * 組件會自動從 examProcess store 讀取數據，無需傳入 props
+ * 
+ * @example
+ * <ExamClientResult :hide-activator="true" />
+ * 
+ * 隱藏預設觸發按鈕，由父組件控制對話框開啟
  */
 /* eslint-disable vue/no-v-html */
 /* eslint-disable no-unused-vars */
@@ -70,8 +87,21 @@ import { generateReport, chartToBase64 } from '@/plugins/utils/pdfGenerator'
 import { handleAlert } from '@/plugins/utils/alert'
 Chart.register(...registerables);
 
+const props = defineProps({
+  hideActivator: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const { t } = useI18n()
 const dialogIsActive = ref(false)
+
+// 暴露 dialogIsActive 以便父組件可以控制
+defineExpose({
+  dialogIsActive
+})
+
 const examProcess = useExamProcessStore()
 const finalResultObj = ref(null)
 const radarChartRef = ref(null)
@@ -351,7 +381,10 @@ const downloadReport = async () => {
     height="90%"
     class="report-dialog"
   >
-    <template #activator="{ props: activatorProps }">
+    <template
+      v-if="!hideActivator"
+      #activator="{ props: activatorProps }"
+    >
       <v-btn
         v-bind="activatorProps"
         variant="flat"

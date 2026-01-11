@@ -433,10 +433,11 @@ export const optionsCounselorReportList = (counselor_id, type = '0') => {
   return request
 }
 
-export const getCounselorReportListAPI = (target_id, type = '0') => {
+export const getCounselorReportListAPI = (target_id, type = '0', id = null) => {
   const data = jsonapiEnc('counselor', Date.now(), {
     target_id: target_id,
     type: type,
+    id: id,
   })
   const request = requestInstance.post(`psycard/counselor/report/list`, data, JSONAPI_HEADER)
   return request

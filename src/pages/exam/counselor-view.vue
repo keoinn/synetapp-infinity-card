@@ -14,9 +14,10 @@ const loading = ref(false)
 const appStore = useAppStore()
 const examProcessStore = useExamProcessStore()
 
-// 第一個下拉選單：類型選擇（組織/活動）
-const filterType = ref(null)
+// 第一個下拉選單：類型選擇（諮商/組織/活動）
+const filterType = ref('counselor')
 const filterTypeOptions = [
+  { title: '諮商', value: 'counselor' },
   { title: '組織', value: 'organization' },
   { title: '活動', value: 'event' }
 ]
@@ -31,8 +32,25 @@ const updateFilterValueOptions = async () => {
   filterValue.value = null
   filterValueOptions.value = []
   
-  // 如果沒有選擇類型或沒有 counselor_id，則不執行
-  if (!filterType.value || !appStore.counselor_id) {
+  // 如果沒有選擇類型，則不執行
+  if (!filterType.value) {
+    return
+  }
+  
+  // 如果是諮商類型，直接設置選項，不需要 API 調用
+  if (filterType.value === 'counselor') {
+    filterValueOptions.value = [
+      { title: '我建立的', value: 'my_created' },
+      { title: '諮商案例', value: 'counselor_case' }
+    ]
+    // 預設選擇 "我建立的"
+    filterValue.value = 'my_created'
+    console.log('載入諮商類型選項完成')
+    return
+  }
+  
+  // 如果是組織或活動類型，需要 counselor_id 和 API 調用
+  if (!appStore.counselor_id) {
     return
   }
   
@@ -106,6 +124,14 @@ onMounted(async () => {
     return
   }
   
+  // 初始化時載入預設選項（諮商類型）
+  await updateFilterValueOptions()
+  
+  // 當 filterType 為 'counselor' 時，預設選擇 "我建立的"
+  if (filterType.value === 'counselor' && filterValueOptions.value.length > 0) {
+    filterValue.value = 'my_created'
+  }
+  
   // 初始載入時不載入報告，等待用戶選擇過濾條件
   // await loadReports()
 })
@@ -132,11 +158,31 @@ const loadReports = async () => {
     examProcessStore.resetStore()
     
     // 根據 filterType 決定 type 參數
-    // type = '0' 為活動，type = '1' 為組織
-    const type = filterType.value === 'event' ? '0' : '1'
+    // event = '0', organization = '1', counselor = '-1'
+    let type = '1' // 預設為組織
+    if (filterType.value === 'event') {
+      type = '0'
+    } else if (filterType.value === 'organization') {
+      type = '1'
+    } else if (filterType.value === 'counselor') {
+      type = '-1'
+    }
+
+    console.log('type', type)
+    console.log('filterValue.value', filterValue.value)
     
     // 使用 getCounselorReportListAPI 查詢報告
-    const res = await getCounselorReportListAPI(filterValue.value, type)
+    let res
+    if (filterType.value === 'counselor' && filterValue.value === 'my_created') {
+      // 諮商類型 - 我建立的：傳遞 uid
+      res = await getCounselorReportListAPI(filterValue.value, type, appStore.user_id)
+    } else if (filterType.value === 'counselor' && filterValue.value === 'counselor_case') {
+      // 諮商類型 - 諮商案例：傳遞 counselor_id
+      res = await getCounselorReportListAPI(filterValue.value, type, appStore.counselor_id)
+    } else {
+      // 其他情況（活動或組織）：只傳遞 filterValue 和 type
+      res = await getCounselorReportListAPI(filterValue.value, type)
+    }
     
     // 解析 API 回應
     let reportListData = []
@@ -252,7 +298,8 @@ const handleUpdateReportEmail = (data) => {
         <v-select
           v-model="filterValue"
           :items="filterValueOptions"
-          :label="filterType === 'organization' ? '組織' : filterType === 'event' ? '活動' : '請先選擇類型'"
+          :label="filterType === 'counselor' ? '諮商類型' : filterType === 'organization' ? '組織' : filterType === 'event' ? '活動' : '請先選擇類型'"
+          :placeholder="filterType === 'counselor' ? '諮商類型' : filterType === 'organization' ? '組織' : filterType === 'event' ? '活動' : '請先選擇類型'"
           variant="outlined"
           density="compact"
           :disabled="!filterType"
@@ -287,6 +334,7 @@ const handleUpdateReportEmail = (data) => {
       >
         <ExamPanel
           :report="report" 
+          view-mode="counselor"
           @update-report-name="handleUpdateReportName"
           @update-report-email="handleUpdateReportEmail"
         />

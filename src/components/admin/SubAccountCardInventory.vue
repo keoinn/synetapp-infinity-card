@@ -73,40 +73,40 @@ const loadOrganizations = async () => {
       }
     } else {
       // 管理員角色：從 API 讀取所有機構
-      console.log('載入機構列表...')
-      const response = await optionsOrgList('all')
-      console.log('載入機構列表回應:', response)
+    console.log('載入機構列表...')
+    const response = await optionsOrgList('all')
+    console.log('載入機構列表回應:', response)
+    
+    // 解析 API 回應（支援多種格式）
+    let orgList = []
+    
+    if (response?.data?.attributes?.org_list || response?.data?.attributes?.organization_list) {
+      orgList = response.data.attributes.org_list || response.data.attributes.organization_list
+    } else if (response?.attributes?.org_list || response?.attributes?.organization_list) {
+      orgList = response.attributes.org_list || response.attributes.organization_list
+    } else if (response?.org_list || response?.organization_list) {
+      orgList = response.org_list || response.organization_list
+    } else if (Array.isArray(response)) {
+      orgList = response
+    } else if (response?.data && Array.isArray(response.data)) {
+      orgList = response.data
+    }
+    
+    if (Array.isArray(orgList) && orgList.length > 0) {
+      organizations.value = orgList.map(mapOrgData)
+      console.log('載入完成，共', organizations.value.length, '筆機構資料')
       
-      // 解析 API 回應（支援多種格式）
-      let orgList = []
-      
-      if (response?.data?.attributes?.org_list || response?.data?.attributes?.organization_list) {
-        orgList = response.data.attributes.org_list || response.data.attributes.organization_list
-      } else if (response?.attributes?.org_list || response?.attributes?.organization_list) {
-        orgList = response.attributes.org_list || response.attributes.organization_list
-      } else if (response?.org_list || response?.organization_list) {
-        orgList = response.org_list || response.organization_list
-      } else if (Array.isArray(response)) {
-        orgList = response
-      } else if (response?.data && Array.isArray(response.data)) {
-        orgList = response.data
-      }
-      
-      if (Array.isArray(orgList) && orgList.length > 0) {
-        organizations.value = orgList.map(mapOrgData)
-        console.log('載入完成，共', organizations.value.length, '筆機構資料')
-        
-        // 如果有機構且未選擇，自動選擇第一個
-        if (organizations.value.length > 0 && !selectedOrg.value) {
+      // 如果有機構且未選擇，自動選擇第一個
+      if (organizations.value.length > 0 && !selectedOrg.value) {
           await selectOrganization(organizations.value[0])
-        }
-      } else {
-        console.warn('API 回應格式不符合預期:', response)
-        handleAlert({
-          auction: 'error',
-          text: t('admin.loadOrganizationsError') || '載入機構資料失敗'
-        })
-        organizations.value = []
+      }
+    } else {
+      console.warn('API 回應格式不符合預期:', response)
+      handleAlert({
+        auction: 'error',
+        text: t('admin.loadOrganizationsError') || '載入機構資料失敗'
+      })
+      organizations.value = []
       }
     }
   } catch (error) {
