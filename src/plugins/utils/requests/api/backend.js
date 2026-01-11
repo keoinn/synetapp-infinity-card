@@ -449,3 +449,20 @@ export const getOrgUserAPI = (user_id) => {
   const request = requestInstance.post(`psycard/org/user/${user_id}`, data, JSONAPI_HEADER)
   return request
 }
+
+// 新增指派諮商師
+export const createCounselorAssignmentAPI = (report_sn, counselor_ids) => {
+  const data = jsonapiEnc('counselor', Date.now(), {
+    counselor_ids: counselor_ids,
+    report_sn: report_sn
+  })
+  const request = requestInstance.post(`psycard/counselor/access/new`, data, JSONAPI_HEADER)
+  return request
+}
+
+// 取得指派諮商師列表
+export const getCounselorAssignmentListAPI = () => {
+  const data = jsonapiEnc('counselor', Date.now(), {})
+  const request = requestInstance.post(`psycard/counselor/access/list`, data, JSONAPI_HEADER)
+  return request
+}

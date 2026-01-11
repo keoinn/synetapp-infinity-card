@@ -387,28 +387,28 @@ const statusString = computed(() => {
     <v-card-actions>
       <!-- 用戶模式：顯示設定信箱和開始測驗 -->
       <template v-if="currentViewMode === 'user'">
-        <v-btn
-          variant="tonal"
-          color="#1976D2"
-          size="large"
-          rounded="xl"
-          @click="openEmailDialog"
-        >
-          <v-icon>mdi-email</v-icon>
-          {{ t('exam.examPanelSetEmail') }}
-        </v-btn>
+      <v-btn
+        variant="tonal"
+        color="#1976D2"
+        size="large"
+        rounded="xl"
+        @click="openEmailDialog"
+      >
+        <v-icon>mdi-email</v-icon>
+        {{ t('exam.examPanelSetEmail') }}
+      </v-btn>
 
-        <v-spacer />
-        <v-btn
-          variant="tonal"
-          color="#FA5015"
-          size="large"
-          rounded="xl"
-          @click="startExam"
-        >
-          <v-icon>mdi-pencil</v-icon>
-          {{ t('exam.examPanelStartExam') }}
-        </v-btn>
+      <v-spacer />
+      <v-btn
+        variant="tonal"
+        color="#FA5015"
+        size="large"
+        rounded="xl"
+        @click="startExam"
+      >
+        <v-icon>mdi-pencil</v-icon>
+        {{ t('exam.examPanelStartExam') }}
+      </v-btn>
       </template>
 
       <!-- 諮商師模式：顯示諮商師報告和客戶報告 -->

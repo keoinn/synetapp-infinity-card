@@ -11,6 +11,7 @@ import OrganizationCardInventory from '@/components/admin/OrganizationCardInvent
 import SubAccountCardInventory from '@/components/admin/SubAccountCardInventory.vue'
 import CounselorManagement from '@/components/admin/CounselorManagement.vue'
 import WorkshopManagement from '@/components/admin/WorkshopManagement.vue'
+import CounselorAssignment from '@/components/admin/CounselorAssignment.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const router = useRouter()
@@ -146,6 +147,11 @@ const allMenuItems = [
     value: 'workshops'
   },
   {
+    title: '指派諮商師',
+    icon: 'mdi-account-plus',
+    value: 'counselorAssignment'
+  },
+  {
     title: t('admin.statistics'),
     icon: 'mdi-chart-line',
     value: 'statistics'
@@ -156,6 +162,8 @@ const allMenuItems = [
 const menuItems = computed(() => {
   // 判斷是否為機構身份
   const isOrganization = currentRole.value === 'organization' || currentRole.value === 'org'
+  // 判斷是否為管理員
+  const isAdmin = currentRole.value === 'admin'
   
   if (isOrganization) {
     // 機構身份只顯示：儀表板、機構管理、附屬帳號管理、附屬帳號卡片庫存、統計數據
@@ -168,8 +176,13 @@ const menuItems = computed(() => {
     )
   }
   
-  // 其他身份顯示所有功能
-  return allMenuItems
+  if (isAdmin) {
+    // 管理員顯示所有功能（包括指派諮商師）
+    return allMenuItems
+  }
+  
+  // 其他身份顯示所有功能（但不包括指派諮商師）
+  return allMenuItems.filter(item => item.value !== 'counselorAssignment')
 })
 
 // 權限驗證
@@ -329,9 +342,9 @@ onBeforeUnmount(() => {
       </v-menu>
 
       <v-btn
+        class="mr-4"
         :prepend-icon="'mdi-home'"
         @click="handleBackToHome"
-        class="mr-4"
       >
         {{ t('common.backToHome') }}
       </v-btn>
@@ -379,14 +392,15 @@ onBeforeUnmount(() => {
             <v-card-title class="d-flex align-center">
               <v-icon
                 class="mr-2"
-                :icon="activeTab === 'dashboard' ? 'mdi-view-dashboard' : 
-                       activeTab === 'users' ? 'mdi-account-group' : 
-                       activeTab === 'organizations' ? 'mdi-office-building' :
-                       activeTab === 'subAccounts' ? 'mdi-account-multiple' :
-                       activeTab === 'subAccountCards' ? 'mdi-card-multiple' :
-                       activeTab === 'cards' ? 'mdi-cards' :
-                       activeTab === 'counselors' ? 'mdi-account-tie' :
-                       activeTab === 'workshops' ? 'mdi-calendar-multiple-check' : 'mdi-chart-line'"
+                :icon="activeTab === 'dashboard' ? 'mdi-view-dashboard' :
+                  activeTab === 'users' ? 'mdi-account-group' :
+                  activeTab === 'organizations' ? 'mdi-office-building' :
+                  activeTab === 'subAccounts' ? 'mdi-account-multiple' :
+                  activeTab === 'subAccountCards' ? 'mdi-card-multiple' :
+                  activeTab === 'cards' ? 'mdi-cards' :
+                  activeTab === 'counselors' ? 'mdi-account-tie' :
+                  activeTab === 'workshops' ? 'mdi-calendar-multiple-check' :
+                  activeTab === 'counselorAssignment' ? 'mdi-account-plus' : 'mdi-chart-line'"
               />
               {{ menuItems.find(item => item.value === activeTab)?.title }}
             </v-card-title>
@@ -400,6 +414,7 @@ onBeforeUnmount(() => {
               <OrganizationCardInventory v-else-if="activeTab === 'cards'" />
               <CounselorManagement v-else-if="activeTab === 'counselors'" />
               <WorkshopManagement v-else-if="activeTab === 'workshops'" />
+              <CounselorAssignment v-else-if="activeTab === 'counselorAssignment'" />
               <div
                 v-else
                 class="text-center py-10"
