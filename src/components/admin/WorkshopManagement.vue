@@ -342,15 +342,19 @@ const addWorkshop = () => {
 
 const editWorkshop = (item) => {
   editedItem.value = { ...item }
+  originalSt.value = item.st // 記錄原始狀態
   editMode.value = true
   dialog.value = true
 }
 
 const saving = ref(false)
+const originalSt = ref('0') // 記錄編輯前的原始狀態
 
 // 判斷活動是否已結束（只能查看，不能編輯）
+// 只有在打開對話視窗時狀態已經是 '2' 時才認為是已結束（只讀模式）
+// 如果用戶在編輯過程中將狀態改為 '2'，應該允許儲存
 const isEnded = computed(() => {
-  return editMode.value && editedItem.value.st === '2'
+  return editMode.value && originalSt.value === '2'
 })
 
 const saveWorkshop = async () => {
@@ -1158,7 +1162,7 @@ const formatDate = (dateString) => {
             color="primary"
             variant="text"
             :loading="saving"
-            :disabled="saving || isEnded"
+            :disabled="saving"
             @click="saveWorkshop"
           >
             {{ t('common.save') }}

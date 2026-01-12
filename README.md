@@ -1,19 +1,11 @@
 # 無限可能卡 | Infinity Card
 
-## 網站架構
+### TODO: 待修正計劃
 
-- 首頁
-- 關於我們
-- 產品介紹
-- 聯絡我們
-
-```mermaid
-%%{init: {"flowchart": {"htmlLabels": false}} }%%
-flowchart LR
-    Login["登入頁面"]
-    markdown["`This **is** _Markdown_`"]
-    newLines["`Line1
-    Line 2
-    Line 3`"]
-    markdown --> newLines
-```
+1. 雷達圖-同高顯示
+   * 影響範圍使用者報告、諮商師報告
+2. 預留文字填充 (等待文字檔完成)
+   * 影響範圍使用者報告、諮商師報告
+3. 活動登入檢查活動狀態、時間
+4. 操作畫面 RWD 單張顯示
+   * 影響範圍 Exam 活動與後台紀錄
